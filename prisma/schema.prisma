@@ -21,3 +21,20 @@ model Submission {
   
   @@index([userId, algorithmId])
 } 
+
+model Algorithm {
+  id          String   @id @default(uuid())
+  title       String
+  category    String
+  summary     String
+  description String
+  difficulty  String
+  tags        String
+  notes       String
+  completed   Boolean  @default(false)
+  files       String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([category])
+} 
