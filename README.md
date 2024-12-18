@@ -1,99 +1,204 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# Algorithm Gateway Service - Technical Specification v2.0
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+## 1. Service Overview
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://coveralls.io/github/nestjs/nest?branch=master" target="_blank"><img src="https://coveralls.io/repos/github/nestjs/nest/badge.svg?branch=master#9" alt="Coverage" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+The Algorithm Gateway Service serves as the central API gateway for the algorithm platform, implementing a robust, secure, and scalable interface between clients and backend microservices.
 
-## Description
+### 1.1 Core Responsibilities
+- Algorithm management and discovery
+- Daily algorithm rotation and delivery
+- Secure code execution orchestration
+- User submission tracking and analytics
+- Authentication and authorization
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
+### 1.2 Key Quality Attributes
+- High Availability: 99.9% uptime
+- Response Time: < 200ms (p95)
+- Scalability: Horizontal scaling support
+- Security: Zero-trust architecture
+- Observability: Full request tracing
 
-## Project setup
+## 2. API Specifications
 
-```bash
-$ yarn install
+### 2.1 Algorithm Management
+
+* GET /api/v1/algorithms
+* GET /api/v1/algorithms/daily
+* POST /api/v1/algorithms/run
+
+## 3. Technical Architecture
+
+### 3.1 Module Structure
+```
+src/
+├── main.ts
+├── app.module.ts
+├── common/
+│   ├── decorators/
+│   │   ├── api-paginated-response.decorator.ts
+│   │   └── roles.decorator.ts
+│   ├── filters/
+│   │   ├── http-exception.filter.ts
+│   │   └── validation.filter.ts
+│   ├── guards/
+│   │   ├── jwt-auth.guard.ts
+│   │   └── roles.guard.ts
+│   ├── interceptors/
+│   │   ├── logging.interceptor.ts
+│   │   ├── transform.interceptor.ts
+│   │   └── timeout.interceptor.ts
+│   └── pipes/
+│       └── validation.pipe.ts
+├── config/
+│   ├── config.module.ts
+│   ├── config.service.ts
+│   └── validation-schema.ts
+├── modules/
+│   ├── algorithm/
+│   │   ├── algorithm.module.ts
+│   │   ├── algorithm.controller.ts
+│   │   ├── algorithm.service.ts
+│   │   ├── dto/
+│   │   ├── entities/
+│   │   └── repositories/
+│   ├── daily-algorithm/
+│   ├── execution/
+│   └── submission/
+├── infrastructure/
+│   ├── database/
+│   │   ├── migrations/
+│   │   └── seeds/
+│   ├── messaging/
+│   │   └── queue.service.ts
+│   └── cache/
+│       └── redis.service.ts
+└── observability/
+    ├── logger/
+    ├── metrics/
+    └── tracing/
 ```
 
-## Compile and run the project
+### 3.2 Core Components
 
-```bash
-# development
-$ yarn run start
+#### Database Layer
+- Primary: PostgreSQL with Prisma
+- Cache: Redis for frequently accessed data
+- Migrations: Versioned and automated
 
-# watch mode
-$ yarn run start:dev
+#### Message Queue (skip this for now)
+- RabbitMQ for asynchronous queries
+- Dead letter queues for failed executions
+- Message persistence and retry policies
 
-# production mode
-$ yarn run start:prod
+#### Caching Strategy
+```typescript
+interface CacheConfig {
+  algorithms: {
+    ttl: 300; // 5 minutes
+    invalidationEvents: ['algorithm.updated', 'algorithm.created'];
+  };
+  dailyAlgorithm: {
+    ttl: 86400; // 24 hours
+    invalidationEvents: ['daily.rotated'];
+  };
+}
 ```
 
-## Run tests
+## 4. Security Implementation
 
-```bash
-# unit tests
-$ yarn run test
+### 4.1 Authentication & Authorization
+```typescript
+@Injectable()
+export class JwtAuthGuard implements CanActivate {
+  // Implementation with refresh token rotation
+}
 
-# e2e tests
-$ yarn run test:e2e
-
-# test coverage
-$ yarn run test:cov
+@Injectable()
+export class RolesGuard implements CanActivate {
+  // RBAC implementation
+}
 ```
 
-## Deployment
-
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
-
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
-
-```bash
-$ yarn install -g mau
-$ mau deploy
+### 4.2 Rate Limiting
+```typescript
+interface RateLimitConfig {
+  windowMs: 15 * 60 * 1000; // 15 minutes
+  max: 100; // limit each IP to 100 requests per windowMs
+  message: 'Too many requests, please try again later.';
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## 5. Observability Stack
 
-## Resources
+### 5.1 Logging
+```typescript
+interface LogEntry {
+  timestamp: string;
+  correlationId: string;
+  level: 'ERROR' | 'WARN' | 'INFO' | 'DEBUG';
+  message: string;
+  context: {
+    service: string;
+    method: string;
+    path: string;
+  };
+  metadata?: Record<string, any>;
+}
+```
 
-Check out a few resources that may come in handy when working with NestJS:
+### 5.2 Metrics
+- Request duration histograms
+- Error rate counters
+- Queue length gauges
+- Resource utilization metrics
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+### 5.3 Tracing
+- OpenTelemetry integration
+- Distributed tracing across services
+- Performance bottleneck identification
 
-## Support
+## 6. Testing Strategy
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### 6.1 Unit Tests
+```typescript
+describe('AlgorithmService', () => {
+  // Comprehensive unit test suite
+});
+```
 
-## Stay in touch
+### 6.2 Integration Tests
+```typescript
+describe('AlgorithmController (e2e)', () => {
+  // API endpoint testing
+});
+```
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+### 6.3 Performance Tests
+- Load testing scenarios
+- Stress testing configurations
+- Endurance testing parameters
 
-## License
+## 7. Error Handling
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+### 7.1 Standard Error Response
+```typescript
+interface ApiError {
+  error: {
+    code: string;
+    message: string;
+    details?: any;
+    correlationId: string;
+    timestamp: string;
+  };
+}
+```
+
+## 8. Deployment Configuration
+
+### 8.1 Kubernetes Resources
+```yaml
+# Deployment configuration with:
+- Resource limits and requests
+- Health check probes
+- Horizontal Pod Autoscaling
+- Network policies
