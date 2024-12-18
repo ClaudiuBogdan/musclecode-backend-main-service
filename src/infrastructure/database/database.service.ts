@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { SubmissionRepository } from './repository/submission.service';
+import { SubmissionRepository } from './repository/submissions/submission.repository';
 
 @Injectable()
 export class DatabaseService {

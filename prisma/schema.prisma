@@ -1,0 +1,23 @@
+// This is your Prisma schema file
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Submission {
+  id          String   @id @default(uuid())
+  userId      String
+  algorithmId String
+  code        String
+  language    String
+  notes       String
+  difficulty  String
+  timeSpent   Int
+  createdAt   DateTime @default(now())
+  
+  @@index([userId, algorithmId])
+} 

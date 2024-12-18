@@ -28,7 +28,7 @@ export class SubmissionService {
     return submission;
   }
 
-  getSubmissions(userId: string, algorithmId: string): Submission[] {
+  getSubmissions(userId: string, algorithmId: string): Promise<Submission[]> {
     return this.dbService.submissions.get(userId, algorithmId);
   }
 }

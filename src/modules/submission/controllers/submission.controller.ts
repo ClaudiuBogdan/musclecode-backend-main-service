@@ -26,7 +26,7 @@ export class SubmissionController {
   getSubmissions(
     @Param('id') algorithmId: string,
     @CurrentUser() user: UserContext,
-  ): Submission[] {
+  ): Promise<Submission[]> {
     return this.submissionService.getSubmissions(user.id, algorithmId);
   }
 }
