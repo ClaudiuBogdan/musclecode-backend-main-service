@@ -7,7 +7,7 @@ export interface Submission {
   timeSpent: number;
   code: string;
   language: string;
-  notes: string;
+  notes?: string;
   difficulty: Difficulty;
   createdAt: string;
 }

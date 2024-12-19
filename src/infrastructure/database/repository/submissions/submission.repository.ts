@@ -5,6 +5,7 @@ import {
   Difficulty,
   Submission,
 } from 'src/modules/submission/interfaces/submission.interface';
+import { CodeLanguage } from 'src/modules/algorithm/interfaces/algorithm.interface';
 
 @Injectable()
 export class SubmissionRepository implements ISubmissionRepository {
@@ -20,9 +21,9 @@ export class SubmissionRepository implements ISubmissionRepository {
         userId,
         algorithmId,
         code: data.code,
-        language: data.language,
-        notes: data.notes,
+        notes: data.notes || undefined,
         difficulty: data.difficulty,
+        language: data.language,
         timeSpent: data.timeSpent,
       },
     });
@@ -40,8 +41,14 @@ export class SubmissionRepository implements ISubmissionRepository {
     });
 
     return submissions.map((sub) => ({
-      ...sub,
+      id: sub.id,
+      userId: sub.userId,
+      algorithmId: sub.algorithmId,
+      code: sub.code,
+      notes: sub.notes || undefined,
       difficulty: sub.difficulty as Difficulty,
+      language: sub.language as CodeLanguage,
+      timeSpent: sub.timeSpent,
       createdAt: sub.createdAt.toISOString(),
     }));
   }

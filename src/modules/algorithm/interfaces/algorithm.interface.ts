@@ -52,7 +52,7 @@ export class AlgorithmFile {
   required?: boolean;
 }
 
-export class Algorithm {
+export class AlgorithmTemplate {
   @ApiProperty({ description: 'Unique identifier of the algorithm' })
   id: string;
 
@@ -80,17 +80,97 @@ export class Algorithm {
   })
   tags: string[];
 
-  @ApiProperty({ description: 'Notes about the algorithm' })
-  notes: string;
-
   @ApiProperty({
     description: 'Files associated with the algorithm',
     type: [AlgorithmFile],
   })
   files: AlgorithmFile[];
 
-  @ApiProperty({ description: 'Whether the algorithm has been completed' })
-  completed: boolean;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-export type AlgorithmPreview = Omit<Algorithm, 'files'>;
+export class AlgorithmUserData {
+  @ApiProperty({ description: 'Unique identifier of the user data' })
+  id: string;
+
+  @ApiProperty({ description: 'User ID' })
+  userId: string;
+
+  @ApiProperty({ description: 'Algorithm ID' })
+  algorithmId: string;
+
+  @ApiProperty({
+    description: 'User notes about the algorithm',
+    required: false,
+  })
+  notes?: string;
+
+  @ApiProperty({ description: 'Creation timestamp' })
+  createdAt: Date;
+}
+
+export class DailyAlgorithm {
+  @ApiProperty({ description: 'Unique identifier of the daily algorithm' })
+  id: string;
+
+  @ApiProperty({ description: 'User ID' })
+  userId: string;
+
+  @ApiProperty({ description: 'Algorithm ID' })
+  algorithmId: string;
+
+  @ApiProperty({ description: 'Date for this daily algorithm' })
+  date: Date;
+
+  @ApiProperty({ description: 'Whether the algorithm has been completed' })
+  completed: boolean;
+
+  @ApiProperty({ description: 'Creation timestamp' })
+  createdAt: Date;
+}
+
+export class AlgorithmSubmission {
+  @ApiProperty({ description: 'Unique identifier of the submission' })
+  id: string;
+
+  @ApiProperty({ description: 'User ID' })
+  userId: string;
+
+  @ApiProperty({ description: 'Algorithm ID' })
+  algorithmId: string;
+
+  @ApiProperty({ description: 'Difficulty level of the submission' })
+  difficulty: 'easy' | 'medium' | 'hard';
+
+  @ApiProperty({ description: 'Notes about the submission' })
+  notes?: string;
+
+  @ApiProperty({ description: 'Submitted code' })
+  code: string;
+
+  @ApiProperty({
+    description: 'Programming language of the submission',
+    enum: CodeLanguage,
+  })
+  language: CodeLanguage;
+
+  @ApiProperty({ description: 'Time spent on the solution in seconds' })
+  timeSpent: number;
+
+  @ApiProperty({ description: 'Creation timestamp' })
+  createdAt: Date;
+}
+
+export class AlgorithmUserProgress {
+  @ApiProperty({ description: 'User-specific algorithm data' })
+  algorithmUserData: AlgorithmUserData;
+
+  @ApiProperty({ description: 'Daily algorithm status', required: false })
+  dailyAlgorithm: DailyAlgorithm | null;
+
+  @ApiProperty({ description: 'Base algorithm template' })
+  algorithmTemplate: AlgorithmTemplate;
+}
+
+export type AlgorithmPreview = Omit<AlgorithmTemplate, 'files'>;

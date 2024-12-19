@@ -8,33 +8,59 @@ generator client {
   provider = "prisma-client-js"
 }
 
-model Submission {
-  id          String   @id @default(uuid())
-  userId      String
-  algorithmId String
-  code        String
-  language    String
-  notes       String
-  difficulty  String
-  timeSpent   Int
-  createdAt   DateTime @default(now())
-  
-  @@index([userId, algorithmId])
-} 
-
-model Algorithm {
+model AlgorithmTemplate {
   id          String   @id @default(uuid())
   title       String
   category    String
   summary     String
   description String
   difficulty  String
-  tags        String
-  notes       String
-  completed   Boolean  @default(false)
-  files       String
+  tags        String   // Stored as JSON string
+  files       String   // Stored as JSON string
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
+  userAlgorithms AlgorithmUserData[]
+  dailyAlgorithms DailyAlgorithm[]
+
   @@index([category])
+}
+
+model AlgorithmUserData {
+  id          String    @id @default(uuid())
+  userId      String
+  algorithmId String
+  notes       String?
+  createdAt   DateTime  @default(now())
+  algorithm   AlgorithmTemplate @relation(fields: [algorithmId], references: [id])
+
+  @@unique([userId, algorithmId])
+  @@index([userId])
+}
+
+model DailyAlgorithm {
+  id          String    @id @default(uuid())
+  userId      String
+  algorithmId String
+  date        DateTime
+  completed   Boolean   @default(false)
+  createdAt   DateTime  @default(now())
+  algorithm   AlgorithmTemplate @relation(fields: [algorithmId], references: [id])
+
+  @@unique([userId, algorithmId, date])
+  @@index([userId, date])
+}
+
+model Submission {
+  id          String   @id @default(uuid())
+  userId      String
+  algorithmId String
+  code        String
+  language    String
+  timeSpent   Int
+  notes       String?
+  difficulty  String
+  createdAt   DateTime @default(now())
+  
+  @@index([userId, algorithmId])
 } 

@@ -1,22 +1,16 @@
 import {
-  Algorithm,
   AlgorithmFileType,
+  AlgorithmTemplate,
   CodeLanguage,
 } from '../interfaces/algorithm.interface';
 
-export const seedAlgorithms = (): Algorithm[] => {
+export const seedAlgorithms = (): AlgorithmTemplate[] => {
   return [
     {
       id: 'bubble-sort',
       title: 'Bubble Sort',
       category: 'Sorting',
       tags: ['sorting', 'bubble sort'],
-      notes: `
-# Bubble Sort
-
-Bubble Sort is a simple sorting algorithm that repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order. The pass through the list is repeated until the list is sorted.
-      `,
-      completed: false,
       summary:
         'A simple sorting algorithm that repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order.',
       description: `
@@ -61,7 +55,7 @@ Sorted array: [11, 12, 22, 25, 34, 64, 90]
           name: 'solution',
           type: AlgorithmFileType.SOLUTION,
           content:
-            'export function bubbleSort(arr: number[]): number[] {\n  const n = arr.length;\n  for (let i = 0; i < n - 1; i++) {\nfor (let j = 0; j < n - i - 1; j++) {\n  if (arr[j] > arr[j + 1]) {\n// Swap elements\n[arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];\n  }\n}\n  }\n  return arr;\n}',
+            'export function bubbleSort(arr: number[]): number[] {\n  const n = arr.length;\n  for (let i = 0; i < n - 1; i++) {\n    for (let j = 0; j < n - i - 1; j++) {\n      if (arr[j] > arr[j + 1]) {\n        // Swap elements\n        [arr[j], arr[j + 1]] = [arr[j + 1], arr[j]];\n      }\n    }\n  }\n  return arr;\n}',
           language: CodeLanguage.TYPESCRIPT,
           extension: 'ts',
           required: true,
@@ -97,18 +91,14 @@ Sorted array: [11, 12, 22, 25, 34, 64, 90]
           readOnly: true,
         },
       ],
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       id: 'selection-sort',
       title: 'Selection Sort',
       category: 'Sorting',
       tags: ['sorting', 'selection sort'],
-      notes: `
-# Selection Sort
-
-Selection Sort is a simple sorting algorithm that divides the input list into two parts: a sorted portion at the left end and an unsorted portion at the right end. Initially, the sorted portion is empty and the unsorted portion is the entire list.
-      `,
-      completed: false,
       summary:
         'A sorting algorithm that selects the smallest element from an unsorted part and puts it at the beginning.',
       description: `
@@ -150,7 +140,7 @@ Sorted array: [11, 12, 22, 25, 64]
           name: 'solution',
           type: AlgorithmFileType.SOLUTION,
           content:
-            'export function selectionSort(arr: number[]): number[] {\n  const n = arr.length;\n  for (let i = 0; i < n - 1; i++) {\nlet minIdx = i;\nfor (let j = i + 1; j < n; j++) {\n  if (arr[j] < arr[minIdx]) {\nminIdx = j;\n  }\n}\nif (minIdx !== i) {\n  [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];\n}\n  }\n  return arr;\n}',
+            'export function selectionSort(arr: number[]): number[] {\n  const n = arr.length;\n  for (let i = 0; i < n - 1; i++) {\n    let minIdx = i;\n    for (let j = i + 1; j < n; j++) {\n      if (arr[j] < arr[minIdx]) {\n        minIdx = j;\n      }\n    }\n    if (minIdx !== i) {\n      [arr[i], arr[minIdx]] = [arr[minIdx], arr[i]];\n    }\n  }\n  return arr;\n}',
           language: CodeLanguage.TYPESCRIPT,
           required: true,
           extension: 'ts',
@@ -186,13 +176,14 @@ Sorted array: [11, 12, 22, 25, 64]
           readOnly: true,
         },
       ],
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       id: 'insertion-sort',
       title: 'Insertion Sort',
       category: 'Sorting',
       tags: ['sorting', 'insertion sort'],
-      notes: '',
       summary:
         'A simple sorting algorithm that builds the final sorted array one item at a time.',
       description: `
@@ -230,14 +221,13 @@ Sorted array: [1, 2, 3, 4, 5, 6]
 
 `,
       difficulty: 'easy',
-      completed: false,
       files: [
         {
           id: 'insertion-sort-solution-ts',
           name: 'solution',
           type: AlgorithmFileType.SOLUTION,
           content:
-            'export function insertionSort(arr: number[]): number[] {\n  for (let i = 1; i < arr.length; i++) {\nlet key = arr[i];\nlet j = i - 1;\nwhile (j >= 0 && arr[j] > key) {\n  arr[j + 1] = arr[j];\n  j--;\n}\narr[j + 1] = key;\n  }\n  return arr;\n}',
+            'export function insertionSort(arr: number[]): number[] {\n  for (let i = 1; i < arr.length; i++) {\n    let key = arr[i];\n    let j = i - 1;\n    while (j >= 0 && arr[j] > key) {\n      arr[j + 1] = arr[j];\n      j--;\n    }\n    arr[j + 1] = key;\n  }\n  return arr;\n}',
           language: CodeLanguage.TYPESCRIPT,
           extension: 'ts',
           required: true,
@@ -273,14 +263,16 @@ Sorted array: [1, 2, 3, 4, 5, 6]
           extension: 'py',
         },
       ],
+      createdAt: new Date(),
+      updatedAt: new Date(),
     },
     {
       id: 'merge-sort',
+      createdAt: new Date(),
+      updatedAt: new Date(),
       title: 'Merge Sort',
       category: 'Sorting',
       tags: ['sorting', 'merge sort'],
-      completed: false,
-      notes: '',
       summary:
         'A divide-and-conquer algorithm that divides the array into two halves, recursively sorts them, and then merges them.',
       description: `
@@ -362,11 +354,11 @@ Sorted array: [3, 9, 10, 27, 38, 43, 82]
     },
     {
       id: 'binary-search',
+      createdAt: new Date(),
+      updatedAt: new Date(),
       title: 'Binary Search',
       category: 'Searching',
       tags: ['searching', 'binary search'],
-      completed: false,
-      notes: '',
       summary:
         'A fast search algorithm that finds the position of a target value within a sorted array.',
       description: `
@@ -580,11 +572,11 @@ if __name__ == '__main__':
     },
     {
       id: 'depth-first-search',
+      createdAt: new Date(),
+      updatedAt: new Date(),
       title: 'Depth-First Search',
       category: 'Graph Traversal',
       tags: ['graph traversal', 'depth-first search'],
-      notes: '',
-      completed: false,
       summary:
         'A traversal approach that explores as far as possible along each branch before backtracking.',
       description: `
@@ -666,12 +658,12 @@ A -> B -> D -> E -> C -> F
       ],
     },
     {
-      id: '8',
+      id: 'breadth-first-search',
+      createdAt: new Date(),
+      updatedAt: new Date(),
       title: 'Breadth-First Search',
       category: 'Graph Traversal',
       tags: ['graph traversal', 'breadth-first search'],
-      notes: '',
-      completed: false,
       summary:
         'A traversal approach that explores all the nodes at the present depth prior to moving on to nodes at the next depth level.',
       description: `
