@@ -6,7 +6,7 @@ export class AuthService {
   private readonly defaultUser: UserContext = {
     id: 'dev-user-1',
     email: 'dev@example.com',
-    roles: ['user'],
+    roles: ['user', 'admin'],
   };
 
   getCurrentUser(): UserContext {

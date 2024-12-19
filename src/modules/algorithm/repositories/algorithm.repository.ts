@@ -1,60 +1,98 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
-import {
-  Algorithm,
-  IAlgorithmRepository,
-} from '../interfaces/algorithm.interface';
+import { Algorithm } from '../interfaces/algorithm.interface';
+import { CreateAlgorithmDto } from '../dto/create-algorithm.dto';
+import { UpdateAlgorithmDto } from '../dto/update-algorithm.dto';
+import { IAlgorithmRepository } from '../interfaces/algorithm-repository.interface';
+import { Prisma } from '@prisma/client';
 import { seedAlgorithms } from '../seed/algorithms.seed';
 
 @Injectable()
 export class AlgorithmRepository implements IAlgorithmRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) {}
+
+  async seed(): Promise<void> {
+    const algorithms = await this.prisma.algorithm.findMany();
+    if (algorithms.length > 0) return;
+
+    const newAlgorithms = seedAlgorithms().map((algorithm) => ({
+      ...algorithm,
+      tags: JSON.stringify(algorithm.tags),
+      files: JSON.stringify(algorithm.files),
+    }));
+
+    await this.prisma.algorithm.createMany({
+      data: newAlgorithms,
+    });
+    console.log('Algorithms seeded successfully');
+  }
 
   async findAll(): Promise<Algorithm[]> {
     const algorithms = await this.prisma.algorithm.findMany();
-    return algorithms.map(this.mapToAlgorithm);
-  }
-
-  async findDaily(): Promise<Algorithm[]> {
-    const algorithms = await this.prisma.algorithm.findMany({
-      take: 10,
-      orderBy: {
-        createdAt: 'desc',
-      },
-    });
-    return algorithms.map(this.mapToAlgorithm);
+    return algorithms.map(this.mapAlgorithmFromDb);
   }
 
   async findById(id: string): Promise<Algorithm | null> {
     const algorithm = await this.prisma.algorithm.findUnique({
       where: { id },
     });
-    return algorithm ? this.mapToAlgorithm(algorithm) : null;
+    if (!algorithm) return null;
+    return this.mapAlgorithmFromDb(algorithm);
   }
 
-  async create(
-    algorithm: Omit<Algorithm, 'id' | 'createdAt' | 'updatedAt'>,
-  ): Promise<Algorithm> {
-    const created = await this.prisma.algorithm.create({
+  async findDaily(): Promise<Algorithm[]> {
+    const today = new Date();
+    today.setUTCHours(0, 0, 0, 0);
+
+    const algorithms = await this.prisma.algorithm.findMany({
+      where: {
+        createdAt: {
+          gte: today,
+        },
+      },
+      orderBy: {
+        createdAt: 'desc',
+      },
+      take: 5,
+    });
+    return algorithms.map(this.mapAlgorithmFromDb);
+  }
+
+  async create(createAlgorithmDto: CreateAlgorithmDto): Promise<Algorithm> {
+    const algorithm = await this.prisma.algorithm.create({
       data: {
-        ...algorithm,
-        files: JSON.stringify(algorithm.files),
-        tags: JSON.stringify(algorithm.tags),
+        title: createAlgorithmDto.title,
+        category: createAlgorithmDto.category,
+        summary: createAlgorithmDto.summary,
+        description: createAlgorithmDto.description,
+        difficulty: createAlgorithmDto.difficulty,
+        tags: JSON.stringify(createAlgorithmDto.tags),
+        notes: createAlgorithmDto.notes || '',
+        files: JSON.stringify(createAlgorithmDto.files),
       },
     });
-    return this.mapToAlgorithm(created);
+
+    return this.mapAlgorithmFromDb(algorithm);
   }
 
-  async update(id: string, algorithm: Partial<Algorithm>): Promise<Algorithm> {
-    const updated = await this.prisma.algorithm.update({
+  async update(
+    id: string,
+    updateAlgorithmDto: UpdateAlgorithmDto,
+  ): Promise<Algorithm> {
+    const algorithm = await this.prisma.algorithm.update({
       where: { id },
       data: {
-        ...algorithm,
-        files: JSON.stringify(algorithm.files),
-        tags: JSON.stringify(algorithm.tags),
+        title: updateAlgorithmDto.title,
+        category: updateAlgorithmDto.category,
+        summary: updateAlgorithmDto.summary,
+        description: updateAlgorithmDto.description,
+        difficulty: updateAlgorithmDto.difficulty,
+        tags: JSON.stringify(updateAlgorithmDto.tags),
+        notes: updateAlgorithmDto.notes || '',
+        files: JSON.stringify(updateAlgorithmDto.files),
       },
     });
-    return this.mapToAlgorithm(updated);
+    return this.mapAlgorithmFromDb(algorithm);
   }
 
   async delete(id: string): Promise<void> {
@@ -63,31 +101,20 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     });
   }
 
-  async seed(): Promise<void> {
-    const count = await this.prisma.algorithm.count();
-    if (count === 0) {
-      const algorithms = seedAlgorithms();
-      await Promise.all(
-        algorithms.map((algorithm) =>
-          this.prisma.algorithm.create({
-            data: {
-              ...algorithm,
-              files: JSON.stringify(algorithm.files),
-              tags: JSON.stringify(algorithm.tags),
-            },
-          }),
-        ),
-      );
-    }
-  }
-
-  private mapToAlgorithm(data: any): Algorithm {
+  private mapAlgorithmFromDb(
+    algorithm: Prisma.AlgorithmGetPayload<any>,
+  ): Algorithm {
     return {
-      ...data,
-      files: JSON.parse(data.files),
-      tags: JSON.parse(data.tags),
-      createdAt: data.createdAt.toISOString(),
-      updatedAt: data.updatedAt.toISOString(),
+      id: algorithm.id,
+      title: algorithm.title,
+      category: algorithm.category,
+      summary: algorithm.summary,
+      description: algorithm.description,
+      difficulty: algorithm.difficulty as 'easy' | 'medium' | 'hard',
+      tags: JSON.parse(algorithm.tags),
+      notes: algorithm.notes,
+      files: JSON.parse(algorithm.files),
+      completed: algorithm.completed,
     };
   }
 }

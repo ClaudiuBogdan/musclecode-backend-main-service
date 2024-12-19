@@ -4,7 +4,7 @@ import { Submission } from '../interfaces/submission.interface';
 import { CurrentUser } from '../../auth/decorators/user.decorator';
 import { UserContext } from '../../auth/interfaces/user-context.interface';
 
-@Controller('api/algorithms')
+@Controller('api/v1/algorithms')
 export class SubmissionController {
   constructor(private readonly submissionService: SubmissionService) {}
 
