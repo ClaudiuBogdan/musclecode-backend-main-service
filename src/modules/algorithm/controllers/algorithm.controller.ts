@@ -210,11 +210,9 @@ export class AlgorithmController {
     >,
   ): Promise<AlgorithmSubmission> {
     return this.algorithmService.createSubmission(
-      {
-        ...submission,
-        algorithmId,
-      },
       userId,
+      algorithmId,
+      submission,
     );
   }
 

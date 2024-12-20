@@ -25,16 +25,19 @@ model AlgorithmTemplate {
 }
 
 model AlgorithmUserData {
-  id          String    @id @default(uuid())
-  userId      String
-  algorithmId String
-  notes       String?
-  createdAt   DateTime  @default(now())
-  algorithm   AlgorithmTemplate @relation(fields: [algorithmId], references: [id])
-  submissions Submission[]
+  id           String    @id @default(uuid())
+  userId       String
+  algorithmId  String
+  notes        String?
+  createdAt    DateTime  @default(now())
+  due          DateTime  @default(now())  // Next review date
+  scheduleData String    // FSRS scheduling data as JSON string
+  algorithm    AlgorithmTemplate @relation(fields: [algorithmId], references: [id])
+  submissions  Submission[]
 
   @@unique([userId, algorithmId])
   @@index([userId])
+  @@index([due])
 }
 
 model Submission {
@@ -47,6 +50,7 @@ model Submission {
   timeSpent           Int
   notes               String?
   difficulty          String
+  scheduleData        String            // Snapshot of schedule data as JSON string
   createdAt           DateTime          @default(now())
   algorithmUserData   AlgorithmUserData @relation(fields: [algorithmUserDataId], references: [id])
 

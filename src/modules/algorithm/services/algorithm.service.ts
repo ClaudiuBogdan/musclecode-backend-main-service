@@ -2,12 +2,13 @@ import { Injectable, OnModuleInit, NotFoundException } from '@nestjs/common';
 import {
   AlgorithmTemplate,
   AlgorithmPracticeData,
-  DailyAlgorithm,
   AlgorithmSubmission,
+  DailyAlgorithm,
 } from '../interfaces/algorithm.interface';
-import { AlgorithmRepository } from '../repositories/algorithm.repository';
 import { CreateAlgorithmDto } from '../dto/create-algorithm.dto';
 import { UpdateAlgorithmDto } from '../dto/update-algorithm.dto';
+import { SchedulerService } from '../../scheduler/services/scheduler.service';
+import { AlgorithmRepository } from '../repositories/algorithm.repository';
 
 @Injectable()
 export class AlgorithmService implements OnModuleInit {
@@ -52,7 +53,7 @@ export class AlgorithmService implements OnModuleInit {
     if (!template) {
       throw new NotFoundException(`Algorithm template with ID ${id} not found`);
     }
-    await this.algorithmRepository.deleteTemplate(id);
+    return this.algorithmRepository.deleteTemplate(id);
   }
 
   // User-specific algorithm data operations
@@ -66,44 +67,16 @@ export class AlgorithmService implements OnModuleInit {
     );
   }
 
-  // Daily algorithm operations
-  async findDailyAlgorithms(
-    userId: string,
-    date: Date = new Date(),
-  ): Promise<DailyAlgorithm[]> {
-    const algorithms = await this.algorithmRepository.findAllTemplates();
-
-    const dailyAlgorithms = algorithms.map((algorithm) => ({
-      id: algorithm.id,
-      date: date,
-      completed: false,
-      createdAt: algorithm.createdAt,
-      algorithmPreview: {
-        id: algorithm.id,
-        title: algorithm.title,
-        category: algorithm.category,
-        summary: algorithm.summary,
-        difficulty: algorithm.difficulty,
-        tags: algorithm.tags,
-      },
-    }));
-
-    return dailyAlgorithms;
-  }
-
-  // Submission operations
-  async createSubmission(
-    submission: Omit<AlgorithmSubmission, 'id' | 'createdAt'>,
-    userId: string,
-  ): Promise<AlgorithmSubmission> {
-    return this.algorithmRepository.createSubmission(submission, userId);
-  }
-
-  async findUserSubmissions(
+  async createPracticeData(
     userId: string,
     algorithmId: string,
-  ): Promise<AlgorithmSubmission[]> {
-    return this.algorithmRepository.findUserSubmissions(userId, algorithmId);
+    notes?: string,
+  ): Promise<AlgorithmPracticeData> {
+    return this.algorithmRepository.createAlgorithmPracticeData(
+      userId,
+      algorithmId,
+      notes,
+    );
   }
 
   async updateAlgorithmNotes(
@@ -116,5 +89,72 @@ export class AlgorithmService implements OnModuleInit {
       algorithmId,
       notes,
     );
+  }
+
+  async findDailyAlgorithms(
+    userId: string,
+    date: Date = new Date(),
+  ): Promise<DailyAlgorithm[]> {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const dueAlgorithms = await this.algorithmRepository.findDueAlgorithms(
+      userId,
+      startOfDay,
+      endOfDay,
+    );
+
+    return dueAlgorithms.map((userData: AlgorithmPracticeData) => ({
+      id: userData.id,
+      date: userData.due,
+      completed: false,
+      createdAt: userData.algorithmTemplate.createdAt,
+      algorithmPreview: {
+        id: userData.algorithmTemplate.id,
+        title: userData.algorithmTemplate.title,
+        category: userData.algorithmTemplate.category,
+        summary: userData.algorithmTemplate.summary,
+        difficulty: userData.algorithmTemplate.difficulty,
+        tags: userData.algorithmTemplate.tags,
+      },
+    }));
+  }
+
+  async createSubmission(
+    userId: string,
+    algorithmId: string,
+    submission: Omit<
+      AlgorithmSubmission,
+      'id' | 'createdAt' | 'algorithmId' | 'algorithmUserDataId'
+    >,
+  ): Promise<AlgorithmSubmission> {
+    let userData = await this.findPracticeData(userId, algorithmId);
+
+    if (!userData) {
+      userData = await this.createPracticeData(userId, algorithmId);
+    }
+
+    if (!userData) {
+      throw new Error('Failed to create or find algorithm practice data');
+    }
+
+    return this.algorithmRepository.createSubmission(
+      {
+        ...submission,
+        algorithmId,
+        algorithmUserDataId: userData.id,
+      },
+      userId,
+    );
+  }
+
+  async findUserSubmissions(
+    userId: string,
+    algorithmId: string,
+  ): Promise<AlgorithmSubmission[]> {
+    return this.algorithmRepository.findUserSubmissions(userId, algorithmId);
   }
 }

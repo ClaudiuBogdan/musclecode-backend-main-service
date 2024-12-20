@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { SchedulingState } from '../../scheduler/types/scheduler.types';
 
 export enum AlgorithmFileType {
   SOLUTION = 'solution',
@@ -133,10 +134,16 @@ export class AlgorithmPracticeData {
   submissions: AlgorithmSubmission[];
 
   @ApiProperty({
-    description: 'Algorithm schedule',
-    required: false,
+    description: 'FSRS scheduling data',
+    required: true,
   })
-  schedule: AlgorithmSchedule;
+  scheduleData: SchedulingState;
+
+  @ApiProperty({
+    description: 'Next due date for review',
+    required: true,
+  })
+  due: Date;
 
   @ApiProperty({
     description: 'User notes about the algorithm',
@@ -172,25 +179,25 @@ export class AlgorithmSubmission {
   @ApiProperty({ description: 'Algorithm user data ID' })
   algorithmUserDataId: string;
 
-  @ApiProperty({ description: 'Difficulty level of the submission' })
-  rating: AlgorithmRating;
-
-  @ApiProperty({ description: 'Notes about the submission' })
-  notes?: string;
-
   @ApiProperty({ description: 'Submitted code' })
   code: string;
 
-  @ApiProperty({
-    description: 'Programming language of the submission',
-    enum: CodeLanguage,
-  })
+  @ApiProperty({ description: 'Programming language' })
   language: CodeLanguage;
 
-  @ApiProperty({ description: 'Time spent on the solution in seconds' })
+  @ApiProperty({ description: 'Time spent in seconds' })
   timeSpent: number;
 
-  @ApiProperty({ description: 'Creation timestamp' })
+  @ApiProperty({ description: 'User notes', required: false })
+  notes?: string;
+
+  @ApiProperty({ description: 'Algorithm rating' })
+  rating: AlgorithmRating;
+
+  @ApiProperty({ description: 'FSRS scheduling data at submission time' })
+  scheduleData: SchedulingState;
+
+  @ApiProperty({ description: 'Submission date' })
   createdAt: Date;
 }
 

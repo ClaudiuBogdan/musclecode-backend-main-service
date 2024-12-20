@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
+import { SchedulerService } from '../../scheduler/services/scheduler.service';
 import {
   AlgorithmTemplate,
   AlgorithmPracticeData,
@@ -14,10 +15,14 @@ import { UpdateAlgorithmDto } from '../dto/update-algorithm.dto';
 import { IAlgorithmRepository } from '../interfaces/algorithm-repository.interface';
 import { Prisma } from '@prisma/client';
 import { seedAlgorithms } from '../seed/algorithms.seed';
+import { Rating } from '../../scheduler/types/scheduler.types';
 
 @Injectable()
 export class AlgorithmRepository implements IAlgorithmRepository {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly schedulerService: SchedulerService,
+  ) {}
 
   async seed(): Promise<void> {
     const algorithms = await this.prisma.algorithmTemplate.findMany();
@@ -118,11 +123,14 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     algorithmId: string,
     notes?: string,
   ): Promise<AlgorithmPracticeData> {
+    const initialScheduleState = this.schedulerService.initializeState();
     const userData = await this.prisma.algorithmUserData.create({
       data: {
         userId,
         algorithmId,
         notes,
+        due: initialScheduleState.due,
+        scheduleData: JSON.stringify(initialScheduleState),
       },
       include: {
         algorithm: true,
@@ -161,9 +169,15 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     submission: Omit<AlgorithmSubmission, 'id' | 'createdAt'>,
     userId: string,
   ): Promise<AlgorithmSubmission> {
+    const userData = await this.updateSchedule(
+      userId,
+      submission.algorithmId,
+      submission.rating,
+    );
+
     const created = await this.prisma.submission.create({
       data: {
-        userId: userId,
+        userId,
         algorithmId: submission.algorithmId,
         algorithmUserDataId: submission.algorithmUserDataId,
         code: submission.code,
@@ -171,8 +185,10 @@ export class AlgorithmRepository implements IAlgorithmRepository {
         timeSpent: submission.timeSpent,
         notes: submission.notes,
         difficulty: submission.rating,
+        scheduleData: JSON.stringify(userData.scheduleData),
       },
     });
+
     return this.mapSubmissionFromDb(created);
   }
 
@@ -190,6 +206,76 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       },
     });
     return submissions.map(this.mapSubmissionFromDb);
+  }
+
+  async updateSchedule(
+    userId: string,
+    algorithmId: string,
+    rating: AlgorithmRating,
+  ): Promise<AlgorithmPracticeData> {
+    const userData = await this.prisma.algorithmUserData.findUnique({
+      where: {
+        userId_algorithmId: {
+          userId,
+          algorithmId,
+        },
+      },
+      include: {
+        algorithm: true,
+      },
+    });
+
+    if (!userData) {
+      throw new Error('User algorithm data not found');
+    }
+
+    const currentState = JSON.parse(userData.scheduleData);
+    const newSchedule = this.schedulerService.schedule(
+      currentState,
+      this.mapRatingToFSRS(rating),
+    );
+
+    const updatedUserData = await this.prisma.algorithmUserData.update({
+      where: {
+        userId_algorithmId: {
+          userId,
+          algorithmId,
+        },
+      },
+      data: {
+        due: newSchedule.nextDue,
+        scheduleData: JSON.stringify(newSchedule.state),
+      },
+      include: {
+        algorithm: true,
+      },
+    });
+
+    return this.mapUserDataFromDb(updatedUserData);
+  }
+
+  async findDueAlgorithms(
+    userId: string,
+    startDate: Date,
+    endDate: Date,
+  ): Promise<AlgorithmPracticeData[]> {
+    const dueAlgorithms = await this.prisma.algorithmUserData.findMany({
+      where: {
+        userId,
+        due: {
+          gte: startDate,
+          lte: endDate,
+        },
+      },
+      include: {
+        algorithm: true,
+      },
+      orderBy: {
+        due: 'asc',
+      },
+    });
+
+    return dueAlgorithms.map(this.mapUserDataFromDb);
   }
 
   // Mapping functions
@@ -222,12 +308,8 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       notes: userData.notes || undefined,
       algorithmTemplate: this.mapTemplateFromDb(userData.algorithm),
       submissions: [],
-      schedule: {
-        again: 1000 * 60 * 60 * 24 * 7,
-        hard: 1000 * 60 * 60 * 24 * 14,
-        good: 1000 * 60 * 60 * 24 * 21,
-        easy: 1000 * 60 * 60 * 24 * 28,
-      },
+      scheduleData: JSON.parse(userData.scheduleData),
+      due: userData.due,
     };
   }
 
@@ -244,6 +326,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       language: submission.language as CodeLanguage,
       timeSpent: submission.timeSpent,
       createdAt: submission.createdAt,
+      scheduleData: JSON.parse(submission.scheduleData),
     };
   }
 
@@ -257,5 +340,20 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       summary: algorithm.summary,
       difficulty: algorithm.difficulty as AlgorithmDifficulty,
     };
+  }
+
+  private mapRatingToFSRS(rating: AlgorithmRating): Rating {
+    switch (rating) {
+      case AlgorithmRating.AGAIN:
+        return Rating.Again;
+      case AlgorithmRating.HARD:
+        return Rating.Hard;
+      case AlgorithmRating.GOOD:
+        return Rating.Good;
+      case AlgorithmRating.EASY:
+        return Rating.Easy;
+      default:
+        throw new Error('Invalid rating');
+    }
   }
 }
