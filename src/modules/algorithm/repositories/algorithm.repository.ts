@@ -2,18 +2,18 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import {
   AlgorithmTemplate,
-  AlgorithmUserData,
-  DailyAlgorithm,
-  AlgorithmUserProgress,
+  AlgorithmPracticeData,
   AlgorithmSubmission,
   CodeLanguage,
+  AlgorithmRating,
+  AlgorithmPreview,
+  AlgorithmDifficulty,
 } from '../interfaces/algorithm.interface';
 import { CreateAlgorithmDto } from '../dto/create-algorithm.dto';
 import { UpdateAlgorithmDto } from '../dto/update-algorithm.dto';
 import { IAlgorithmRepository } from '../interfaces/algorithm-repository.interface';
 import { Prisma } from '@prisma/client';
 import { seedAlgorithms } from '../seed/algorithms.seed';
-import { AlgorithmDifficulty } from '../interfaces/algorithm-difficulty.enum';
 
 @Injectable()
 export class AlgorithmRepository implements IAlgorithmRepository {
@@ -32,7 +32,6 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     await this.prisma.algorithmTemplate.createMany({
       data: newAlgorithms,
     });
-    console.log('Algorithm templates seeded successfully');
   }
 
   // Algorithm Template operations
@@ -96,10 +95,10 @@ export class AlgorithmRepository implements IAlgorithmRepository {
   }
 
   // User-specific algorithm data operations
-  async findUserData(
+  async findAlgorithmPracticeData(
     userId: string,
     algorithmId: string,
-  ): Promise<AlgorithmUserData | null> {
+  ): Promise<AlgorithmPracticeData | null> {
     const userData = await this.prisma.algorithmUserData.findUnique({
       where: {
         userId_algorithmId: {
@@ -107,86 +106,71 @@ export class AlgorithmRepository implements IAlgorithmRepository {
           algorithmId,
         },
       },
+      include: {
+        algorithm: true,
+      },
     });
     return userData ? this.mapUserDataFromDb(userData) : null;
   }
 
-  async createUserData(
+  async createAlgorithmPracticeData(
     userId: string,
     algorithmId: string,
     notes?: string,
-  ): Promise<AlgorithmUserData> {
+  ): Promise<AlgorithmPracticeData> {
     const userData = await this.prisma.algorithmUserData.create({
       data: {
         userId,
         algorithmId,
         notes,
       },
+      include: {
+        algorithm: true,
+      },
     });
     return this.mapUserDataFromDb(userData);
   }
 
-  async updateUserData(id: string, notes: string): Promise<AlgorithmUserData> {
+  async updateAlgorithmNotes(
+    userId: string,
+    algorithmId: string,
+    notes?: string,
+  ): Promise<void> {
+    await this.prisma.algorithmUserData.update({
+      where: { userId_algorithmId: { userId, algorithmId } },
+      data: { notes },
+    });
+  }
+
+  async updateUserData(
+    id: string,
+    notes: string,
+  ): Promise<AlgorithmPracticeData> {
     const userData = await this.prisma.algorithmUserData.update({
       where: { id },
       data: { notes },
+      include: {
+        algorithm: true,
+      },
     });
     return this.mapUserDataFromDb(userData);
-  }
-
-  // Daily algorithm operations
-  async findDailyAlgorithms(
-    userId: string,
-    date: Date,
-  ): Promise<DailyAlgorithm[]> {
-    const dailyAlgorithms = await this.prisma.dailyAlgorithm.findMany({
-      where: {
-        userId,
-        date: {
-          gte: new Date(date.setHours(0, 0, 0, 0)),
-          lt: new Date(date.setHours(23, 59, 59, 999)),
-        },
-      },
-    });
-    return dailyAlgorithms.map(this.mapDailyAlgorithmFromDb);
-  }
-
-  async createDailyAlgorithm(
-    userId: string,
-    algorithmId: string,
-    date: Date,
-  ): Promise<DailyAlgorithm> {
-    const dailyAlgorithm = await this.prisma.dailyAlgorithm.create({
-      data: {
-        userId,
-        algorithmId,
-        date,
-      },
-    });
-    return this.mapDailyAlgorithmFromDb(dailyAlgorithm);
-  }
-
-  async markDailyAlgorithmCompleted(id: string): Promise<DailyAlgorithm> {
-    const dailyAlgorithm = await this.prisma.dailyAlgorithm.update({
-      where: { id },
-      data: { completed: true },
-    });
-    return this.mapDailyAlgorithmFromDb(dailyAlgorithm);
   }
 
   // Submission operations
   async createSubmission(
     submission: Omit<AlgorithmSubmission, 'id' | 'createdAt'>,
+    userId: string,
   ): Promise<AlgorithmSubmission> {
     const created = await this.prisma.submission.create({
       data: {
-        userId: submission.userId,
+        userId: userId,
         algorithmId: submission.algorithmId,
+        algorithmUserDataId: submission.algorithmUserDataId,
         code: submission.code,
         language: submission.language,
         timeSpent: submission.timeSpent,
         notes: submission.notes,
-        difficulty: submission.difficulty,
+        difficulty: submission.rating,
       },
     });
     return this.mapSubmissionFromDb(created);
@@ -208,45 +192,6 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     return submissions.map(this.mapSubmissionFromDb);
   }
 
-  // Combined data operations
-  async findUserProgress(
-    userId: string,
-    algorithmId: string,
-  ): Promise<AlgorithmUserProgress | null> {
-    const [template, userData, dailyAlgorithm] = await Promise.all([
-      this.findTemplateById(algorithmId),
-      this.findUserData(userId, algorithmId),
-      this.prisma.dailyAlgorithm.findFirst({
-        where: {
-          userId,
-          algorithmId,
-          date: {
-            gte: new Date(new Date().setHours(0, 0, 0, 0)),
-            lt: new Date(new Date().setHours(23, 59, 59, 999)),
-          },
-        },
-      }),
-    ]);
-
-    if (!template) return null;
-
-    const defaultUserData: AlgorithmUserData = {
-      id: '',
-      userId,
-      algorithmId,
-      notes: undefined,
-      createdAt: new Date(),
-    };
-
-    return {
-      algorithmTemplate: template,
-      algorithmUserData: userData || defaultUserData,
-      dailyAlgorithm: dailyAlgorithm
-        ? this.mapDailyAlgorithmFromDb(dailyAlgorithm)
-        : null,
-    };
-  }
-
   // Mapping functions
   private mapTemplateFromDb(
     template: Prisma.AlgorithmTemplateGetPayload<any>,
@@ -266,27 +211,23 @@ export class AlgorithmRepository implements IAlgorithmRepository {
   }
 
   private mapUserDataFromDb(
-    userData: Prisma.AlgorithmUserDataGetPayload<any>,
-  ): AlgorithmUserData {
+    userData: Prisma.AlgorithmUserDataGetPayload<{
+      include: {
+        algorithm: true;
+      };
+    }>,
+  ): AlgorithmPracticeData {
     return {
       id: userData.id,
-      userId: userData.userId,
-      algorithmId: userData.algorithmId,
       notes: userData.notes || undefined,
-      createdAt: userData.createdAt,
-    };
-  }
-
-  private mapDailyAlgorithmFromDb(
-    dailyAlgorithm: Prisma.DailyAlgorithmGetPayload<any>,
-  ): DailyAlgorithm {
-    return {
-      id: dailyAlgorithm.id,
-      userId: dailyAlgorithm.userId,
-      algorithmId: dailyAlgorithm.algorithmId,
-      date: dailyAlgorithm.date,
-      completed: dailyAlgorithm.completed,
-      createdAt: dailyAlgorithm.createdAt,
+      algorithmTemplate: this.mapTemplateFromDb(userData.algorithm),
+      submissions: [],
+      schedule: {
+        again: 1000 * 60 * 60 * 24 * 7,
+        hard: 1000 * 60 * 60 * 24 * 14,
+        good: 1000 * 60 * 60 * 24 * 21,
+        easy: 1000 * 60 * 60 * 24 * 28,
+      },
     };
   }
 
@@ -295,14 +236,26 @@ export class AlgorithmRepository implements IAlgorithmRepository {
   ): AlgorithmSubmission {
     return {
       id: submission.id,
-      userId: submission.userId,
       algorithmId: submission.algorithmId,
+      algorithmUserDataId: submission.algorithmUserDataId,
       code: submission.code,
       notes: submission.notes || undefined,
-      difficulty: submission.difficulty as AlgorithmDifficulty,
+      rating: submission.difficulty as AlgorithmRating,
       language: submission.language as CodeLanguage,
       timeSpent: submission.timeSpent,
       createdAt: submission.createdAt,
+    };
+  }
+
+  private mapAlgorithmPreviewFromDb(
+    algorithm: Prisma.AlgorithmTemplateGetPayload<any>,
+  ): AlgorithmPreview {
+    return {
+      id: algorithm.id,
+      title: algorithm.title,
+      category: algorithm.category,
+      summary: algorithm.summary,
+      difficulty: algorithm.difficulty as AlgorithmDifficulty,
     };
   }
 }

@@ -21,8 +21,6 @@ model AlgorithmTemplate {
   updatedAt   DateTime @updatedAt
 
   userAlgorithms AlgorithmUserData[]
-  dailyAlgorithms DailyAlgorithm[]
-
   @@index([category])
 }
 
@@ -33,34 +31,24 @@ model AlgorithmUserData {
   notes       String?
   createdAt   DateTime  @default(now())
   algorithm   AlgorithmTemplate @relation(fields: [algorithmId], references: [id])
+  submissions Submission[]
 
   @@unique([userId, algorithmId])
   @@index([userId])
 }
 
-model DailyAlgorithm {
-  id          String    @id @default(uuid())
-  userId      String
-  algorithmId String
-  date        DateTime
-  completed   Boolean   @default(false)
-  createdAt   DateTime  @default(now())
-  algorithm   AlgorithmTemplate @relation(fields: [algorithmId], references: [id])
-
-  @@unique([userId, algorithmId, date])
-  @@index([userId, date])
-}
-
 model Submission {
-  id          String   @id @default(uuid())
-  userId      String
-  algorithmId String
-  code        String
-  language    String
-  timeSpent   Int
-  notes       String?
-  difficulty  String
-  createdAt   DateTime @default(now())
-  
+  id                  String            @id @default(uuid())
+  userId              String
+  algorithmUserDataId String
+  algorithmId         String
+  code                String
+  language            String
+  timeSpent           Int
+  notes               String?
+  difficulty          String
+  createdAt           DateTime          @default(now())
+  algorithmUserData   AlgorithmUserData @relation(fields: [algorithmUserDataId], references: [id])
+
   @@index([userId, algorithmId])
 } 

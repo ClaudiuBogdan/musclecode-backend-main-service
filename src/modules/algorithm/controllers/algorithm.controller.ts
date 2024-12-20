@@ -5,7 +5,6 @@ import {
   Post,
   Body,
   Put,
-  Delete,
   UseGuards,
   ValidationPipe,
   HttpStatus,
@@ -22,9 +21,8 @@ import {
 } from '@nestjs/swagger';
 import {
   AlgorithmTemplate,
-  AlgorithmUserData,
+  AlgorithmPracticeData,
   DailyAlgorithm,
-  AlgorithmUserProgress,
   AlgorithmSubmission,
 } from '../interfaces/algorithm.interface';
 import { AlgorithmService } from '../services/algorithm.service';
@@ -112,26 +110,8 @@ export class AlgorithmController {
     return this.algorithmService.updateTemplate(id, updateAlgorithmDto);
   }
 
-  @Delete('templates/:id')
-  @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Delete an algorithm template' })
-  @ApiParam({
-    name: 'id',
-    type: 'string',
-    description: 'Algorithm template ID',
-  })
-  @ApiResponse({
-    status: HttpStatus.NO_CONTENT,
-    description: 'Algorithm template deleted successfully',
-  })
-  async deleteTemplate(@Param('id') id: string): Promise<void> {
-    await this.algorithmService.deleteTemplate(id);
-  }
-
   // User-specific algorithm data endpoints
-  @Get('user-data/:algorithmId')
+  @Get('practice/:algorithmId')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user-specific algorithm data' })
@@ -143,19 +123,19 @@ export class AlgorithmController {
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Returns user-specific algorithm data',
-    type: AlgorithmUserData,
+    type: AlgorithmPracticeData,
   })
   async findUserData(
     @User('id') userId: string,
     @Param('algorithmId') algorithmId: string,
-  ): Promise<AlgorithmUserData | null> {
-    return this.algorithmService.findUserData(userId, algorithmId);
+  ): Promise<AlgorithmPracticeData | null> {
+    return this.algorithmService.findPracticeData(userId, algorithmId);
   }
 
-  @Post('user-data/:algorithmId')
+  @Put('practice/:algorithmId/notes')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create user-specific algorithm data' })
+  @ApiOperation({ summary: 'Update user notes for an algorithm' })
   @ApiParam({
     name: 'algorithmId',
     type: 'string',
@@ -163,34 +143,20 @@ export class AlgorithmController {
   })
   @ApiBody({ type: String, description: 'Notes' })
   @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'User-specific algorithm data created successfully',
-    type: AlgorithmUserData,
+    status: HttpStatus.OK,
+    description: 'User algorithm notes updated successfully',
+    type: AlgorithmPracticeData,
   })
-  async createUserData(
+  async updateAlgorithmNotes(
     @User('id') userId: string,
     @Param('algorithmId') algorithmId: string,
-    @Body('notes') notes?: string,
-  ): Promise<AlgorithmUserData> {
-    return this.algorithmService.createUserData(userId, algorithmId, notes);
-  }
-
-  @Put('user-data/:id')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Update user-specific algorithm data' })
-  @ApiParam({ name: 'id', type: 'string', description: 'User data ID' })
-  @ApiBody({ type: String, description: 'Notes' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'User-specific algorithm data updated successfully',
-    type: AlgorithmUserData,
-  })
-  async updateUserData(
-    @Param('id') id: string,
     @Body('notes') notes: string,
-  ): Promise<AlgorithmUserData> {
-    return this.algorithmService.updateUserData(id, notes);
+  ): Promise<void> {
+    return this.algorithmService.updateAlgorithmNotes(
+      userId,
+      algorithmId,
+      notes,
+    );
   }
 
   // Daily algorithm endpoints
@@ -219,54 +185,6 @@ export class AlgorithmController {
     );
   }
 
-  @Post('daily/:algorithmId')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Create a daily algorithm' })
-  @ApiParam({
-    name: 'algorithmId',
-    type: 'string',
-    description: 'Algorithm ID',
-  })
-  @ApiQuery({
-    name: 'date',
-    required: false,
-    type: Date,
-    description: 'Date for the daily algorithm (defaults to today)',
-  })
-  @ApiResponse({
-    status: HttpStatus.CREATED,
-    description: 'Daily algorithm created successfully',
-    type: DailyAlgorithm,
-  })
-  async createDailyAlgorithm(
-    @User('id') userId: string,
-    @Param('algorithmId') algorithmId: string,
-    @Query('date') date?: string,
-  ): Promise<DailyAlgorithm> {
-    return this.algorithmService.createDailyAlgorithm(
-      userId,
-      algorithmId,
-      date ? new Date(date) : undefined,
-    );
-  }
-
-  @Put('daily/:id/complete')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Mark a daily algorithm as completed' })
-  @ApiParam({ name: 'id', type: 'string', description: 'Daily algorithm ID' })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Daily algorithm marked as completed',
-    type: DailyAlgorithm,
-  })
-  async markDailyAlgorithmCompleted(
-    @Param('id') id: string,
-  ): Promise<DailyAlgorithm> {
-    return this.algorithmService.markDailyAlgorithmCompleted(id);
-  }
-
   // Submission endpoints
   @Post('submissions/:algorithmId')
   @UseGuards(AuthGuard)
@@ -291,11 +209,13 @@ export class AlgorithmController {
       'id' | 'createdAt' | 'userId' | 'algorithmId'
     >,
   ): Promise<AlgorithmSubmission> {
-    return this.algorithmService.createSubmission({
-      ...submission,
+    return this.algorithmService.createSubmission(
+      {
+        ...submission,
+        algorithmId,
+      },
       userId,
-      algorithmId,
-    });
+    );
   }
 
   @Get('submissions/:algorithmId')
@@ -317,27 +237,5 @@ export class AlgorithmController {
     @Param('algorithmId') algorithmId: string,
   ): Promise<AlgorithmSubmission[]> {
     return this.algorithmService.findUserSubmissions(userId, algorithmId);
-  }
-
-  // Combined data endpoints
-  @Get(':algorithmId/progress')
-  @UseGuards(AuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Get user progress for an algorithm' })
-  @ApiParam({
-    name: 'algorithmId',
-    type: 'string',
-    description: 'Algorithm ID',
-  })
-  @ApiResponse({
-    status: HttpStatus.OK,
-    description: 'Returns user progress',
-    type: AlgorithmUserProgress,
-  })
-  async findUserProgress(
-    @User('id') userId: string,
-    @Param('algorithmId') algorithmId: string,
-  ): Promise<AlgorithmUserProgress> {
-    return this.algorithmService.findUserProgress(userId, algorithmId);
   }
 }

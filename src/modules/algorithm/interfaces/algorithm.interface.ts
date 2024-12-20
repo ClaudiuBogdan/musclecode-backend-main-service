@@ -14,6 +14,33 @@ export enum CodeLanguage {
   CPP = 'cpp',
 }
 
+export class AlgorithmSchedule {
+  @ApiProperty({ description: 'Next scheduled interval for again rating' })
+  again: number;
+
+  @ApiProperty({ description: 'Next scheduled interval for hard rating' })
+  hard: number;
+
+  @ApiProperty({ description: 'Next scheduled interval for good rating' })
+  good: number;
+
+  @ApiProperty({ description: 'Next scheduled interval for easy rating' })
+  easy: number;
+}
+
+export enum AlgorithmRating {
+  EASY = 'easy',
+  GOOD = 'good',
+  HARD = 'hard',
+  AGAIN = 'again',
+}
+
+export enum AlgorithmDifficulty {
+  EASY = 'easy',
+  MEDIUM = 'medium',
+  HARD = 'hard',
+}
+
 export class AlgorithmFile {
   @ApiProperty({ description: 'Unique identifier of the file' })
   id: string;
@@ -90,35 +117,40 @@ export class AlgorithmTemplate {
   updatedAt: Date;
 }
 
-export class AlgorithmUserData {
-  @ApiProperty({ description: 'Unique identifier of the user data' })
+export class AlgorithmPracticeData {
+  @ApiProperty({
+    description: 'Unique identifier of the algorithm practice data',
+  })
   id: string;
 
-  @ApiProperty({ description: 'User ID' })
-  userId: string;
+  @ApiProperty({ description: 'Algorithm template' })
+  algorithmTemplate: AlgorithmTemplate;
 
-  @ApiProperty({ description: 'Algorithm ID' })
-  algorithmId: string;
+  @ApiProperty({
+    description: 'User submissions for the algorithm',
+    required: false,
+  })
+  submissions: AlgorithmSubmission[];
+
+  @ApiProperty({
+    description: 'Algorithm schedule',
+    required: false,
+  })
+  schedule: AlgorithmSchedule;
 
   @ApiProperty({
     description: 'User notes about the algorithm',
     required: false,
   })
   notes?: string;
-
-  @ApiProperty({ description: 'Creation timestamp' })
-  createdAt: Date;
 }
 
 export class DailyAlgorithm {
   @ApiProperty({ description: 'Unique identifier of the daily algorithm' })
   id: string;
 
-  @ApiProperty({ description: 'User ID' })
-  userId: string;
-
-  @ApiProperty({ description: 'Algorithm ID' })
-  algorithmId: string;
+  @ApiProperty({ description: 'Algorithm template' })
+  algorithmPreview: AlgorithmPreview;
 
   @ApiProperty({ description: 'Date for this daily algorithm' })
   date: Date;
@@ -134,14 +166,14 @@ export class AlgorithmSubmission {
   @ApiProperty({ description: 'Unique identifier of the submission' })
   id: string;
 
-  @ApiProperty({ description: 'User ID' })
-  userId: string;
-
   @ApiProperty({ description: 'Algorithm ID' })
   algorithmId: string;
 
+  @ApiProperty({ description: 'Algorithm user data ID' })
+  algorithmUserDataId: string;
+
   @ApiProperty({ description: 'Difficulty level of the submission' })
-  difficulty: 'easy' | 'medium' | 'hard';
+  rating: AlgorithmRating;
 
   @ApiProperty({ description: 'Notes about the submission' })
   notes?: string;
@@ -162,15 +194,7 @@ export class AlgorithmSubmission {
   createdAt: Date;
 }
 
-export class AlgorithmUserProgress {
-  @ApiProperty({ description: 'User-specific algorithm data' })
-  algorithmUserData: AlgorithmUserData;
-
-  @ApiProperty({ description: 'Daily algorithm status', required: false })
-  dailyAlgorithm: DailyAlgorithm | null;
-
-  @ApiProperty({ description: 'Base algorithm template' })
-  algorithmTemplate: AlgorithmTemplate;
-}
-
-export type AlgorithmPreview = Omit<AlgorithmTemplate, 'files'>;
+export type AlgorithmPreview = Pick<
+  AlgorithmTemplate,
+  'id' | 'title' | 'category' | 'summary' | 'difficulty'
+>;

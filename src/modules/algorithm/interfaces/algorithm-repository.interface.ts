@@ -1,8 +1,7 @@
 import {
   AlgorithmTemplate,
-  AlgorithmUserData,
+  AlgorithmPracticeData,
   DailyAlgorithm,
-  AlgorithmUserProgress,
   AlgorithmSubmission,
 } from './algorithm.interface';
 import { CreateAlgorithmDto } from '../dto/create-algorithm.dto';
@@ -19,43 +18,28 @@ export interface IAlgorithmRepository {
     id: string,
     updateAlgorithmDto: UpdateAlgorithmDto,
   ): Promise<AlgorithmTemplate>;
-  deleteTemplate(id: string): Promise<void>;
 
-  // User-specific algorithm data operations
-  findUserData(
+  findAlgorithmPracticeData(
     userId: string,
     algorithmId: string,
-  ): Promise<AlgorithmUserData | null>;
-  createUserData(
+  ): Promise<AlgorithmPracticeData | null>;
+
+  updateAlgorithmNotes(
     userId: string,
     algorithmId: string,
     notes?: string,
-  ): Promise<AlgorithmUserData>;
-  updateUserData(id: string, notes: string): Promise<AlgorithmUserData>;
-
-  // Daily algorithm operations
-  findDailyAlgorithms(userId: string, date: Date): Promise<DailyAlgorithm[]>;
-  createDailyAlgorithm(
-    userId: string,
-    algorithmId: string,
-    date: Date,
-  ): Promise<DailyAlgorithm>;
-  markDailyAlgorithmCompleted(id: string): Promise<DailyAlgorithm>;
+  ): Promise<void>;
 
   // Submission operations
   createSubmission(
     submission: Omit<AlgorithmSubmission, 'id' | 'createdAt'>,
+    userId: string,
   ): Promise<AlgorithmSubmission>;
+
   findUserSubmissions(
     userId: string,
     algorithmId: string,
   ): Promise<AlgorithmSubmission[]>;
-
-  // Combined data operations
-  findUserProgress(
-    userId: string,
-    algorithmId: string,
-  ): Promise<AlgorithmUserProgress | null>;
 
   // Seeding
   seed(): Promise<void>;
