@@ -60,10 +60,16 @@ export class AlgorithmService implements OnModuleInit {
     userId: string,
     algorithmId: string,
   ): Promise<AlgorithmPracticeData | null> {
-    return this.algorithmRepository.findAlgorithmPracticeData(
+    const userData = await this.algorithmRepository.findAlgorithmPracticeData(
       userId,
       algorithmId,
     );
+
+    if (!userData) {
+      return this.createPracticeData(userId, algorithmId);
+    }
+
+    return userData;
   }
 
   async createPracticeData(

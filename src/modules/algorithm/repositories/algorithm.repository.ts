@@ -113,9 +113,16 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       },
       include: {
         algorithm: true,
+        submissions: true,
       },
     });
-    return userData ? this.mapUserDataFromDb(userData) : null;
+    if (!userData) return null;
+    return {
+      ...this.mapUserDataFromDb(userData),
+      submissions: this.mapSubmissionsFromDb(userData.submissions).sort(
+        (a, b) => b.createdAt.getTime() - a.createdAt.getTime(),
+      ),
+    };
   }
 
   async createAlgorithmPracticeData(
@@ -333,15 +340,22 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       };
     }>,
   ): AlgorithmPracticeData {
-    console.log(userData);
     return {
       id: userData.id,
       notes: userData.notes || undefined,
       algorithmTemplate: this.mapTemplateFromDb(userData.algorithm),
-      submissions: [],
       scheduleData: JSON.parse(userData.scheduleData),
       due: userData.due,
+      submissions: [],
     };
+  }
+
+  private mapSubmissionsFromDb(
+    submissions: Prisma.SubmissionGetPayload<any>[],
+  ): AlgorithmSubmission[] {
+    return submissions.map((submission) =>
+      this.mapSubmissionFromDb(submission),
+    );
   }
 
   private mapSubmissionFromDb(

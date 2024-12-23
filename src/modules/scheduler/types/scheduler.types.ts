@@ -21,7 +21,7 @@ export interface SchedulingState {
   reps: number; // Number of repetitions
   lapses: number; // Number of failures
   state: number; // Current learning state (0: New, 1: Learning, 2: Review, 3: Relearning)
-  lastReview: Date; // Date of last review
+  lastReview: Date | string; // Date of last review
 }
 
 export interface SchedulingResult {

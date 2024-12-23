@@ -118,7 +118,8 @@ export class SchedulerService {
 
     // Calculate elapsed time since last review
     const elapsed = currentState
-      ? (now.getTime() - state.lastReview.getTime()) / (1000 * 60 * 60 * 24)
+      ? (now.getTime() - new Date(state.lastReview).getTime()) /
+        (1000 * 60 * 60 * 24)
       : 0;
 
     // Update state based on rating

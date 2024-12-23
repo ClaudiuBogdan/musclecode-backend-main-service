@@ -50,7 +50,7 @@ export class AlgorithmController {
     return this.algorithmService.findAllTemplates();
   }
 
-  @Get('templates/:id')
+  @Get('templates/:id') // TODO: fix api: /:id/templates
   @ApiOperation({ summary: 'Get algorithm template by ID' })
   @ApiParam({
     name: 'id',
@@ -87,7 +87,7 @@ export class AlgorithmController {
     return this.algorithmService.createTemplate(createAlgorithmDto);
   }
 
-  @Put('templates/:id')
+  @Put('templates/:id') // TODO: fix api: /:id/templates
   @UseGuards(AuthGuard, RolesGuard)
   @Roles('admin')
   @ApiBearerAuth()
@@ -111,7 +111,7 @@ export class AlgorithmController {
   }
 
   // User-specific algorithm data endpoints
-  @Get('practice/:algorithmId')
+  @Get('practice/:algorithmId') // TODO: fix api: /:algorithmId/practice
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user-specific algorithm data' })
@@ -132,7 +132,7 @@ export class AlgorithmController {
     return this.algorithmService.findPracticeData(userId, algorithmId);
   }
 
-  @Put('practice/:algorithmId/notes')
+  @Put('practice/:algorithmId/notes') // TODO: fix api: /:algorithmId/notes
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update user notes for an algorithm' })
@@ -186,7 +186,7 @@ export class AlgorithmController {
   }
 
   // Submission endpoints
-  @Post('submissions/:algorithmId')
+  @Post(':algorithmId/submissions') // TODO: fix api: /:algorithmId/submissions
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a submission' })
@@ -216,7 +216,7 @@ export class AlgorithmController {
     );
   }
 
-  @Get('submissions/:algorithmId')
+  @Get('submissions/:algorithmId') // TODO: fix api: /:algorithmId/submissions
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Get user submissions for an algorithm' })
