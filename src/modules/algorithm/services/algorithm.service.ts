@@ -7,7 +7,6 @@ import {
 } from '../interfaces/algorithm.interface';
 import { CreateAlgorithmDto } from '../dto/create-algorithm.dto';
 import { UpdateAlgorithmDto } from '../dto/update-algorithm.dto';
-import { SchedulerService } from '../../scheduler/services/scheduler.service';
 import { AlgorithmRepository } from '../repositories/algorithm.repository';
 
 @Injectable()
@@ -101,16 +100,42 @@ export class AlgorithmService implements OnModuleInit {
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
+    const totalDailyAlgorithms = 5;
+
     const dueAlgorithms = await this.algorithmRepository.findDueAlgorithms(
       userId,
       startOfDay,
       endOfDay,
     );
 
-    return dueAlgorithms.map((userData: AlgorithmPracticeData) => ({
+    // Calculate the number of algorithms to add
+    const remainingAlgorithms = totalDailyAlgorithms - dueAlgorithms.length;
+
+    // Get all algorithms
+    const algorithms = await this.algorithmRepository.findAllTemplates();
+
+    // Get the algorithms that are not due
+    const newAlgorithms = algorithms.filter(
+      (algorithm) =>
+        !dueAlgorithms.some((due) => due.algorithmTemplate.id === algorithm.id),
+    );
+
+    // Get the algorithms that are not due
+    const algorithmsToAdd = newAlgorithms.slice(0, remainingAlgorithms);
+
+    // Create user algorithms
+    const userAlgorithms = await this.algorithmRepository.createUserAlgorithms(
+      userId,
+      algorithmsToAdd,
+    );
+
+    // Add the user algorithms to the due algorithms
+    const allAlgorithms = [...dueAlgorithms, ...userAlgorithms];
+
+    return allAlgorithms.map((userData: AlgorithmPracticeData) => ({
       id: userData.id,
       date: userData.due,
-      completed: false,
+      completed: userData.due > endOfDay,
       createdAt: userData.algorithmTemplate.createdAt,
       algorithmPreview: {
         id: userData.algorithmTemplate.id,

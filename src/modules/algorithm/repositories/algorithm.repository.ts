@@ -42,7 +42,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
   // Algorithm Template operations
   async findAllTemplates(): Promise<AlgorithmTemplate[]> {
     const templates = await this.prisma.algorithmTemplate.findMany();
-    return templates.map(this.mapTemplateFromDb);
+    return templates.map((template) => this.mapTemplateFromDb(template));
   }
 
   async findTemplateById(id: string): Promise<AlgorithmTemplate | null> {
@@ -139,6 +139,34 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     return this.mapUserDataFromDb(userData);
   }
 
+  async createUserAlgorithms(
+    userId: string,
+    algorithms: AlgorithmTemplate[],
+  ): Promise<AlgorithmPracticeData[]> {
+    await this.prisma.algorithmUserData.createMany({
+      data: algorithms.map((algorithm) => ({
+        userId,
+        algorithmId: algorithm.id,
+        scheduleData: JSON.stringify(this.schedulerService.initializeState()),
+      })),
+    });
+
+    const createdAlgorithms = await this.prisma.algorithmUserData.findMany({
+      where: {
+        algorithmId: {
+          in: algorithms.map((algorithm) => algorithm.id),
+        },
+      },
+      include: {
+        algorithm: true,
+      },
+    });
+
+    return createdAlgorithms.map((userData) =>
+      this.mapUserDataFromDb(userData),
+    );
+  }
+
   async updateAlgorithmNotes(
     userId: string,
     algorithmId: string,
@@ -205,7 +233,9 @@ export class AlgorithmRepository implements IAlgorithmRepository {
         createdAt: 'desc',
       },
     });
-    return submissions.map(this.mapSubmissionFromDb);
+    return submissions.map((submission) =>
+      this.mapSubmissionFromDb(submission),
+    );
   }
 
   async updateSchedule(
@@ -275,7 +305,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       },
     });
 
-    return dueAlgorithms.map(this.mapUserDataFromDb);
+    return dueAlgorithms.map((userData) => this.mapUserDataFromDb(userData));
   }
 
   // Mapping functions
@@ -303,6 +333,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       };
     }>,
   ): AlgorithmPracticeData {
+    console.log(userData);
     return {
       id: userData.id,
       notes: userData.notes || undefined,
