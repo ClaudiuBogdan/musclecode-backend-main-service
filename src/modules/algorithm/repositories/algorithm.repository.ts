@@ -9,6 +9,7 @@ import {
   AlgorithmRating,
   AlgorithmPreview,
   AlgorithmDifficulty,
+  DailyAlgorithm,
 } from '../interfaces/algorithm.interface';
 import { CreateAlgorithmDto } from '../dto/create-algorithm.dto';
 import { UpdateAlgorithmDto } from '../dto/update-algorithm.dto';
@@ -315,6 +316,79 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     return dueAlgorithms.map((userData) => this.mapUserDataFromDb(userData));
   }
 
+  async findDailyAlgorithms(
+    userId: string,
+    date: Date,
+  ): Promise<DailyAlgorithm[]> {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    const algorithms = await this.prisma.dailyAlgorithm.findMany({
+      where: {
+        userId,
+        date: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+      include: {
+        algorithm: true,
+      },
+    });
+
+    return algorithms.map((algorithm) =>
+      this.mapDailyAlgorithmFromDb(algorithm),
+    );
+  }
+
+  async createDailyAlgorithms(
+    userId: string,
+    algorithms: AlgorithmTemplate[],
+    date: Date,
+  ): Promise<DailyAlgorithm[]> {
+    const data = algorithms.map((algorithm) => ({
+      userId,
+      algorithmId: algorithm.id,
+      date,
+      completed: false,
+    }));
+
+    await this.prisma.dailyAlgorithm.createMany({
+      data,
+    });
+
+    return this.findDailyAlgorithms(userId, date);
+  }
+
+  async markDailyAlgorithmAsCompleted(
+    userId: string,
+    algorithmId: string,
+    date: Date,
+  ): Promise<void> {
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    await this.prisma.dailyAlgorithm.updateMany({
+      where: {
+        userId,
+        algorithmId,
+        date: {
+          gte: startOfDay,
+          lte: endOfDay,
+        },
+      },
+      data: {
+        completed: true,
+      },
+    });
+  }
+
   // Mapping functions
   private mapTemplateFromDb(
     template: Prisma.AlgorithmTemplateGetPayload<any>,
@@ -384,6 +458,20 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       category: algorithm.category,
       summary: algorithm.summary,
       difficulty: algorithm.difficulty as AlgorithmDifficulty,
+    };
+  }
+
+  private mapDailyAlgorithmFromDb(
+    algorithm: Prisma.DailyAlgorithmGetPayload<{
+      include: {
+        algorithm: true;
+      };
+    }>,
+  ): DailyAlgorithm {
+    return {
+      id: algorithm.id,
+      algorithmPreview: this.mapAlgorithmPreviewFromDb(algorithm.algorithm),
+      completed: algorithm.completed,
     };
   }
 

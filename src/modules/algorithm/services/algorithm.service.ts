@@ -106,53 +106,57 @@ export class AlgorithmService implements OnModuleInit {
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
-    // const totalDailyAlgorithms = 5;
-
-    const dueAlgorithms = await this.algorithmRepository.findDueAlgorithms(
+    // Check if we already have daily algorithms for this date
+    let dailyAlgorithms = await this.algorithmRepository.findDailyAlgorithms(
       userId,
       startOfDay,
-      endOfDay,
     );
 
-    // TODO: fix this
-    // // Calculate the number of algorithms to add
-    // const remainingAlgorithms = totalDailyAlgorithms - dueAlgorithms.length;
+    // If no daily algorithms exist for this date, create them
+    if (dailyAlgorithms.length === 0) {
+      const totalDailyAlgorithms = 5;
 
-    // // Get all algorithms
-    // const algorithms = await this.algorithmRepository.findAllTemplates();
+      // First, get the due algorithms for today
+      const dueAlgorithms = await this.algorithmRepository.findDueAlgorithms(
+        userId,
+        startOfDay,
+        endOfDay,
+      );
 
-    // // Get the algorithms that are not due
-    // const newAlgorithms = algorithms.filter(
-    //   (algorithm) =>
-    //     !dueAlgorithms.some((due) => due.algorithmTemplate.id === algorithm.id),
-    // );
+      // Get all algorithms to fill the remaining slots
+      const allAlgorithms = await this.algorithmRepository.findAllTemplates();
 
-    // // Get the algorithms that are not due
-    // const algorithmsToAdd = newAlgorithms.slice(0, remainingAlgorithms);
+      // Filter out algorithms that are already due today
+      const availableAlgorithms = allAlgorithms.filter(
+        (algorithm) =>
+          !dueAlgorithms.some(
+            (due) => due.algorithmTemplate.id === algorithm.id,
+          ),
+      );
 
-    // // Create user algorithms
-    // const userAlgorithms = await this.algorithmRepository.createUserAlgorithms(
-    //   userId,
-    //   algorithmsToAdd,
-    // );
+      // Calculate how many more algorithms we need
+      const remainingCount = Math.max(
+        0,
+        totalDailyAlgorithms - dueAlgorithms.length,
+      );
 
-    // Add the user algorithms to the due algorithms
-    const allAlgorithms = [...dueAlgorithms];
+      // Randomly select algorithms to fill the remaining slots
+      const selectedAlgorithms = [
+        ...dueAlgorithms.map((data) => data.algorithmTemplate),
+        ...availableAlgorithms
+          .sort(() => Math.random() - 0.5)
+          .slice(0, remainingCount),
+      ];
 
-    return allAlgorithms.map((userData: AlgorithmPracticeData) => ({
-      id: userData.id,
-      date: userData.due,
-      completed: userData.due > endOfDay,
-      createdAt: userData.algorithmTemplate.createdAt,
-      algorithmPreview: {
-        id: userData.algorithmTemplate.id,
-        title: userData.algorithmTemplate.title,
-        category: userData.algorithmTemplate.category,
-        summary: userData.algorithmTemplate.summary,
-        difficulty: userData.algorithmTemplate.difficulty,
-        tags: userData.algorithmTemplate.tags,
-      },
-    }));
+      // Create daily algorithms for the user
+      dailyAlgorithms = await this.algorithmRepository.createDailyAlgorithms(
+        userId,
+        selectedAlgorithms,
+        startOfDay,
+      );
+    }
+
+    return dailyAlgorithms;
   }
 
   async createSubmission(
@@ -172,6 +176,13 @@ export class AlgorithmService implements OnModuleInit {
     if (!userData) {
       throw new Error('Failed to create or find algorithm practice data');
     }
+
+    // Mark the daily algorithm as completed
+    await this.algorithmRepository.markDailyAlgorithmAsCompleted(
+      userId,
+      algorithmId,
+      new Date(),
+    );
 
     return this.algorithmRepository.createSubmission(
       {

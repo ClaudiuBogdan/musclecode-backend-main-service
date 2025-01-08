@@ -3,6 +3,7 @@ import {
   AlgorithmPracticeData,
   AlgorithmSubmission,
   AlgorithmRating,
+  DailyAlgorithm,
 } from './algorithm.interface';
 
 export interface IAlgorithmRepository {
@@ -55,4 +56,17 @@ export interface IAlgorithmRepository {
     startDate: Date,
     endDate: Date,
   ): Promise<AlgorithmPracticeData[]>;
+
+  // Daily algorithms
+  findDailyAlgorithms(userId: string, date: Date): Promise<DailyAlgorithm[]>;
+  createDailyAlgorithms(
+    userId: string,
+    algorithms: AlgorithmTemplate[],
+    date: Date,
+  ): Promise<DailyAlgorithm[]>;
+  markDailyAlgorithmAsCompleted(
+    userId: string,
+    algorithmId: string,
+    date: Date,
+  ): Promise<void>;
 }

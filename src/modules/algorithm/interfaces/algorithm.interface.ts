@@ -159,14 +159,8 @@ export class DailyAlgorithm {
   @ApiProperty({ description: 'Algorithm template' })
   algorithmPreview: AlgorithmPreview;
 
-  @ApiProperty({ description: 'Date for this daily algorithm' })
-  date: Date;
-
   @ApiProperty({ description: 'Whether the algorithm has been completed' })
   completed: boolean;
-
-  @ApiProperty({ description: 'Creation timestamp' })
-  createdAt: Date;
 }
 
 export class AlgorithmSubmission {

@@ -21,6 +21,7 @@ model AlgorithmTemplate {
   updatedAt   DateTime @updatedAt
 
   userAlgorithms AlgorithmUserData[]
+  dailyAlgorithms DailyAlgorithm[]
   @@index([category])
 }
 
@@ -55,4 +56,17 @@ model Submission {
   algorithmUserData   AlgorithmUserData @relation(fields: [algorithmUserDataId], references: [id])
 
   @@index([userId, algorithmId])
+}
+
+model DailyAlgorithm {
+  id                String            @id @default(uuid())
+  userId            String
+  algorithmId       String
+  date              DateTime
+  completed         Boolean           @default(false)
+  algorithm         AlgorithmTemplate @relation(fields: [algorithmId], references: [id])
+  createdAt         DateTime          @default(now())
+
+  @@unique([userId, algorithmId, date])
+  @@index([userId, date])
 } 
