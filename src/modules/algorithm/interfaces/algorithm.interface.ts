@@ -140,6 +140,18 @@ export class AlgorithmPracticeData {
   scheduleData: SchedulingState;
 
   @ApiProperty({
+    description: 'FSRS scheduling data',
+    required: true,
+  })
+  ratingSchedule: AlgorithmSchedule;
+
+  @ApiProperty({
+    description: 'Next algorithm to practice',
+    required: false,
+  })
+  nextAlgorithm: AlgorithmPreview | null;
+
+  @ApiProperty({
     description: 'Next due date for review',
     required: true,
   })

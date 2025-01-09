@@ -8,10 +8,15 @@ import {
 import { CreateAlgorithmDto } from '../dto/create-algorithm.dto';
 import { UpdateAlgorithmDto } from '../dto/update-algorithm.dto';
 import { AlgorithmRepository } from '../repositories/algorithm.repository';
+import { SchedulerService } from 'src/modules/scheduler/services/scheduler.service';
+import { Rating } from 'src/modules/scheduler/types/scheduler.types';
 
 @Injectable()
 export class AlgorithmService implements OnModuleInit {
-  constructor(private readonly algorithmRepository: AlgorithmRepository) {}
+  constructor(
+    private readonly algorithmRepository: AlgorithmRepository,
+    private readonly schedulerService: SchedulerService,
+  ) {}
 
   async onModuleInit() {
     await this.algorithmRepository.seed();
@@ -60,14 +65,50 @@ export class AlgorithmService implements OnModuleInit {
     userId: string,
     algorithmId: string,
   ): Promise<AlgorithmPracticeData | null> {
-    const userData = await this.algorithmRepository.findAlgorithmPracticeData(
+    let userData = await this.algorithmRepository.findAlgorithmPracticeData(
       userId,
       algorithmId,
     );
 
     if (!userData) {
-      return this.createPracticeData(userId, algorithmId);
+      userData = await this.createPracticeData(userId, algorithmId);
     }
+
+    const ratingSchedule = {
+      again: this.schedulerService.schedule(
+        userData?.scheduleData,
+        Rating.Again,
+      ).interval,
+      hard: this.schedulerService.schedule(userData?.scheduleData, Rating.Hard)
+        .interval,
+      good: this.schedulerService.schedule(userData?.scheduleData, Rating.Good)
+        .interval,
+      easy: this.schedulerService.schedule(userData?.scheduleData, Rating.Easy)
+        .interval,
+    };
+
+    userData.ratingSchedule = ratingSchedule;
+
+    const dailyAlgorithms = await this.findDailyAlgorithms(userId);
+
+    const findNextAlgorithm = () => {
+      const algorithmIndex = dailyAlgorithms.findIndex(
+        (algorithm) =>
+          algorithm.algorithmPreview.id === userData.algorithmTemplate.id,
+      );
+
+      for (let i = 1; i < dailyAlgorithms.length; i++) {
+        const nextIndex = (algorithmIndex + i) % dailyAlgorithms.length;
+        const isCompleted = dailyAlgorithms[nextIndex].completed;
+        if (nextIndex !== algorithmIndex && !isCompleted) {
+          return dailyAlgorithms[nextIndex].algorithmPreview;
+        }
+      }
+
+      return null;
+    };
+
+    userData.nextAlgorithm = findNextAlgorithm();
 
     return userData;
   }

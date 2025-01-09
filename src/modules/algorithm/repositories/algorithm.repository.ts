@@ -421,6 +421,13 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       scheduleData: JSON.parse(userData.scheduleData),
       due: userData.due,
       submissions: [],
+      ratingSchedule: {
+        again: 0,
+        hard: 0,
+        good: 0,
+        easy: 0,
+      },
+      nextAlgorithm: null,
     };
   }
 
