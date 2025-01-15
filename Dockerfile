@@ -1,4 +1,4 @@
-FROM node:18-alpine AS builder
+FROM node:20.16-alpine3.19 AS builder
 
 # Add dependencies for node-gyp and Prisma
 RUN apk add --no-cache python3 make g++ 
@@ -18,7 +18,7 @@ COPY . .
 # Build the application
 RUN yarn build
 
-FROM node:18-alpine AS production
+FROM node:20.16-alpine3.19 AS production
 
 # Add production dependencies and create non-root user
 RUN apk add --no-cache tini && \
