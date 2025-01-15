@@ -32,9 +32,12 @@ WORKDIR /app
 
 # Copy package files and install production dependencies only
 COPY package.json yarn.lock ./
+RUN yarn install --frozen-lockfile --production
+
+# Copy Prisma schema and generated client from builder
 COPY prisma ./prisma/
-RUN yarn install --frozen-lockfile --production && \
-    yarn prisma generate
+COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
 # Copy built application from builder stage
 COPY --from=builder /app/dist ./dist
