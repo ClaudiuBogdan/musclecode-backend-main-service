@@ -5,8 +5,9 @@ RUN apk add --no-cache python3 make g++
 
 WORKDIR /app
 
-# Copy package files
+# Copy package files and TypeScript configs
 COPY package.json yarn.lock ./
+COPY tsconfig*.json ./
 
 # Install dependencies including dev dependencies for build
 RUN yarn install --frozen-lockfile
