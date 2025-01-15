@@ -1,16 +1,17 @@
 FROM node:20.16-alpine3.19 AS builder
 
-# Add dependencies for node-gyp and Prisma
-RUN apk add --no-cache python3 make g++ 
-
 WORKDIR /app
 
 # Copy package files and TypeScript configs
 COPY package.json yarn.lock ./
 COPY tsconfig*.json ./
+COPY prisma ./prisma/
 
 # Install dependencies including dev dependencies for build
 RUN yarn install --frozen-lockfile
+
+# Generate Prisma client
+RUN yarn prisma generate
 
 # Copy source code
 COPY . .
