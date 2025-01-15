@@ -90,12 +90,18 @@ export class AlgorithmService implements OnModuleInit {
     userData.ratingSchedule = ratingSchedule;
 
     const dailyAlgorithms = await this.findDailyAlgorithms(userId);
-
-    const findNextAlgorithm = () => {
-      const algorithmIndex = dailyAlgorithms.findIndex(
+    const dailyAlgorithm =
+      dailyAlgorithms.find(
         (algorithm) =>
           algorithm.algorithmPreview.id === userData.algorithmTemplate.id,
-      );
+      ) || null;
+
+    const findNextAlgorithm = () => {
+      const algorithmIndex = dailyAlgorithm
+        ? dailyAlgorithms.findIndex(
+            (algorithm) => algorithm.id === dailyAlgorithm.id,
+          )
+        : -1;
 
       for (let i = 1; i < dailyAlgorithms.length; i++) {
         const nextIndex = (algorithmIndex + i) % dailyAlgorithms.length;
@@ -109,6 +115,7 @@ export class AlgorithmService implements OnModuleInit {
     };
 
     userData.nextAlgorithm = findNextAlgorithm();
+    userData.dailyAlgorithm = dailyAlgorithm;
 
     return userData;
   }

@@ -9,7 +9,7 @@ export const seedAlgorithms = (): AlgorithmTemplate[] => {
     {
       id: 'bubble-sort',
       title: 'Bubble Sort',
-      category: 'Sorting',
+      category: 'sorting',
       tags: ['sorting', 'bubble sort'],
       summary:
         'A simple sorting algorithm that repeatedly steps through the list, compares adjacent elements and swaps them if they are in the wrong order.',
@@ -97,7 +97,7 @@ Sorted array: [11, 12, 22, 25, 34, 64, 90]
     {
       id: 'selection-sort',
       title: 'Selection Sort',
-      category: 'Sorting',
+      category: 'sorting',
       tags: ['sorting', 'selection sort'],
       summary:
         'A sorting algorithm that selects the smallest element from an unsorted part and puts it at the beginning.',
@@ -182,7 +182,7 @@ Sorted array: [11, 12, 22, 25, 64]
     {
       id: 'insertion-sort',
       title: 'Insertion Sort',
-      category: 'Sorting',
+      category: 'sorting',
       tags: ['sorting', 'insertion sort'],
       summary:
         'A simple sorting algorithm that builds the final sorted array one item at a time.',
@@ -271,7 +271,7 @@ Sorted array: [1, 2, 3, 4, 5, 6]
       createdAt: new Date(),
       updatedAt: new Date(),
       title: 'Merge Sort',
-      category: 'Sorting',
+      category: 'sorting',
       tags: ['sorting', 'merge sort'],
       summary:
         'A divide-and-conquer algorithm that divides the array into two halves, recursively sorts them, and then merges them.',
@@ -357,7 +357,7 @@ Sorted array: [3, 9, 10, 27, 38, 43, 82]
       createdAt: new Date(),
       updatedAt: new Date(),
       title: 'Binary Search',
-      category: 'Searching',
+      category: 'searching',
       tags: ['searching', 'binary search'],
       summary:
         'A fast search algorithm that finds the position of a target value within a sorted array.',
@@ -575,7 +575,7 @@ if __name__ == '__main__':
       createdAt: new Date(),
       updatedAt: new Date(),
       title: 'Depth-First Search',
-      category: 'Graph Traversal',
+      category: 'graph-traversal',
       tags: ['graph traversal', 'depth-first search'],
       summary:
         'A traversal approach that explores as far as possible along each branch before backtracking.',
@@ -662,7 +662,7 @@ A -> B -> D -> E -> C -> F
       createdAt: new Date(),
       updatedAt: new Date(),
       title: 'Breadth-First Search',
-      category: 'Graph Traversal',
+      category: 'graph-traversal',
       tags: ['graph traversal', 'breadth-first search'],
       summary:
         'A traversal approach that explores all the nodes at the present depth prior to moving on to nodes at the next depth level.',

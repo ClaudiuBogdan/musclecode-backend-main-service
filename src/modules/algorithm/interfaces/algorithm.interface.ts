@@ -152,6 +152,12 @@ export class AlgorithmPracticeData {
   nextAlgorithm: AlgorithmPreview | null;
 
   @ApiProperty({
+    description: 'Daily algorithm data',
+    required: false,
+  })
+  dailyAlgorithm: DailyAlgorithm | null;
+
+  @ApiProperty({
     description: 'Next due date for review',
     required: true,
   })

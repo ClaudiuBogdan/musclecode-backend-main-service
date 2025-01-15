@@ -428,6 +428,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
         easy: 0,
       },
       nextAlgorithm: null,
+      dailyAlgorithm: null,
     };
   }
 
