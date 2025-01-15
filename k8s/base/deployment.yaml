@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: musclecode-backend-main-service
+  namespace: musclecode
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: musclecode-backend-main-service
+  template:
+    metadata:
+      labels:
+        app: musclecode-backend-main-service
+    spec:
+      containers:
+      - name: musclecode-backend-main-service
+        image: ${{ env.DOCKER_REGISTRY_URL }}/muclecode-backend-main-service:latest
+        ports:
+        - containerPort: 3000
+        envFrom:
+        - secretRef:
+            name: app-secrets
+        resources:
+          limits:
+            cpu: "1"
+            memory: "1Gi"
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 15
+          periodSeconds: 20

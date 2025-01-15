@@ -1,0 +1,20 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: musclecode-backend-main-service
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/ClaudiuBogdan/musclecode-backend-main-service.git
+    targetRevision: HEAD
+    path: k8s/base
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: musclecode
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

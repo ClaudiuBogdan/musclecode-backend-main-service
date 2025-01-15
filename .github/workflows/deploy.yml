@@ -1,0 +1,38 @@
+name: Build and Push Docker image
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Get Secrets from Bitwarden
+        uses: bitwarden/sm-action@v1
+        with:
+          access_token: ${{ secrets.BW_ACCESS_TOKEN }}
+          secrets: |
+            b964f6cf-76df-49cb-907a-b26600c5c7b8 > DOCKER_REGISTRY_URL
+            5b1939aa-866f-4a3c-80b1-b26600c5f391 > DOCKER_USERNAME
+            946357bf-ddfe-4de1-92a2-b26600c6cdc4 > DOCKER_PASSWORD
+      
+      - name: Login to Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.DOCKER_REGISTRY_URL }}
+          username: ${{ env.DOCKER_USERNAME }}
+          password: ${{ env.DOCKER_PASSWORD }}
+      
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.DOCKER_REGISTRY_URL }}/muclecode-backend-main-service:${{ github.sha }}
+            ${{ env.DOCKER_REGISTRY_URL }}/muclecode-backend-main-service:latest
