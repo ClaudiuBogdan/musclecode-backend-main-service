@@ -54,6 +54,3 @@ replacements:
         fieldPaths:
           - spec.bootstrap.initdb.owner
 
-configMapGenerator:
-  - name: image-config
-    behavior: merge
