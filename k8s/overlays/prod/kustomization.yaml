@@ -5,6 +5,9 @@ namespace: musclecode-prod
 
 resources:
   - ../../base
+  - sealed-app-secret.yaml
+  - sealed-db-secret.yaml
+  - sealed-registry-secret.yaml
 
 patches:
   - target:

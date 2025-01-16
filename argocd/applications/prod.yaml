@@ -6,9 +6,9 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/your-org/musclecode-backend-main-service.git
+    repoURL: https://github.com/ClaudiuBogdan/musclecode-backend-main-service
     targetRevision: main
-    path: k8s/overlays/prod
+    path: ./k8s/overlays/prod
   destination:
     server: https://kubernetes.default.svc
     namespace: musclecode-prod
