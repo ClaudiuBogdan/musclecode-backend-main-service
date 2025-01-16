@@ -17,7 +17,7 @@ spec:
         - name: registry-credentials
       containers:
         - name: musclecode-backend-main-service
-          image: $(DOCKER_REGISTRY_URL)/muclecode-backend-main-service:latest
+          image: $(DOCKER_REGISTRY_URL)/musclecode-backend-main-service:$(IMAGE_TAG)
           ports:
             - containerPort: 3000
           envFrom:
