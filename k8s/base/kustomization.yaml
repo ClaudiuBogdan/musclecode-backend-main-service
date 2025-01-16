@@ -7,10 +7,10 @@ resources:
   - service.yaml
   - prisma-migration.yaml
   - postgres-deployment.yaml
-  - secrets/registry-secret.secret.yaml
-  - secrets/db-secret.secret.yaml
-  - secrets/app-secret.secret.yaml
-  
+  - secrets/sealed-registry-secret.yaml
+  - secrets/sealed-db-secret.yaml
+  - secrets/sealed-app-secret.yaml
+
 commonLabels:
   app.kubernetes.io/name: musclecode-backend-main-service
   app.kubernetes.io/part-of: musclecode
