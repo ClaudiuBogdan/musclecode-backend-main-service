@@ -8,15 +8,14 @@ metadata:
 spec:
   template:
     spec:
+      imagePullSecrets:
+        - name: registry-credentials
       containers:
-      - name: prisma-migrate
-        image: ${{ env.DOCKER_REGISTRY_URL }}/muclecode-backend-main-service:latest
-        command: ["npx", "prisma", "migrate", "deploy"]
-        env:
-        - name: DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: musclecode-backend-main-service-secrets
-              key: DATABASE_URL
+        - name: prisma-migrate
+          image: $(DOCKER_REGISTRY_URL)/musclecode-backend-main-service:$(IMAGE_TAG)
+          command: ["npx", "prisma", "migrate", "deploy"]
+          envFrom:
+            - secretRef:
+                name: musclecode-backend-main-service-secrets
       restartPolicy: Never
   backoffLimit: 3

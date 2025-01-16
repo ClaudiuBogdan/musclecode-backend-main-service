@@ -2,6 +2,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: musclecode-backend-main-service
+  namespace: musclecode
 spec:
   selector:
     app: musclecode-backend-main-service

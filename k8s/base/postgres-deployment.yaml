@@ -1,0 +1,23 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: postgres-db
+  namespace: musclecode
+spec:
+  instances: 1
+  bootstrap:
+    initdb:
+      database: $(POSTGRES_DB)
+      owner: $(POSTGRES_USER)
+      secret:
+        name: postgres-credentials
+  postgresql:
+    shared_preload_libraries:
+      - pg_stat_statements
+    parameters:
+      max_connections: "100"
+      shared_buffers: "256MB"
+      
+  storage:
+    size: 10Gi
+    storageClass: "microk8s-hostpath"

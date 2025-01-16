@@ -1,14 +1,56 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
-
 namespace: musclecode
 
 resources:
   - deployment.yaml
   - service.yaml
-  - sealed-secrets.yaml
   - prisma-migration.yaml
+  - postgres-deployment.yaml
 
 commonLabels:
   app.kubernetes.io/name: musclecode-backend-main-service
   app.kubernetes.io/part-of: musclecode
+
+images:
+  - name: $(DOCKER_REGISTRY_URL)/muclecode-backend-main-service
+    newName: $(DOCKER_REGISTRY_URL)/muclecode-backend-main-service
+    newTag: $(IMAGE_TAG)
+
+replacements:
+  - source:
+      kind: Secret
+      name: musclecode-backend-main-service-secrets
+      fieldPath: data.DOCKER_REGISTRY_URL
+    targets:
+      - select:
+          kind: ConfigMap
+          name: image-config
+        fieldPaths:
+          - data.DOCKER_REGISTRY_URL
+
+  - source:
+      kind: Secret
+      name: postgres-credentials
+      fieldPath: data.POSTGRES_DB
+    targets:
+      - select:
+          kind: Cluster
+          name: postgres-db
+        fieldPaths:
+          - spec.bootstrap.initdb.database
+
+  - source:
+      kind: Secret
+      name: postgres-credentials
+      fieldPath: data.POSTGRES_USER
+    targets:
+      - select:
+          kind: Cluster
+          name: postgres-db
+        fieldPaths:
+          - spec.bootstrap.initdb.owner
+
+configMapGenerator:
+  - name: image-config
+    behavior: merge
