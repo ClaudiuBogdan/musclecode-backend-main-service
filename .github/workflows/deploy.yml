@@ -45,7 +45,10 @@ jobs:
         with:
           repository: ${{ github.repository }}
           token: ${{ github.token }}
-          ref: ${{ github.sha }}
+          ref: main
+
+      - name: Checkout main branch
+        run: git checkout main
 
       - name: Update image tag in kustomization.yaml
         run: |
