@@ -45,11 +45,11 @@ jobs:
         with:
           repository: ${{ github.repository }}
           token: ${{ github.token }}
-          ref: main
+          ref: ${{ github.sha }}
 
       - name: Update image tag in kustomization.yaml
         run: |
-          cd gitops/k8s/base
+          cd ./k8s/base
           kustomize edit set image harbor.devostack.com/musclecode/musclecode-backend-main-service=harbor.devostack.com/musclecode/musclecode-backend-main-service:${{ github.sha }}
 
       - name: Commit and push changes to GitOps repo
