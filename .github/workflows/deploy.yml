@@ -44,7 +44,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: musclecode/gitops
-          token: ${{ secrets.GIT_TOKEN }}
+          token: ${{ github.token }}
           path: gitops
 
       - name: Update image tag in kustomization.yaml
