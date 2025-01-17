@@ -3,42 +3,42 @@ kind: Kustomization
 namespace: musclecode
 
 resources:
-  - deployment.yaml
-  - service.yaml
-  - prisma-migration.yaml
-  - postgres-deployment.yaml
-  - secrets/sealed-registry-secret.yaml
-  - secrets/sealed-db-secret.yaml
-  - secrets/sealed-app-secret.yaml
+- deployment.yaml
+- service.yaml
+- prisma-migration.yaml
+- postgres-deployment.yaml
+- secrets/sealed-registry-secret.yaml
+- secrets/sealed-db-secret.yaml
+- secrets/sealed-app-secret.yaml
 
 commonLabels:
   app.kubernetes.io/name: musclecode-backend-main-service
   app.kubernetes.io/part-of: musclecode
 
 images:
-  - name: harbor.devostack.com/musclecode/musclecode-backend-main-service
-    newName: harbor.devostack.com/musclecode/musclecode-backend-main-service
-    newTag: latest
+- name: harbor.devostack.com/musclecode/musclecode-backend-main-service
+  newName: harbor.devostack.com/musclecode/musclecode-backend-main-service
+  newTag: f27a1a86900d5f55bf5b9d5697db43670608b44c
+
 
 replacements:
-  - source:
-      kind: Secret
-      name: postgres-credentials
-      fieldPath: data.POSTGRES_DB
-    targets:
-      - select:
-          kind: Cluster
-          name: postgres-db
-        fieldPaths:
-          - spec.bootstrap.initdb.database
-
-  - source:
-      kind: Secret
-      name: postgres-credentials
-      fieldPath: data.POSTGRES_USER
-    targets:
-      - select:
-          kind: Cluster
-          name: postgres-db
-        fieldPaths:
-          - spec.bootstrap.initdb.owner
+- source:
+    fieldPath: data.POSTGRES_DB
+    kind: Secret
+    name: postgres-credentials
+  targets:
+  - fieldPaths:
+    - spec.bootstrap.initdb.database
+    select:
+      kind: Cluster
+      name: postgres-db
+- source:
+    fieldPath: data.POSTGRES_USER
+    kind: Secret
+    name: postgres-credentials
+  targets:
+  - fieldPaths:
+    - spec.bootstrap.initdb.owner
+    select:
+      kind: Cluster
+      name: postgres-db
