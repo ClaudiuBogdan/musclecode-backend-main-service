@@ -7,10 +7,10 @@ spec:
   instances: 1
   bootstrap:
     initdb:
-      database: $(POSTGRES_DB)
-      owner: $(POSTGRES_USER)
+      owner: database-user
+      database: database-name
       secret:
-        name: postgres-credentials
+        name: postgres-deployment-credentials
   postgresql:
     shared_preload_libraries:
       - pg_stat_statements

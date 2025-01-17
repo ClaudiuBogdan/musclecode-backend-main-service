@@ -2,7 +2,6 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: musclecode-backend-main-service
-  namespace: musclecode
 spec:
   replicas: 1
   selector:
@@ -17,7 +16,7 @@ spec:
         - name: registry-credentials
       containers:
         - name: musclecode-backend-main-service
-          image: $(DOCKER_REGISTRY_URL)/musclecode-backend-main-service:$(IMAGE_TAG)
+          image: harbor.devostack.com/musclecode/musclecode-backend-main-service:latest
           ports:
             - containerPort: 3000
           envFrom:

@@ -4,7 +4,7 @@ metadata:
   name: prisma-migrate
   annotations:
     argocd.argoproj.io/hook: PreSync
-    argocd.argoproj.io/hook-delete-policy: HookSucceeded
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
   template:
     spec:
@@ -12,7 +12,7 @@ spec:
         - name: registry-credentials
       containers:
         - name: prisma-migrate
-          image: $(DOCKER_REGISTRY_URL)/musclecode-backend-main-service:$(IMAGE_TAG)
+          image: harbor.devostack.com/musclecode/musclecode-backend-main-service:latest
           command: ["npx", "prisma", "migrate", "deploy"]
           envFrom:
             - secretRef:

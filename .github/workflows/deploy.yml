@@ -9,9 +9,15 @@ on:
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
     steps:
+      - name: Set image tag
+        id: image-tag
+        run: echo "IMAGE_TAG=${{ github.sha }}" >> $GITHUB_ENV
+
       - uses: actions/checkout@v3
-      
       - name: Get Secrets from Bitwarden
         uses: bitwarden/sm-action@v1
         with:
@@ -33,6 +39,30 @@ jobs:
         with:
           context: .
           push: true
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
           tags: |
-            ${{ env.DOCKER_REGISTRY_URL }}/muclecode-backend-main-service:${{ github.sha }}
+            ${{ env.DOCKER_REGISTRY_URL }}/muclecode-backend-main-service:${{ steps.image-tag.outputs.IMAGE_TAG }}
             ${{ env.DOCKER_REGISTRY_URL }}/muclecode-backend-main-service:latest
+
+
+      - name: Checkout GitOps repository
+        uses: actions/checkout@v3
+        with:
+          repository: musclecode/gitops
+          token: ${{ secrets.GIT_TOKEN }}
+          path: gitops
+
+      - name: Update image tag in kustomization.yaml
+        run: |
+          cd gitops/k8s/base
+          kustomize edit set image harbor.devostack.com/musclecode/musclecode-backend-main-service=harbor.devostack.com/musclecode/musclecode-backend-main-service:${{ steps.image-tag.outputs.IMAGE_TAG }}
+
+      - name: Commit and push changes to GitOps repo
+        run: |
+          cd gitops
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add .
+          git commit -m "ci: update image tag to ${{ steps.image-tag.outputs.IMAGE_TAG }}"
+          git push
