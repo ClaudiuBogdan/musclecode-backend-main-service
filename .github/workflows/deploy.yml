@@ -39,8 +39,6 @@ jobs:
         with:
           context: .
           push: true
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
           tags: |
             ${{ env.DOCKER_REGISTRY_URL }}/muclecode-backend-main-service:${{ steps.image-tag.outputs.IMAGE_TAG }}
             ${{ env.DOCKER_REGISTRY_URL }}/muclecode-backend-main-service:latest
