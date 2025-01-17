@@ -21,24 +21,24 @@ images:
   newTag: f27a1a86900d5f55bf5b9d5697db43670608b44c
 
 
-replacements:
-- source:
-    fieldPath: data.POSTGRES_DB
-    kind: Secret
-    name: postgres-credentials
-  targets:
-  - fieldPaths:
-    - spec.bootstrap.initdb.database
-    select:
-      kind: Cluster
-      name: postgres-db
-- source:
-    fieldPath: data.POSTGRES_USER
-    kind: Secret
-    name: postgres-credentials
-  targets:
-  - fieldPaths:
-    - spec.bootstrap.initdb.owner
-    select:
-      kind: Cluster
-      name: postgres-db
+# replacements:
+# - source:
+#     fieldPath: data.POSTGRES_DB
+#     kind: Secret
+#     name: postgres-credentials
+#   targets:
+#   - fieldPaths:
+#     - spec.bootstrap.initdb.database
+#     select:
+#       kind: Cluster
+#       name: postgres-db
+# - source:
+#     fieldPath: data.POSTGRES_USER
+#     kind: Secret
+#     name: postgres-credentials
+#   targets:
+#   - fieldPaths:
+#     - spec.bootstrap.initdb.owner
+#     select:
+#       kind: Cluster
+#       name: postgres-db
