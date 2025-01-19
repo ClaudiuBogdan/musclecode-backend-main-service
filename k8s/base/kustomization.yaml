@@ -22,9 +22,8 @@ images:
 
 replacements:
 - source:
-    fieldPath: data.POSTGRES_DB
-    kind: Secret
-    name: musclecode-backend-main-service-secrets
+    kind: Value
+    value: "musclecode"
   targets:
   - fieldPaths:
     - spec.bootstrap.initdb.database
@@ -32,9 +31,8 @@ replacements:
       kind: Cluster
       name: postgres-db
 - source:
-    fieldPath: data.POSTGRES_USER
-    kind: Secret
-    name: musclecode-backend-main-service-secrets
+    kind: Value
+    value: "musclecode_user"
   targets:
   - fieldPaths:
     - spec.bootstrap.initdb.owner
