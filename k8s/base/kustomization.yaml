@@ -18,4 +18,4 @@ commonLabels:
 images:
 - name: harbor.devostack.com/musclecode/musclecode-backend-main-service
   newName: harbor.devostack.com/musclecode/musclecode-backend-main-service
-  newTag: 5b1ce04bb264069db2390631ca7086ef958aee29
+  newTag: 23ca66462e62b1f6991d19aa43d582fb9f0e3f74
