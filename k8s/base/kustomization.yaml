@@ -19,3 +19,25 @@ images:
 - name: harbor.devostack.com/musclecode/musclecode-backend-main-service
   newName: harbor.devostack.com/musclecode/musclecode-backend-main-service
   newTag: c65a9dcd0f72ed257dfa5b208318f4267a75a652
+
+replacements:
+- source:
+    fieldPath: data.POSTGRES_DB
+    kind: Secret
+    name: musclecode-backend-main-service-secrets
+  targets:
+  - fieldPaths:
+    - spec.bootstrap.initdb.database
+    select:
+      kind: Cluster
+      name: postgres-db
+- source:
+    fieldPath: data.POSTGRES_USER
+    kind: Secret
+    name: musclecode-backend-main-service-secrets
+  targets:
+  - fieldPaths:
+    - spec.bootstrap.initdb.owner
+    select:
+      kind: Cluster
+      name: postgres-db
