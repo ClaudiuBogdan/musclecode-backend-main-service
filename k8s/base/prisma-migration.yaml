@@ -3,7 +3,7 @@ kind: Job
 metadata:
   name: prisma-migrate
   annotations:
-    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/hook-delete-policy: HookSucceeded
     argocd.argoproj.io/sync-wave: "-3"
 spec:
   template:
