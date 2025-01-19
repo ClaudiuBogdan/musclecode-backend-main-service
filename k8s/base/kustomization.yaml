@@ -18,16 +18,16 @@ commonLabels:
 images:
 - name: harbor.devostack.com/musclecode/musclecode-backend-main-service
   newName: harbor.devostack.com/musclecode/musclecode-backend-main-service
-  newTag: 9110c1c8c401f962554be192fda1bbb3f5c65b33
+  newTag: 69ec52c1d1f4b11de4409690d21a2e84d26be6f5
 
 patches:
-- target:
-    kind: Cluster
-    name: postgres-db
-  patch: |-
+- patch: |-
     - op: replace
       path: /spec/bootstrap/initdb/database
       value: musclecode
     - op: replace
       path: /spec/bootstrap/initdb/owner
       value: musclecode_user
+  target:
+    kind: Cluster
+    name: postgres-db
