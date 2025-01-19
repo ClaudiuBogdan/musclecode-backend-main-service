@@ -1,6 +1,5 @@
-// This is your Prisma schema file
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 

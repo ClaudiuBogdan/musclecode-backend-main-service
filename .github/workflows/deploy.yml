@@ -36,8 +36,8 @@ jobs:
           context: .
           push: true
           tags: |
-            ${{ env.DOCKER_REGISTRY_URL }}/muclecode-backend-main-service:${{ github.sha }}
-            ${{ env.DOCKER_REGISTRY_URL }}/muclecode-backend-main-service:latest
+            ${{ env.DOCKER_REGISTRY_URL }}/musclecode-backend-main-service:${{ github.sha }}
+            ${{ env.DOCKER_REGISTRY_URL }}/musclecode-backend-main-service:latest
 
 
       - name: Checkout GitOps repository
@@ -54,7 +54,7 @@ jobs:
         run: |
           cd ./k8s/base
           kustomize edit set image harbor.devostack.com/musclecode/musclecode-backend-main-service=harbor.devostack.com/musclecode/musclecode-backend-main-service:${{ github.sha }}
-
+          
       - name: Commit and push changes to GitOps repo
         run: |
           cd ./
