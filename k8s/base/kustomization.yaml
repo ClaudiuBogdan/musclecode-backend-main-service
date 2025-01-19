@@ -16,22 +16,15 @@ commonLabels:
   app.kubernetes.io/part-of: musclecode
 
 vars:
-- fieldref:
-    fieldPath: metadata.annotations.image-sha
-  name: IMAGE_SHA
-  objref:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: musclecode-backend-main-service
+  - name: IMAGE_SHA
+    objref:
+      kind: Deployment
+      name: musclecode-backend-main-service
+      apiVersion: apps/v1
+    fieldref:
+      fieldpath: metadata.annotations.image-sha
 
 patches:
-- patch: |-
-    - op: replace
-      path: /metadata/name
-      value: prisma-migration-job-$(IMAGE_SHA)
-  target:
-    kind: Job
-    name: prisma-migrate
 - patch: |-
     - op: replace
       path: /spec/bootstrap/initdb/database
@@ -46,6 +39,6 @@ patches:
 images:
 - name: harbor.devostack.com/musclecode/musclecode-backend-main-service
   newName: harbor.devostack.com/musclecode/musclecode-backend-main-service
-  newTag: 1966fd6f1a8f9efb0ff65b61c40d155c4ac90161
+  newTag: a6b3ea4d36c35d559ec348a166341605bb5d8114
 commonAnnotations:
-  image-sha: 1966fd6f1a8f9efb0ff65b61c40d155c4ac90161
+  image-sha: a6b3ea4d36c35d559ec348a166341605bb5d8114
