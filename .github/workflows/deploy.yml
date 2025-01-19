@@ -39,7 +39,6 @@ jobs:
             ${{ env.DOCKER_REGISTRY_URL }}/musclecode-backend-main-service:${{ github.sha }}
             ${{ env.DOCKER_REGISTRY_URL }}/musclecode-backend-main-service:latest
 
-
       - name: Checkout GitOps repository
         uses: actions/checkout@v3
         with:
@@ -50,10 +49,13 @@ jobs:
       - name: Checkout main branch
         run: git checkout main
 
-      - name: Update image tag in kustomization.yaml
+      - name: Update image tag and SHA in kustomization.yaml
         run: |
           cd ./k8s/base
+          # Update the image tag
           kustomize edit set image harbor.devostack.com/musclecode/musclecode-backend-main-service=harbor.devostack.com/musclecode/musclecode-backend-main-service:${{ github.sha }}
+          # Update the SHA annotation
+          kustomize edit set annotation image-sha:${{ github.sha }}
           
       - name: Commit and push changes to GitOps repo
         run: |
