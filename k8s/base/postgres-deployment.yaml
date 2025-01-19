@@ -5,6 +5,7 @@ metadata:
   namespace: musclecode
   annotations:
     argocd.argoproj.io/sync-wave: "-4"
+    argocd.argoproj.io/sync-options: Delete=false
 spec:
   instances: 1
   bootstrap:
