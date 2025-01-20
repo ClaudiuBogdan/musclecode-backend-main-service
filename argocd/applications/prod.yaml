@@ -4,8 +4,10 @@ metadata:
   name: musclecode-backend-prod
   namespace: argocd
 spec:
-  project: default
+  project: musclecode
   source:
+    kustomize:
+      commonAnnotationsEnvsubst: true
     repoURL: https://github.com/ClaudiuBogdan/musclecode-backend-main-service
     targetRevision: main
     path: ./k8s/overlays/prod

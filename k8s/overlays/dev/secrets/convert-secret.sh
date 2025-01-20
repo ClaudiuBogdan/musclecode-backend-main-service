@@ -4,7 +4,7 @@ for secret_file in *.secret.yaml; do
         --controller-namespace=kube-system \
         --controller-name=sealed-secrets-controller \
         --scope namespace-wide \
-        --namespace=musclecode-prod \
+        --namespace=musclecode-dev \
         < "$secret_file" | \
         yq e '.metadata.annotations += {"argocd.argoproj.io/sync-wave": "-5"}' - > "$sealed_file"
 done

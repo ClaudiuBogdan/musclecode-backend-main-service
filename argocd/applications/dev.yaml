@@ -9,11 +9,11 @@ spec:
     kustomize:
       commonAnnotationsEnvsubst: true
     repoURL: https://github.com/ClaudiuBogdan/musclecode-backend-main-service
-    targetRevision: main
+    targetRevision: dev
     path: ./k8s/base
   destination:
     server: https://kubernetes.default.svc
-    namespace: musclecode
+    namespace: musclecode-dev
   syncPolicy:
     automated:
       prune: true

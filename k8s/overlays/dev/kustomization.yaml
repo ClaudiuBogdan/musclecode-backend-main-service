@@ -1,7 +1,7 @@
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
-namespace: musclecode-prod
+namespace: musclecode-dev
 
 resources:
   - ../../base
@@ -16,13 +16,13 @@ patches:
     patch: |-
       - op: replace
         path: /metadata/namespace
-        value: musclecode-prod
+        value: musclecode-dev
       - op: replace
         path: /spec/storage/size
-        value: 20Gi
+        value: 10Gi
       - op: replace
         path: /spec/bootstrap/initdb/database
-        value: musclecode-prod
+        value: musclecode-dev
       - op: replace
         path: /spec/bootstrap/initdb/owner
         value: musclecode_user
@@ -33,7 +33,7 @@ patches:
     patch: |-
       - op: replace
         path: /metadata/namespace
-        value: musclecode-prod
+        value: musclecode-dev
 
   - target:
       kind: Service
@@ -41,7 +41,7 @@ patches:
     patch: |-
       - op: replace
         path: /metadata/namespace
-        value: musclecode-prod
+        value: musclecode-dev
 
   - target:
       kind: Job
@@ -49,4 +49,4 @@ patches:
     patch: |-
       - op: replace
         path: /metadata/namespace
-        value: musclecode-prod
+        value: musclecode-dev
