@@ -1,19 +1,21 @@
-name: Build and Push Docker image
+name: Dev Branch Pipeline
 
 on:
   push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
+    branches:
+      - dev
 
 jobs:
-  build-and-push:
+  build-and-deploy:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
       contents: write
     steps:
       - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
       - name: Get Secrets from Bitwarden
         uses: bitwarden/sm-action@v1
         with:
@@ -30,7 +32,7 @@ jobs:
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ env.DOCKER_PASSWORD }}
       
-      - name: Build and push
+      - name: Build and Push
         uses: docker/build-push-action@v4
         with:
           context: .
@@ -39,29 +41,15 @@ jobs:
             ${{ env.DOCKER_REGISTRY_URL }}/musclecode-backend-main-service:${{ github.sha }}
             ${{ env.DOCKER_REGISTRY_URL }}/musclecode-backend-main-service:latest
 
-      - name: Checkout GitOps repository
-        uses: actions/checkout@v3
-        with:
-          repository: ${{ github.repository }}
-          token: ${{ github.token }}
-          ref: main
-
-      - name: Checkout main branch
-        run: git checkout main
-
-      - name: Update image tag and SHA in kustomization.yaml
+      - name: Update image tags
         run: |
-          cd ./k8s/base
-          # Update the image tag
+          cd ./k8s/overlays/dev
           kustomize edit set image harbor.devostack.com/musclecode/musclecode-backend-main-service=harbor.devostack.com/musclecode/musclecode-backend-main-service:${{ github.sha }}
-          # Update the SHA annotation
-          kustomize edit set annotation image-sha:${{ github.sha }}
           
-      - name: Commit and push changes to GitOps repo
+      - name: Commit and push changes
         run: |
-          cd ./
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add .
-          git commit -m "ci: update image tag to ${{ github.sha }}"
-          git push
+          git commit -m "ci: update dev image tags to ${{ github.sha }}"
+          git push origin dev 
