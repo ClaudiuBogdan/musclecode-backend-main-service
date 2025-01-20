@@ -48,8 +48,8 @@ jobs:
       - name: Checkout feature branch
         if: github.event_name == 'pull_request'
         run: |
-          git fetch origin feature/${{ github.event.pull_request.head.ref }}
-          git checkout feature/${{ github.event.pull_request.head.ref }}
+          git fetch origin ${{ github.event.pull_request.head.ref }}
+          git checkout ${{ github.event.pull_request.head.ref }}
 
       - name: Update image tag in kustomization
         if: github.event_name == 'pull_request'
