@@ -15,15 +15,6 @@ commonLabels:
   app.kubernetes.io/name: musclecode-backend-main-service
   app.kubernetes.io/part-of: musclecode
 
-vars:
-- fieldref:
-    fieldPath: metadata.annotations.image-sha
-  name: IMAGE_SHA
-  objref:
-    apiVersion: apps/v1
-    kind: Deployment
-    name: musclecode-backend-main-service
-
 patches:
 - patch: |-
     - op: replace
