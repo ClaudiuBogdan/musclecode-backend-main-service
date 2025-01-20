@@ -3,7 +3,7 @@ for secret_file in *.secret.yaml; do
     kubeseal --format=yaml \
         --controller-namespace=kube-system \
         --controller-name=sealed-secrets-controller \
-        --scope namespace-wide \
+        --scope strict \
         --namespace=musclecode-prod \
         < "$secret_file" | \
         yq e '.metadata.annotations += {"argocd.argoproj.io/sync-wave": "-5"}' - > "$sealed_file"

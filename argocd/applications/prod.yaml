@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: musclecode-backend-prod
+  name: musclecode-backend-main-service
   namespace: argocd
 spec:
   project: musclecode
