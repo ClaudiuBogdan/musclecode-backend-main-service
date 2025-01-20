@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: musclecode-backend-main-service
+  name: musclecode-backend-main-service-dev
   namespace: argocd
 spec:
   project: musclecode
@@ -10,7 +10,7 @@ spec:
       commonAnnotationsEnvsubst: true
     repoURL: 'https://github.com/ClaudiuBogdan/musclecode-backend-main-service'
     targetRevision: dev
-    path: ./k8s/base
+    path: ./k8s/overlays/dev
   destination:
     server: https://kubernetes.default.svc
     namespace: musclecode-dev
