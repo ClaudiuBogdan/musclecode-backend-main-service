@@ -9,7 +9,7 @@ export class RolesGuard implements CanActivate {
     private authService: AuthService,
   ) {}
 
-  canActivate(context: ExecutionContext): boolean {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const requiredRoles = this.reflector.get<string[]>(
       'roles',
       context.getHandler(),
@@ -17,7 +17,8 @@ export class RolesGuard implements CanActivate {
     if (!requiredRoles) {
       return true;
     }
-    const user = this.authService.getCurrentUser();
+    const request = context.switchToHttp().getRequest();
+    const user = request.user;
     if (!user) {
       return false;
     }
