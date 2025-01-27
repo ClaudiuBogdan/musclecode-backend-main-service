@@ -1,15 +1,27 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserContext } from '../interfaces/user-context.interface';
+import { KeycloakService } from './keycloak.service';
 
 @Injectable()
 export class AuthService {
-  private readonly defaultUser: UserContext = {
-    id: 'dev-user-1',
-    email: 'dev@example.com',
-    roles: ['user', 'admin'],
-  };
+  constructor(private readonly keycloakService: KeycloakService) {}
 
-  getCurrentUser(): UserContext {
-    return this.defaultUser;
+  async validateUser(token: string): Promise<UserContext> {
+    try {
+      const userInfo = await this.keycloakService.getUserInfo(token);
+
+      if (!userInfo) {
+        throw new UnauthorizedException('User not found');
+      }
+
+      return {
+        id: userInfo.sub,
+        email: userInfo.email,
+        roles: userInfo.realm_access?.roles || [],
+      };
+    } catch (error: unknown) {
+      console.error('User validation failed:', error);
+      throw new UnauthorizedException('Invalid user credentials');
+    }
   }
 }
