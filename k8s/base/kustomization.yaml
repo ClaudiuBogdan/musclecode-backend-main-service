@@ -28,6 +28,6 @@ patches:
 images:
 - name: harbor.devostack.com/musclecode/musclecode-backend-main-service
   newName: harbor.devostack.com/musclecode/musclecode-backend-main-service
-  newTag: ed9f1125c722515a84485ba5cba59470a582b76f
+  newTag: c268e7b3ef937b325867039e98b8ac98bc867a22
 commonAnnotations:
   image-sha: 67e9e107b614c05fce6fa3b44ed787c7ee70e14c
