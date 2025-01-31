@@ -60,5 +60,4 @@ patches:
         value: musclecode-dev
       - op: replace
         path: /spec/hosts/0
-        value:
-        - "dev.api.musclecode.devostack.com"
+        value: "dev.api.musclecode.devostack.com"
