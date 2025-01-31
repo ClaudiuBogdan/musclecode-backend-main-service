@@ -50,3 +50,15 @@ patches:
       - op: replace
         path: /metadata/namespace
         value: musclecode-prod
+
+  - target:
+      kind: VirtualService
+      name: istio-musclecode-backend-main-service-virtualservice
+    patch: |-
+      - op: replace
+        path: /metadata/namespace
+        value: musclecode-prod
+      - op: replace
+        path: /spec/hosts/0
+        value:
+        - "api.musclecode.devostack.com"
