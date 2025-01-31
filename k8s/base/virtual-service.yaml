@@ -16,7 +16,7 @@ spec:
     - destination:
         port:
           number: 80
-        host: musclecode-backend-execution-service
+        host: musclecode-backend-main-service
     retries:
       attempts: 3
       perTryTimeout: 2s
