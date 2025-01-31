@@ -3,6 +3,7 @@ kind: VirtualService
 metadata:
   name: istio-musclecode-backend-main-service-virtualservice
   namespace: musclecode
+spec:
   hosts:
   - "api.musclecode.devostack.com"
   gateways:
