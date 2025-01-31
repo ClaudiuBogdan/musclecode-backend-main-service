@@ -3,6 +3,7 @@ kind: VirtualService
 metadata:
   name: istio-musclecode-backend-main-service-virtualservice
   namespace: musclecode
+spec:
   hosts:
   - "api.musclecode.devostack.com"
   gateways:
@@ -15,7 +16,7 @@ metadata:
     - destination:
         port:
           number: 80
-        host: musclecode-backend-execution-service
+        host: musclecode-backend-main-service
     retries:
       attempts: 3
       perTryTimeout: 2s
