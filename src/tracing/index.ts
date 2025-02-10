@@ -12,6 +12,7 @@ import { config } from '../config/load-config';
 import { BatchSpanProcessor } from '@opentelemetry/sdk-trace-base';
 import { NestInstrumentation } from '@opentelemetry/instrumentation-nestjs-core';
 import { IncomingMessage } from 'http';
+import { PrismaInstrumentation } from '@prisma/instrumentation';
 
 const traceExporter = new OTLPTraceExporter({
   url: config.TRACE_ENDPOINT,
@@ -56,6 +57,9 @@ export const otelSDK = new NodeSDK({
       },
     }),
     new NestInstrumentation(),
+    new PrismaInstrumentation({
+      middleware: false,
+    }),
   ],
   textMapPropagator: propagator,
 });
