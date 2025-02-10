@@ -31,4 +31,4 @@ images:
   newName: harbor.devostack.com/musclecode/musclecode-backend-main-service
   newTag: 57b70db9269fc2756a3459302cd99d940c66e740
 commonAnnotations:
-  musclecode/image-sha: 67e9e107b614c05fce6fa3b44ed787c7ee70e14c
+  devostack.com/image-sha: 67e9e107b614c05fce6fa3b44ed787c7ee70e14c
