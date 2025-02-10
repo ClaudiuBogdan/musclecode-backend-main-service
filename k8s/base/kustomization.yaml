@@ -11,7 +11,7 @@ resources:
 commonLabels:
   app.kubernetes.io/name: musclecode-backend-main-service
   app.kubernetes.io/part-of: musclecode
-# Add strategic merge patch for deployment annotations
+
 patches:
   - patch: |-
       - op: replace
