@@ -1,25 +1,20 @@
-name: Feature Branch Pipeline
+name: Dev Branch Pipeline
 
 on:
   push:
     branches:
-      - 'feature/**'
-  pull_request:
-    branches:
       - dev
 
 jobs:
-  build-and-test:
+  build-push-update:
     runs-on: ubuntu-latest
     permissions:
-      id-token: write
       contents: write
-      pull-requests: write
     steps:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0
-      
+
       - name: Get Secrets from Bitwarden
         uses: bitwarden/sm-action@v1
         with:
@@ -35,33 +30,24 @@ jobs:
           registry: ${{ env.DOCKER_REGISTRY_URL }}
           username: ${{ env.DOCKER_USERNAME }}
           password: ${{ env.DOCKER_PASSWORD }}
-      
-      - name: Build and push
-        if: github.event_name == 'pull_request'
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          push: true
-          tags: |
-            ${{ env.DOCKER_REGISTRY_URL }}/musclecode-backend-main-service:${{ github.sha }}
 
-      - name: Checkout feature branch
-        if: github.event_name == 'pull_request'
+      - name: Build and Push Docker Image
         run: |
-          git fetch origin ${{ github.event.pull_request.head.ref }}
-          git checkout ${{ github.event.pull_request.head.ref }}
+          docker build -t ${{ env.DOCKER_REGISTRY_URL }}/musclecode-backend-main-service:${{ github.sha }} .
+          docker push ${{ env.DOCKER_REGISTRY_URL }}/musclecode-backend-main-service:${{ github.sha }}
 
-      - name: Update image tag in kustomization
-        if: github.event_name == 'pull_request'
+      - name: Update Image Tag in Kustomization
         run: |
           cd ./k8s/base
           kustomize edit set image harbor.devostack.com/musclecode/musclecode-backend-main-service=harbor.devostack.com/musclecode/musclecode-backend-main-service:${{ github.sha }}
+          kustomize edit set annotation image-sha=${{ github.sha }}
 
-      - name: Commit and push changes
-        if: github.event_name == 'pull_request'
+      - name: Commit and Push Changes
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
           git add .
           git commit -m "ci: update image tag to ${{ github.sha }}"
-          git push
+          git push origin dev
