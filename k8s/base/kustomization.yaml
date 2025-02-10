@@ -8,6 +8,7 @@ resources:
 - deployment.yaml
 - service.yaml
 - virtual-service.yaml
+- configmap.yaml
 
 commonLabels:
   app.kubernetes.io/name: musclecode-backend-main-service

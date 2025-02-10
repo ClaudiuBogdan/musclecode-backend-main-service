@@ -61,3 +61,11 @@ patches:
       - op: replace
         path: /spec/hosts/0
         value: "dev.api.musclecode.devostack.com"
+
+  - target:
+      kind: ConfigMap
+      name: musclecode-backend-main-service-config
+    patch: |-
+      - op: replace
+        path: /metadata/namespace
+        value: musclecode-dev
