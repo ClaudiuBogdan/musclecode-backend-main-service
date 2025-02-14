@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../../../infrastructure/database/prisma.service';
 import { SchedulerService } from '../../scheduler/services/scheduler.service';
 import {
@@ -131,6 +131,15 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     algorithmId: string,
     notes?: string,
   ): Promise<AlgorithmPracticeData> {
+    const algorithm = await this.prisma.algorithmTemplate.findUnique({
+      where: { id: algorithmId },
+    });
+    if (!algorithm) {
+      throw new NotFoundException(
+        `Algorithm with id ${algorithmId} not found.`,
+      );
+    }
+
     const initialScheduleState = this.schedulerService.initializeState();
     const userData = await this.prisma.algorithmUserData.create({
       data: {
