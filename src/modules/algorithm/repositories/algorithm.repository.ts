@@ -17,18 +17,23 @@ import { IAlgorithmRepository } from '../interfaces/algorithm-repository.interfa
 import { Prisma } from '@prisma/client';
 import { seedAlgorithms } from '../seed/algorithms.seed';
 import { Rating } from '../../scheduler/types/scheduler.types';
+import { StructuredLogger } from 'src/common/logger/structured-logger';
 
 @Injectable()
 export class AlgorithmRepository implements IAlgorithmRepository {
+  private readonly logger = new StructuredLogger(AlgorithmRepository.name);
   constructor(
     private readonly prisma: PrismaService,
     private readonly schedulerService: SchedulerService,
   ) {}
 
   async seed(): Promise<void> {
+    this.logger.log('SeedStarted', {});
     const algorithms = await this.prisma.algorithmTemplate.findMany();
-    if (algorithms.length > 0) return;
-
+    if (algorithms.length > 0) {
+      this.logger.log('SeedSkipped', { count: algorithms.length });
+      return;
+    }
     const newAlgorithms = seedAlgorithms().map((algorithm) => ({
       ...algorithm,
       tags: JSON.stringify(algorithm.tags),
@@ -38,25 +43,34 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     await this.prisma.algorithmTemplate.createMany({
       data: newAlgorithms,
     });
+    this.logger.log('SeedCompleted', { seededCount: newAlgorithms.length });
   }
 
   // Algorithm Template operations
   async findAllTemplates(): Promise<AlgorithmTemplate[]> {
+    this.logger.log('findAllTemplatesStarted', {});
     const templates = await this.prisma.algorithmTemplate.findMany();
+    this.logger.log('findAllTemplatesCompleted', { count: templates.length });
     return templates.map((template) => this.mapTemplateFromDb(template));
   }
 
   async findTemplateById(id: string): Promise<AlgorithmTemplate | null> {
+    this.logger.log('findTemplateByIdStarted', { id });
     const template = await this.prisma.algorithmTemplate.findUnique({
       where: { id },
     });
-    if (!template) return null;
+    if (!template) {
+      this.logger.warn('findTemplateByIdNotFound', { id });
+      return null;
+    }
+    this.logger.log('findTemplateByIdCompleted', { id });
     return this.mapTemplateFromDb(template);
   }
 
   async createTemplate(
     createAlgorithmDto: CreateAlgorithmDto,
   ): Promise<AlgorithmTemplate> {
+    this.logger.log('createTemplateStarted', { createAlgorithmDto });
     const template = await this.prisma.algorithmTemplate.create({
       data: {
         title: createAlgorithmDto.title,
@@ -68,13 +82,21 @@ export class AlgorithmRepository implements IAlgorithmRepository {
         files: JSON.stringify(createAlgorithmDto.files),
       },
     });
-    return this.mapTemplateFromDb(template);
+    const mappedTemplate = this.mapTemplateFromDb(template);
+    this.logger.log('createTemplateCompleted', {
+      templateId: mappedTemplate.id,
+    });
+    return mappedTemplate;
   }
 
   async updateTemplate(
     id: string,
     updateAlgorithmDto: UpdateAlgorithmDto,
   ): Promise<AlgorithmTemplate> {
+    this.logger.log('updateTemplateStarted', {
+      id,
+      update: updateAlgorithmDto,
+    });
     const template = await this.prisma.algorithmTemplate.update({
       where: { id },
       data: {
@@ -91,13 +113,17 @@ export class AlgorithmRepository implements IAlgorithmRepository {
           : undefined,
       },
     });
-    return this.mapTemplateFromDb(template);
+    const mappedTemplate = this.mapTemplateFromDb(template);
+    this.logger.log('updateTemplateCompleted', { id });
+    return mappedTemplate;
   }
 
   async deleteTemplate(id: string): Promise<void> {
+    this.logger.log('deleteTemplateStarted', { id });
     await this.prisma.algorithmTemplate.delete({
       where: { id },
     });
+    this.logger.log('deleteTemplateCompleted', { id });
   }
 
   // User-specific algorithm data operations
@@ -105,6 +131,10 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     userId: string,
     algorithmId: string,
   ): Promise<AlgorithmPracticeData | null> {
+    this.logger.log('findAlgorithmPracticeDataStarted', {
+      userId,
+      algorithmId,
+    });
     const userData = await this.prisma.algorithmUserData.findUnique({
       where: {
         userId_algorithmId: {
@@ -117,7 +147,17 @@ export class AlgorithmRepository implements IAlgorithmRepository {
         submissions: true,
       },
     });
-    if (!userData) return null;
+    if (!userData) {
+      this.logger.log('findAlgorithmPracticeDataNotFound', {
+        userId,
+        algorithmId,
+      });
+      return null;
+    }
+    this.logger.log('findAlgorithmPracticeDataCompleted', {
+      userId,
+      algorithmId,
+    });
     return {
       ...this.mapUserDataFromDb(userData),
       submissions: this.mapSubmissionsFromDb(userData.submissions).sort(
@@ -131,13 +171,18 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     algorithmId: string,
     notes?: string,
   ): Promise<AlgorithmPracticeData> {
+    this.logger.log('createAlgorithmPracticeDataStarted', {
+      userId,
+      algorithmId,
+      notes,
+    });
     const algorithm = await this.prisma.algorithmTemplate.findUnique({
       where: { id: algorithmId },
     });
     if (!algorithm) {
-      throw new NotFoundException(
-        `Algorithm with id ${algorithmId} not found.`,
-      );
+      const error = `Algorithm with id ${algorithmId} not found.`;
+      this.logger.error('createAlgorithmPracticeDataError', error);
+      throw new NotFoundException(error);
     }
 
     const initialScheduleState = this.schedulerService.initializeState();
@@ -153,13 +198,21 @@ export class AlgorithmRepository implements IAlgorithmRepository {
         algorithm: true,
       },
     });
-    return this.mapUserDataFromDb(userData);
+    const mappedUserData = this.mapUserDataFromDb(userData);
+    this.logger.log('createAlgorithmPracticeDataCompleted', {
+      userDataId: mappedUserData.id,
+    });
+    return mappedUserData;
   }
 
   async createUserAlgorithms(
     userId: string,
     algorithms: AlgorithmTemplate[],
   ): Promise<AlgorithmPracticeData[]> {
+    this.logger.log('createUserAlgorithmsStarted', {
+      userId,
+      count: algorithms.length,
+    });
     await this.prisma.algorithmUserData.createMany({
       data: algorithms.map((algorithm) => ({
         userId,
@@ -178,10 +231,13 @@ export class AlgorithmRepository implements IAlgorithmRepository {
         algorithm: true,
       },
     });
-
-    return createdAlgorithms.map((userData) =>
+    const mapped = createdAlgorithms.map((userData) =>
       this.mapUserDataFromDb(userData),
     );
+    this.logger.log('createUserAlgorithmsCompleted', {
+      createdCount: mapped.length,
+    });
+    return mapped;
   }
 
   async updateAlgorithmNotes(
@@ -189,16 +245,19 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     algorithmId: string,
     notes?: string,
   ): Promise<void> {
+    this.logger.log('updateAlgorithmNotesStarted', { userId, algorithmId });
     await this.prisma.algorithmUserData.update({
       where: { userId_algorithmId: { userId, algorithmId } },
       data: { notes },
     });
+    this.logger.log('updateAlgorithmNotesCompleted', { userId, algorithmId });
   }
 
   async updateUserData(
     id: string,
     notes: string,
   ): Promise<AlgorithmPracticeData> {
+    this.logger.log('updateUserDataStarted', { id, notes });
     const userData = await this.prisma.algorithmUserData.update({
       where: { id },
       data: { notes },
@@ -206,7 +265,9 @@ export class AlgorithmRepository implements IAlgorithmRepository {
         algorithm: true,
       },
     });
-    return this.mapUserDataFromDb(userData);
+    const mapped = this.mapUserDataFromDb(userData);
+    this.logger.log('updateUserDataCompleted', { id });
+    return mapped;
   }
 
   // Submission operations
@@ -214,6 +275,10 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     submission: Omit<AlgorithmSubmission, 'id' | 'createdAt'>,
     userId: string,
   ): Promise<AlgorithmSubmission> {
+    this.logger.log('createSubmissionStarted', {
+      userId,
+      algorithmId: submission.algorithmId,
+    });
     const userData = await this.updateSchedule(
       userId,
       submission.algorithmId,
@@ -233,14 +298,20 @@ export class AlgorithmRepository implements IAlgorithmRepository {
         scheduleData: JSON.stringify(userData.scheduleData),
       },
     });
-
-    return this.mapSubmissionFromDb(created);
+    const mappedSubmission = this.mapSubmissionFromDb(created);
+    this.logger.log('createSubmissionCompleted', {
+      userId,
+      algorithmId: submission.algorithmId,
+      submissionId: mappedSubmission.id,
+    });
+    return mappedSubmission;
   }
 
   async findUserSubmissions(
     userId: string,
     algorithmId: string,
   ): Promise<AlgorithmSubmission[]> {
+    this.logger.log('findUserSubmissionsStarted', { userId, algorithmId });
     const submissions = await this.prisma.submission.findMany({
       where: {
         userId,
@@ -250,9 +321,15 @@ export class AlgorithmRepository implements IAlgorithmRepository {
         createdAt: 'desc',
       },
     });
-    return submissions.map((submission) =>
+    const mapped = submissions.map((submission) =>
       this.mapSubmissionFromDb(submission),
     );
+    this.logger.log('findUserSubmissionsCompleted', {
+      userId,
+      algorithmId,
+      count: mapped.length,
+    });
+    return mapped;
   }
 
   async updateSchedule(
@@ -260,6 +337,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     algorithmId: string,
     rating: AlgorithmRating,
   ): Promise<AlgorithmPracticeData> {
+    this.logger.log('updateScheduleStarted', { userId, algorithmId, rating });
     const userData = await this.prisma.algorithmUserData.findUnique({
       where: {
         userId_algorithmId: {
@@ -273,7 +351,9 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     });
 
     if (!userData) {
-      throw new Error('User algorithm data not found');
+      const error = 'User algorithm data not found';
+      this.logger.error('updateScheduleError', error);
+      throw new Error(error);
     }
 
     const currentState = JSON.parse(userData.scheduleData);
@@ -297,8 +377,9 @@ export class AlgorithmRepository implements IAlgorithmRepository {
         algorithm: true,
       },
     });
-
-    return this.mapUserDataFromDb(updatedUserData);
+    const mapped = this.mapUserDataFromDb(updatedUserData);
+    this.logger.log('updateScheduleCompleted', { userId, algorithmId });
+    return mapped;
   }
 
   async findDueAlgorithms(
@@ -306,6 +387,11 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     startDate: Date,
     endDate: Date,
   ): Promise<AlgorithmPracticeData[]> {
+    this.logger.log('findDueAlgorithmsStarted', {
+      userId,
+      startDate: startDate.toISOString(),
+      endDate: endDate.toISOString(),
+    });
     const dueAlgorithms = await this.prisma.algorithmUserData.findMany({
       where: {
         userId,
@@ -321,14 +407,24 @@ export class AlgorithmRepository implements IAlgorithmRepository {
         due: 'asc',
       },
     });
-
-    return dueAlgorithms.map((userData) => this.mapUserDataFromDb(userData));
+    const mapped = dueAlgorithms.map((userData) =>
+      this.mapUserDataFromDb(userData),
+    );
+    this.logger.log('findDueAlgorithmsCompleted', {
+      userId,
+      count: mapped.length,
+    });
+    return mapped;
   }
 
   async findDailyAlgorithms(
     userId: string,
     date: Date,
   ): Promise<DailyAlgorithm[]> {
+    this.logger.log('findDailyAlgorithmsStarted', {
+      userId,
+      date: date.toISOString(),
+    });
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
 
@@ -347,10 +443,14 @@ export class AlgorithmRepository implements IAlgorithmRepository {
         algorithm: true,
       },
     });
-
-    return algorithms.map((algorithm) =>
+    const mapped = algorithms.map((algorithm) =>
       this.mapDailyAlgorithmFromDb(algorithm),
     );
+    this.logger.log('findDailyAlgorithmsCompleted', {
+      userId,
+      count: mapped.length,
+    });
+    return mapped;
   }
 
   async createDailyAlgorithms(
@@ -358,6 +458,11 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     algorithms: AlgorithmTemplate[],
     date: Date,
   ): Promise<DailyAlgorithm[]> {
+    this.logger.log('createDailyAlgorithmsStarted', {
+      userId,
+      count: algorithms.length,
+      date: date.toISOString(),
+    });
     const data = algorithms.map((algorithm) => ({
       userId,
       algorithmId: algorithm.id,
@@ -369,7 +474,12 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       data,
     });
 
-    return this.findDailyAlgorithms(userId, date);
+    const dailyAlgorithms = await this.findDailyAlgorithms(userId, date);
+    this.logger.log('createDailyAlgorithmsCompleted', {
+      userId,
+      count: dailyAlgorithms.length,
+    });
+    return dailyAlgorithms;
   }
 
   async markDailyAlgorithmAsCompleted(
@@ -377,6 +487,11 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     algorithmId: string,
     date: Date,
   ): Promise<void> {
+    this.logger.log('markDailyAlgorithmAsCompletedStarted', {
+      userId,
+      algorithmId,
+      date: date.toISOString(),
+    });
     const startOfDay = new Date(date);
     startOfDay.setHours(0, 0, 0, 0);
 
@@ -395,6 +510,10 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       data: {
         completed: true,
       },
+    });
+    this.logger.log('markDailyAlgorithmAsCompletedCompleted', {
+      userId,
+      algorithmId,
     });
   }
 
