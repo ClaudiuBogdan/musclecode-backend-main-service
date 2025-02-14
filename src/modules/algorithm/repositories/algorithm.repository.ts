@@ -17,7 +17,7 @@ import { IAlgorithmRepository } from '../interfaces/algorithm-repository.interfa
 import { Prisma } from '@prisma/client';
 import { seedAlgorithms } from '../seed/algorithms.seed';
 import { Rating } from '../../scheduler/types/scheduler.types';
-import { StructuredLogger } from 'src/common/logger/structured-logger';
+import { StructuredLogger } from '../../../logger/structured-logger.service';
 
 @Injectable()
 export class AlgorithmRepository implements IAlgorithmRepository {

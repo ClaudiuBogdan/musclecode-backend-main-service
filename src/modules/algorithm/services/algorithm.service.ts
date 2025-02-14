@@ -1,5 +1,5 @@
 import { Injectable, OnModuleInit, NotFoundException } from '@nestjs/common';
-import { StructuredLogger } from 'src/common/logger/structured-logger';
+import { StructuredLogger } from '../../../logger/structured-logger.service';
 import {
   AlgorithmTemplate,
   AlgorithmPracticeData,
