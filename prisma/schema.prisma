@@ -5,34 +5,69 @@ datasource db {
 
 generator client {
   provider        = "prisma-client-js"
-  previewFeatures = ["tracing"]
 }
 
 model AlgorithmTemplate {
-  id          String   @id @default(uuid())
-  title       String
-  category    String
-  summary     String
-  description String
-  difficulty  String
-  tags        String   // Stored as JSON string
-  files       String   // Stored as JSON string
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
+  id           String              @id @default(uuid())
+  title        String
+  category     String
+  summary      String
+  description  String
+  difficulty   String
+  tags         Json                // Array stored as JSON
+  files        Json                // Array stored as JSON
+  userId       String?             // Null indicates system template
+  parentId     String?             // Original template ID if cloned
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+  
+  // Relations
+  parent       AlgorithmTemplate?  @relation("TemplateClones", fields: [parentId], references: [id])
+  clones       AlgorithmTemplate[] @relation("TemplateClones")
+  collections  AlgorithmCollection[]
   userAlgorithms AlgorithmUserData[]
   dailyAlgorithms DailyAlgorithm[]
+
+  @@index([userId])
   @@index([category])
+  @@index([parentId])
+}
+
+model Collection {
+  id           String              @id @default(uuid())
+  name         String
+  description  String?
+  userId       String?             // Null indicates system collection
+  parentId     String?             // Original collection ID if cloned
+  createdAt    DateTime            @default(now())
+  
+  // Relations
+  parent       Collection?         @relation("CollectionClones", fields: [parentId], references: [id])
+  clones       Collection[]        @relation("CollectionClones")
+  algorithms   AlgorithmCollection[]
+
+  @@index([userId])
+  @@index([parentId])
+}
+
+model AlgorithmCollection {
+  algorithmId   String
+  collectionId  String
+  algorithm     AlgorithmTemplate @relation(fields: [algorithmId], references: [id])
+  collection    Collection        @relation(fields: [collectionId], references: [id])
+
+  @@id([algorithmId, collectionId])
+  @@index([collectionId])
 }
 
 model AlgorithmUserData {
-  id           String    @id @default(uuid())
+  id           String     @id @default(uuid())
   userId       String
   algorithmId  String
   notes        String?
-  createdAt    DateTime  @default(now())
-  due          DateTime  @default(now())  // Next review date
-  scheduleData String    // FSRS scheduling data as JSON string
+  createdAt    DateTime   @default(now())
+  due          DateTime   @default(now())  // Next review date
+  scheduleData Json       // FSRS scheduling data as JSON
   algorithm    AlgorithmTemplate @relation(fields: [algorithmId], references: [id])
   submissions  Submission[]
 
@@ -51,7 +86,7 @@ model Submission {
   timeSpent           Int
   notes               String?
   difficulty          String
-  scheduleData        String            // Snapshot of schedule data as JSON string
+  scheduleData        Json              // Snapshot of schedule data as JSON string
   createdAt           DateTime          @default(now())
   algorithmUserData   AlgorithmUserData @relation(fields: [algorithmUserDataId], references: [id])
 
@@ -59,13 +94,13 @@ model Submission {
 }
 
 model DailyAlgorithm {
-  id                String            @id @default(uuid())
-  userId            String
-  algorithmId       String
-  date              DateTime
-  completed         Boolean           @default(false)
-  algorithm         AlgorithmTemplate @relation(fields: [algorithmId], references: [id])
-  createdAt         DateTime          @default(now())
+  id          String            @id @default(uuid())
+  userId      String
+  algorithmId String
+  date        DateTime
+  completed   Boolean           @default(false)
+  algorithm   AlgorithmTemplate @relation(fields: [algorithmId], references: [id])
+  createdAt   DateTime          @default(now())
 
   @@unique([userId, algorithmId, date])
   @@index([userId, date])
