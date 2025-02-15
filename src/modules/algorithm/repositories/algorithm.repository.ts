@@ -37,7 +37,8 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     }
     const newAlgorithms = seedAlgorithms().map((algorithm) => ({
       ...algorithm,
-      tags: JSON.stringify(algorithm.tags),
+      categories: algorithm.categories,
+      tags: algorithm.tags,
       files: JSON.stringify(algorithm.files),
     }));
 
@@ -75,11 +76,13 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     const template = await this.prisma.algorithmTemplate.create({
       data: {
         title: createAlgorithmDto.title,
-        category: createAlgorithmDto.category,
+        categories: Array.isArray(createAlgorithmDto.categories)
+          ? createAlgorithmDto.categories
+          : [createAlgorithmDto.categories],
         summary: createAlgorithmDto.summary,
         description: createAlgorithmDto.description,
         difficulty: createAlgorithmDto.difficulty,
-        tags: JSON.stringify(createAlgorithmDto.tags),
+        tags: createAlgorithmDto.tags,
         files: JSON.stringify(createAlgorithmDto.files),
       },
     });
@@ -102,13 +105,15 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       where: { id },
       data: {
         title: updateAlgorithmDto.title,
-        category: updateAlgorithmDto.category,
+        categories: updateAlgorithmDto.categories
+          ? Array.isArray(updateAlgorithmDto.categories)
+            ? updateAlgorithmDto.categories
+            : [updateAlgorithmDto.categories]
+          : undefined,
         summary: updateAlgorithmDto.summary,
         description: updateAlgorithmDto.description,
         difficulty: updateAlgorithmDto.difficulty,
-        tags: updateAlgorithmDto.tags
-          ? JSON.stringify(updateAlgorithmDto.tags)
-          : undefined,
+        tags: updateAlgorithmDto.tags,
         files: updateAlgorithmDto.files
           ? JSON.stringify(updateAlgorithmDto.files)
           : undefined,
@@ -529,10 +534,10 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       difficulty: template.difficulty as AlgorithmDifficulty,
       createdAt: template.createdAt,
       updatedAt: template.updatedAt,
-      category: template.category,
+      categories: template.categories,
       summary: template.summary,
-      tags: template.tags as string[],
-      files: template.files as unknown as AlgorithmFile[],
+      tags: template.tags,
+      files: JSON.parse(template.files as string) as AlgorithmFile[],
     };
   }
 
@@ -592,7 +597,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     return {
       id: algorithm.id,
       title: algorithm.title,
-      category: algorithm.category,
+      categories: algorithm.categories,
       summary: algorithm.summary,
       difficulty: algorithm.difficulty as AlgorithmDifficulty,
     };

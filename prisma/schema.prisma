@@ -10,11 +10,11 @@ generator client {
 model AlgorithmTemplate {
   id           String              @id @default(uuid())
   title        String
-  category     String
+  categories   String[]
   summary      String
   description  String
   difficulty   String
-  tags         Json                // Array stored as JSON
+  tags         String[]
   files        Json                // Array stored as JSON
   userId       String?             // Null indicates system template
   parentId     String?             // Original template ID if cloned
@@ -29,7 +29,7 @@ model AlgorithmTemplate {
   dailyAlgorithms DailyAlgorithm[]
 
   @@index([userId])
-  @@index([category])
+  @@index([categories])
   @@index([parentId])
 }
 

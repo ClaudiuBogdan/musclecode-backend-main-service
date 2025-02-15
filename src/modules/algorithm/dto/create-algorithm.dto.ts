@@ -68,7 +68,7 @@ export class CreateAlgorithmDto {
   @ApiProperty({ description: 'Category of the algorithm' })
   @IsString()
   @IsNotEmpty()
-  category: string;
+  categories: string[];
 
   @ApiProperty({ description: 'Summary of the algorithm' })
   @IsString()

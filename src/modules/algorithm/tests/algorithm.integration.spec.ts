@@ -18,7 +18,7 @@ describe('Algorithm Integration Tests', () => {
   const mockTemplate: AlgorithmTemplate = {
     id: 'test-id',
     title: 'Test Algorithm',
-    category: 'test',
+    categories: ['test'],
     summary: 'test summary',
     description: 'test description',
     difficulty: 'easy',
@@ -80,7 +80,7 @@ describe('Algorithm Integration Tests', () => {
       await prismaService.algorithmTemplate.create({
         data: {
           ...mockTemplate,
-          tags: JSON.stringify(mockTemplate.tags),
+          tags: mockTemplate.tags,
           files: JSON.stringify(mockTemplate.files),
         },
       });
@@ -100,7 +100,7 @@ describe('Algorithm Integration Tests', () => {
       const template = await prismaService.algorithmTemplate.create({
         data: {
           ...mockTemplate,
-          tags: JSON.stringify(mockTemplate.tags),
+          tags: mockTemplate.tags,
           files: JSON.stringify(mockTemplate.files),
         },
       });
@@ -156,7 +156,7 @@ describe('Algorithm Integration Tests', () => {
       const template = await prismaService.algorithmTemplate.create({
         data: {
           ...mockTemplate,
-          tags: JSON.stringify(mockTemplate.tags),
+          tags: mockTemplate.tags,
           files: JSON.stringify(mockTemplate.files),
         },
       });
@@ -195,7 +195,7 @@ describe('Algorithm Integration Tests', () => {
       await prismaService.algorithmTemplate.create({
         data: {
           ...mockTemplate,
-          tags: JSON.stringify(mockTemplate.tags),
+          tags: mockTemplate.tags,
           files: JSON.stringify(mockTemplate.files),
         },
       });
@@ -216,7 +216,7 @@ describe('Algorithm Integration Tests', () => {
       const template = await prismaService.algorithmTemplate.create({
         data: {
           ...mockTemplate,
-          tags: JSON.stringify(mockTemplate.tags),
+          tags: mockTemplate.tags,
           files: JSON.stringify(mockTemplate.files),
         },
       });

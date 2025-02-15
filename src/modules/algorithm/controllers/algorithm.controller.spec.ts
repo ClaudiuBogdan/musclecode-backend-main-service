@@ -16,7 +16,7 @@ describe('AlgorithmController', () => {
   const mockTemplate: AlgorithmTemplate = {
     id: 'test-id',
     title: 'Test Algorithm',
-    category: 'test',
+    categories: ['test'],
     summary: 'test summary',
     description: 'test description',
     difficulty: 'easy',
@@ -86,7 +86,7 @@ describe('AlgorithmController', () => {
     it('should create a new template', async () => {
       const createDto: CreateAlgorithmDto = {
         title: 'New Algorithm',
-        category: 'test',
+        categories: ['test'],
         summary: 'test summary',
         description: 'test description',
         difficulty: 'easy',
@@ -152,7 +152,7 @@ describe('AlgorithmController', () => {
         algorithmPreview: {
           id: mockTemplate.id,
           title: mockTemplate.title,
-          category: mockTemplate.category,
+          categories: mockTemplate.categories,
           summary: mockTemplate.summary,
           difficulty: mockTemplate.difficulty,
           tags: mockTemplate.tags,

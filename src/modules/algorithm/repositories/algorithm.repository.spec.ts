@@ -17,7 +17,7 @@ describe('AlgorithmRepository', () => {
   const mockTemplate: AlgorithmTemplate = {
     id: 'test-id',
     title: 'Test Algorithm',
-    category: 'test',
+    categories: ['test'],
     summary: 'test summary',
     description: 'test description',
     difficulty: 'easy',
@@ -111,7 +111,7 @@ describe('AlgorithmRepository', () => {
     it('should create a new template', async () => {
       const createDto: CreateAlgorithmDto = {
         title: 'New Algorithm',
-        category: 'test',
+        categories: ['test'],
         summary: 'test summary',
         description: 'test description',
         difficulty: 'easy',

@@ -88,7 +88,7 @@ export class AlgorithmTemplate {
   title: string;
 
   @ApiProperty({ description: 'Category of the algorithm' })
-  category: string;
+  categories: string[];
 
   @ApiProperty({ description: 'Summary of the algorithm' })
   summary: string;
@@ -215,5 +215,5 @@ export class AlgorithmSubmission {
 
 export type AlgorithmPreview = Pick<
   AlgorithmTemplate,
-  'id' | 'title' | 'category' | 'summary' | 'difficulty'
+  'id' | 'title' | 'categories' | 'summary' | 'difficulty'
 >;
