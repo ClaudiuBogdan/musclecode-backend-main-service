@@ -10,13 +10,14 @@ import {
   AlgorithmPreview,
   AlgorithmDifficulty,
   DailyAlgorithm,
+  AlgorithmFile,
 } from '../interfaces/algorithm.interface';
 import { CreateAlgorithmDto } from '../dto/create-algorithm.dto';
 import { UpdateAlgorithmDto } from '../dto/update-algorithm.dto';
 import { IAlgorithmRepository } from '../interfaces/algorithm-repository.interface';
 import { Prisma } from '@prisma/client';
 import { seedAlgorithms } from '../seed/algorithms.seed';
-import { Rating } from '../../scheduler/types/scheduler.types';
+import { Rating, SchedulingState } from '../../scheduler/types/scheduler.types';
 import { StructuredLogger } from '../../../logger/structured-logger.service';
 
 @Injectable()
@@ -356,7 +357,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       throw new Error(error);
     }
 
-    const currentState = JSON.parse(userData.scheduleData);
+    const currentState = userData.scheduleData as unknown as SchedulingState;
     const newSchedule = this.schedulerService.schedule(
       currentState,
       this.mapRatingToFSRS(rating),
@@ -530,8 +531,8 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       updatedAt: template.updatedAt,
       category: template.category,
       summary: template.summary,
-      tags: JSON.parse(template.tags),
-      files: JSON.parse(template.files),
+      tags: template.tags as string[],
+      files: template.files as unknown as AlgorithmFile[],
     };
   }
 
@@ -546,7 +547,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       id: userData.id,
       notes: userData.notes || undefined,
       algorithmTemplate: this.mapTemplateFromDb(userData.algorithm),
-      scheduleData: JSON.parse(userData.scheduleData),
+      scheduleData: userData.scheduleData as unknown as SchedulingState,
       due: userData.due,
       submissions: [],
       ratingSchedule: {
@@ -581,7 +582,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       language: submission.language as CodeLanguage,
       timeSpent: submission.timeSpent,
       createdAt: submission.createdAt,
-      scheduleData: JSON.parse(submission.scheduleData),
+      scheduleData: submission.scheduleData as unknown as SchedulingState,
     };
   }
 

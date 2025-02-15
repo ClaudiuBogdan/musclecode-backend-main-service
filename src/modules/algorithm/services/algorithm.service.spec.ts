@@ -147,6 +147,14 @@ describe('AlgorithmService', () => {
         id: 'practice-id',
         algorithmTemplate: mockTemplate,
         submissions: [],
+        nextAlgorithm: null,
+        dailyAlgorithm: null,
+        ratingSchedule: {
+          again: new Date().getTime(),
+          hard: new Date().getTime(),
+          good: new Date().getTime(),
+          easy: new Date().getTime(),
+        },
         due: new Date(),
         scheduleData: {
           due: new Date(),
