@@ -16,6 +16,22 @@ async function bootstrap() {
     // FIXME: Remove this in production and configure proper CORS
     app.enableCors(); // TODO: Remove this in production and configure proper CORS
 
+    // Enable graceful shutdown
+    const signals = ['SIGTERM', 'SIGINT', 'SIGUSR2']; // SIGUSR2 is used by nodemon for restart
+    signals.forEach((signal) => {
+      process.on(signal, async () => {
+        logger.log(`Received ${signal}, starting graceful shutdown`);
+        try {
+          await app.close();
+          logger.log('Application closed successfully');
+          process.exit(0);
+        } catch (error) {
+          logger.error('Error during graceful shutdown: ' + String(error));
+          process.exit(1);
+        }
+      });
+    });
+
     await app.listen(process.env.APP_PORT || 3000);
     logger.log('Application started successfully');
   } catch (error) {

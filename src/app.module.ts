@@ -5,11 +5,12 @@ import { AppService } from './app.service';
 import { AuthModule } from './modules/auth/auth.module';
 import { AuthGuard } from './modules/auth/guards/auth.guard';
 import { AlgorithmModule } from './modules/algorithm/algorithm.module';
+import { CollectionModule } from './modules/collection/collection.module';
 import { HealthModule } from './modules/health/health.module';
 import { UserIdInterceptor } from './interceptors/user-id.interceptor';
 
 @Module({
-  imports: [AuthModule, AlgorithmModule, HealthModule],
+  imports: [AuthModule, AlgorithmModule, CollectionModule, HealthModule],
   controllers: [AppController],
   providers: [
     AppService,
