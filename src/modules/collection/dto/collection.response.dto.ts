@@ -25,6 +25,13 @@ export class AlgorithmInCollectionDto {
     isArray: true,
   })
   categories: string[];
+
+  @ApiProperty({
+    description: 'The tags of the algorithm',
+    example: ['tag1', 'tag2'],
+    isArray: true,
+  })
+  tags: string[];
 }
 
 export class CollectionResponseDto {
@@ -44,23 +51,26 @@ export class CollectionResponseDto {
     description: 'The description of the collection',
     example: 'A curated list of dynamic programming problems and patterns',
     required: false,
+    nullable: true,
   })
-  description?: string;
+  description: string | null;
 
   @ApiProperty({
     description:
       'The user ID who created this collection (null for system collections)',
     example: 'user-uuid-1',
     required: false,
+    nullable: true,
   })
-  userId?: string;
+  userId: string | null;
 
   @ApiProperty({
     description: 'The original collection ID if this is a clone',
     example: 'original-collection-uuid',
     required: false,
+    nullable: true,
   })
-  parentId?: string;
+  parentId: string | null;
 
   @ApiProperty({
     description: 'When the collection was created',
