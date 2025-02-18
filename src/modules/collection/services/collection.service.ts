@@ -161,4 +161,20 @@ export class CollectionService {
       throw error;
     }
   }
+
+  async findUserCollections(userId: string): Promise<CollectionResponseDto[]> {
+    this.logger.debug('Finding collections for user', { userId });
+    try {
+      const collections =
+        await this.collectionRepository.findUserCollections(userId);
+      this.logger.log('User collections found', {
+        userId,
+        count: collections.length,
+      });
+      return collections;
+    } catch (error) {
+      this.logger.error('Failed to find user collections', error, { userId });
+      throw error;
+    }
+  }
 }

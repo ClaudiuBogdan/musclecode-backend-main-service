@@ -204,6 +204,32 @@ export class CollectionRepository {
     });
   }
 
+  async findUserCollections(userId: string): Promise<CollectionResponseDto[]> {
+    this.logger.debug('Finding collections for user', { userId });
+    const collections = await this.prisma.collection.findMany({
+      where: {
+        userId,
+      },
+      include: {
+        algorithms: {
+          include: {
+            algorithm: {
+              select: {
+                id: true,
+                title: true,
+                difficulty: true,
+                categories: true,
+                tags: true,
+              },
+            },
+          },
+        },
+      },
+    });
+
+    return collections.map(this.mapCollectionToDto);
+  }
+
   async findUserAlgorithmByParentId(
     userId: string,
     parentId: string,

@@ -57,6 +57,33 @@ export class CollectionController {
     }
   }
 
+  @Get('me')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get all collections for the authenticated user' })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns all collections for the authenticated user',
+    type: [CollectionResponseDto],
+  })
+  async findUserCollections(
+    @User('id') userId: string,
+  ): Promise<CollectionResponseDto[]> {
+    this.logger.debug('Fetching user collections', { userId });
+    try {
+      const collections =
+        await this.collectionService.findUserCollections(userId);
+      this.logger.log('User collections fetched', {
+        userId,
+        count: collections.length,
+      });
+      return collections;
+    } catch (error) {
+      this.logger.error('Failed to fetch user collections', error, { userId });
+      throw error;
+    }
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'Get collection by ID' })
   @ApiParam({
