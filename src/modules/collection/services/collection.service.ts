@@ -1,7 +1,8 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Collection, AlgorithmCollection } from '@prisma/client';
+import { AlgorithmCollection } from '@prisma/client';
 import { CollectionRepository } from '../repositories/collection.repository';
 import { CreateCollectionDto } from '../dto/create-collection.dto';
+import { CollectionResponseDto } from '../dto/collection.response.dto';
 import { StructuredLogger } from '../../../logger/structured-logger.service';
 
 @Injectable()
@@ -10,7 +11,7 @@ export class CollectionService {
 
   constructor(private readonly collectionRepository: CollectionRepository) {}
 
-  async findPublicCollections(): Promise<Collection[]> {
+  async findPublicCollections(): Promise<CollectionResponseDto[]> {
     this.logger.debug('Finding public collections');
     try {
       const collections =
@@ -25,7 +26,7 @@ export class CollectionService {
     }
   }
 
-  async findById(id: string): Promise<Collection> {
+  async findById(id: string): Promise<CollectionResponseDto> {
     this.logger.debug('Finding collection by ID', { collectionId: id });
     try {
       const collection = await this.collectionRepository.findById(id);
@@ -46,7 +47,7 @@ export class CollectionService {
   async create(
     createCollectionDto: CreateCollectionDto,
     userId?: string,
-  ): Promise<Collection> {
+  ): Promise<CollectionResponseDto> {
     this.logger.debug('Creating collection', {
       userId,
       name: createCollectionDto.name,
@@ -65,6 +66,37 @@ export class CollectionService {
       this.logger.error('Failed to create collection', error, {
         userId,
         name: createCollectionDto.name,
+      });
+      throw error;
+    }
+  }
+
+  async copyCollection(
+    sourceCollectionId: string,
+    userId: string,
+  ): Promise<CollectionResponseDto> {
+    this.logger.debug('Copying collection', {
+      sourceCollectionId,
+      userId,
+    });
+    try {
+      // Verify source collection exists
+      await this.findById(sourceCollectionId);
+
+      const collection = await this.collectionRepository.copyCollection(
+        sourceCollectionId,
+        userId,
+      );
+      this.logger.log('Collection copied', {
+        sourceCollectionId,
+        newCollectionId: collection.id,
+        userId,
+      });
+      return collection;
+    } catch (error) {
+      this.logger.error('Failed to copy collection', error, {
+        sourceCollectionId,
+        userId,
       });
       throw error;
     }

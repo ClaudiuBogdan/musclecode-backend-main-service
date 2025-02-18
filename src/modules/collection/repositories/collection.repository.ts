@@ -1,5 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { Collection, AlgorithmCollection } from '@prisma/client';
+import {
+  Collection,
+  AlgorithmCollection,
+  AlgorithmTemplate,
+} from '@prisma/client';
 import { CreateCollectionDto } from '../dto/create-collection.dto';
 import {
   CollectionResponseDto,
@@ -7,6 +11,7 @@ import {
 } from '../dto/collection.response.dto';
 import { StructuredLogger } from '../../../logger/structured-logger.service';
 import { PrismaService } from 'src/infrastructure/database/prisma.service';
+import { InputJsonValue } from '@prisma/client/runtime/library';
 
 type CollectionWithAlgorithms = Collection & {
   algorithms: (AlgorithmCollection & {
@@ -109,11 +114,20 @@ export class CollectionRepository {
     });
 
     const collection = await this.prisma.$transaction(async (tx) => {
-      // Create the collection
+      // Create collection with algorithms in single operation
       const newCollection = await tx.collection.create({
         data: {
-          ...collectionData,
+          name: collectionData.name,
+          description: collectionData.description,
           userId,
+          // Connect algorithms atomically with collection creation
+          algorithms: {
+            create: algorithmIds?.map((algorithmId) => ({
+              algorithm: {
+                connect: { id: algorithmId },
+              },
+            })),
+          },
         },
         include: {
           algorithms: {
@@ -132,41 +146,8 @@ export class CollectionRepository {
         },
       });
 
-      // If algorithm IDs are provided, create the relationships
-      if (algorithmIds?.length) {
-        await tx.algorithmCollection.createMany({
-          data: algorithmIds.map((algorithmId) => ({
-            algorithmId,
-            collectionId: newCollection.id,
-          })),
-        });
-
-        // Fetch the complete collection with algorithms after creating relationships
-        const updatedCollection = await tx.collection.findUnique({
-          where: { id: newCollection.id },
-          include: {
-            algorithms: {
-              include: {
-                algorithm: {
-                  select: {
-                    id: true,
-                    title: true,
-                    difficulty: true,
-                    categories: true,
-                  },
-                },
-              },
-            },
-          },
-        });
-
-        if (!updatedCollection) {
-          throw new Error(
-            'Failed to fetch updated collection after creating relationships',
-          );
-        }
-
-        return updatedCollection;
+      if (!newCollection) {
+        throw new Error('Failed to create collection');
       }
 
       return newCollection;
@@ -208,6 +189,143 @@ export class CollectionRepository {
           collectionId,
         },
       },
+    });
+  }
+
+  async findUserCollectionByParentId(
+    userId: string,
+    parentId: string,
+  ): Promise<Collection | null> {
+    return this.prisma.collection.findFirst({
+      where: {
+        userId,
+        parentId,
+      },
+    });
+  }
+
+  async findUserAlgorithmByParentId(
+    userId: string,
+    parentId: string,
+  ): Promise<AlgorithmTemplate | null> {
+    return this.prisma.algorithmTemplate.findFirst({
+      where: {
+        userId,
+        parentId,
+      },
+    });
+  }
+
+  async copyCollection(
+    sourceCollectionId: string,
+    userId: string,
+  ): Promise<CollectionResponseDto> {
+    // Get the source collection with its algorithms
+    const sourceCollection = await this.prisma.collection.findUnique({
+      where: { id: sourceCollectionId },
+      include: {
+        algorithms: {
+          include: {
+            algorithm: true,
+          },
+        },
+      },
+    });
+
+    if (!sourceCollection) {
+      throw new Error(`Collection with ID ${sourceCollectionId} not found`);
+    }
+
+    // Check if user already has a copy of this collection
+    const existingCopy = await this.findUserCollectionByParentId(
+      userId,
+      sourceCollectionId,
+    );
+
+    return this.prisma.$transaction(async (tx) => {
+      let userCollection: Collection;
+
+      if (existingCopy) {
+        // Use existing collection
+        userCollection = existingCopy;
+      } else {
+        // Create new collection copy
+        userCollection = await tx.collection.create({
+          data: {
+            name: sourceCollection.name,
+            description: sourceCollection.description,
+            userId,
+            parentId: sourceCollectionId,
+          },
+        });
+      }
+
+      // Process each algorithm in the source collection
+      for (const { algorithm } of sourceCollection.algorithms) {
+        // Check if user already has a copy of this algorithm
+        let userAlgorithm = await this.findUserAlgorithmByParentId(
+          userId,
+          algorithm.id,
+        );
+
+        if (!userAlgorithm) {
+          // Create algorithm copy if it doesn't exist
+          userAlgorithm = await tx.algorithmTemplate.create({
+            data: {
+              title: algorithm.title,
+              categories: algorithm.categories,
+              summary: algorithm.summary,
+              description: algorithm.description,
+              difficulty: algorithm.difficulty,
+              tags: algorithm.tags,
+              files: algorithm.files as InputJsonValue,
+              userId,
+              parentId: algorithm.id,
+            },
+          });
+        }
+
+        // Create or ensure the algorithm-collection relationship exists
+        await tx.algorithmCollection.upsert({
+          where: {
+            algorithmId_collectionId: {
+              algorithmId: userAlgorithm.id,
+              collectionId: userCollection.id,
+            },
+          },
+          update: {},
+          create: {
+            algorithmId: userAlgorithm.id,
+            collectionId: userCollection.id,
+          },
+        });
+      }
+
+      // Fetch the complete collection with algorithms
+      const result = await tx.collection.findUnique({
+        where: { id: userCollection.id },
+        include: {
+          algorithms: {
+            include: {
+              algorithm: {
+                select: {
+                  id: true,
+                  title: true,
+                  difficulty: true,
+                  categories: true,
+                  tags: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!result) {
+        throw new Error('Failed to fetch copied collection');
+      }
+
+      return this.mapCollectionToDto(result);
     });
   }
 }

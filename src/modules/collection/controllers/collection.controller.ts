@@ -8,6 +8,7 @@ import {
   UseGuards,
   HttpStatus,
   ValidationPipe,
+  BadRequestException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -16,7 +17,6 @@ import {
   ApiParam,
   ApiBearerAuth,
 } from '@nestjs/swagger';
-import { Collection, AlgorithmCollection } from '@prisma/client';
 import { CollectionService } from '../services/collection.service';
 import { CreateCollectionDto } from '../dto/create-collection.dto';
 import {
@@ -43,7 +43,7 @@ export class CollectionController {
     description: 'Returns all public collections',
     type: [CollectionResponseDto],
   })
-  async findPublicCollections(): Promise<Collection[]> {
+  async findPublicCollections(): Promise<CollectionResponseDto[]> {
     this.logger.debug('Fetching public collections');
     try {
       const collections = await this.collectionService.findPublicCollections();
@@ -73,7 +73,7 @@ export class CollectionController {
     status: HttpStatus.NOT_FOUND,
     description: 'Collection not found',
   })
-  async findById(@Param('id') id: string): Promise<Collection> {
+  async findById(@Param('id') id: string): Promise<CollectionResponseDto> {
     this.logger.debug('Fetching collection by ID', { collectionId: id });
     try {
       const collection = await this.collectionService.findById(id);
@@ -89,8 +89,6 @@ export class CollectionController {
 
   @Post()
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new collection' })
   @ApiResponse({
     status: HttpStatus.CREATED,
@@ -100,12 +98,16 @@ export class CollectionController {
   async create(
     @Body(new ValidationPipe()) createCollectionDto: CreateCollectionDto,
     @User('id') userId: string,
-  ): Promise<Collection> {
+  ): Promise<CollectionResponseDto> {
     this.logger.debug('Creating collection', {
       userId,
       name: createCollectionDto.name,
     });
     try {
+      if (createCollectionDto.algorithmIds?.length === 0) {
+        throw new BadRequestException('At least one algorithm ID is required');
+      }
+
       const collection = await this.collectionService.create(
         createCollectionDto,
         userId,
@@ -119,6 +121,54 @@ export class CollectionController {
       this.logger.error('Failed to create collection', error, {
         userId,
         name: createCollectionDto.name,
+      });
+      throw error;
+    }
+  }
+
+  @Post(':id/copy')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Copy a collection and its algorithms to the user workspace',
+  })
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: 'Collection ID to copy',
+  })
+  @ApiResponse({
+    status: HttpStatus.CREATED,
+    description: 'Collection copied successfully',
+    type: CollectionResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Source collection not found',
+  })
+  async copyCollection(
+    @Param('id') id: string,
+    @User('id') userId: string,
+  ): Promise<CollectionResponseDto> {
+    this.logger.debug('Copying collection', {
+      sourceCollectionId: id,
+      userId,
+    });
+    try {
+      const collection = await this.collectionService.copyCollection(
+        id,
+        userId,
+      );
+      this.logger.log('Collection copied', {
+        sourceCollectionId: id,
+        newCollectionId: collection.id,
+        userId,
+      });
+      return collection;
+    } catch (error) {
+      this.logger.error('Failed to copy collection', error, {
+        sourceCollectionId: id,
+        userId,
       });
       throw error;
     }
@@ -147,7 +197,7 @@ export class CollectionController {
   async addAlgorithmToCollection(
     @Param('collectionId') collectionId: string,
     @Param('algorithmId') algorithmId: string,
-  ): Promise<AlgorithmCollection> {
+  ): Promise<AlgorithmCollectionResponseDto> {
     this.logger.debug('Adding algorithm to collection', {
       collectionId,
       algorithmId,
