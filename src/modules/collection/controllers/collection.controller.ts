@@ -339,4 +339,41 @@ export class CollectionController {
       throw error;
     }
   }
+
+  @Delete(':id')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Delete a collection' })
+  @ApiParam({ name: 'id', description: 'Collection ID' })
+  @ApiResponse({
+    status: HttpStatus.NO_CONTENT,
+    description: 'Collection successfully deleted',
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Collection not found or does not belong to user',
+  })
+  @ApiResponse({
+    status: HttpStatus.UNAUTHORIZED,
+    description: 'User is not authenticated',
+  })
+  async deleteCollection(
+    @Param('id') id: string,
+    @User('id') userId: string,
+  ): Promise<void> {
+    this.logger.debug('Deleting collection', { collectionId: id, userId });
+    try {
+      await this.collectionService.deleteCollection(id, userId);
+      this.logger.log('Collection deleted successfully', {
+        collectionId: id,
+        userId,
+      });
+    } catch (error) {
+      this.logger.error('Failed to delete collection', error, {
+        collectionId: id,
+        userId,
+      });
+      throw error;
+    }
+  }
 }

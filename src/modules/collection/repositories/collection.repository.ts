@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import {
   Collection,
   AlgorithmCollection,
@@ -437,6 +437,38 @@ export class CollectionRepository {
       }
 
       return this.mapCollectionToDto(updatedCollection);
+    });
+  }
+
+  async deleteCollection(id: string, userId: string): Promise<void> {
+    this.logger.debug('Deleting collection', { collectionId: id, userId });
+
+    await this.prisma.$transaction(async (tx) => {
+      // First verify the collection exists and belongs to the user
+      const collection = await tx.collection.findFirst({
+        where: { id, userId },
+      });
+
+      if (!collection) {
+        throw new NotFoundException(
+          `Collection with ID ${id} not found or does not belong to user`,
+        );
+      }
+
+      // Delete all algorithm associations first
+      await tx.algorithmCollection.deleteMany({
+        where: { collectionId: id },
+      });
+
+      // Then delete the collection itself
+      await tx.collection.delete({
+        where: { id },
+      });
+    });
+
+    this.logger.log('Collection deleted successfully', {
+      collectionId: id,
+      userId,
     });
   }
 }

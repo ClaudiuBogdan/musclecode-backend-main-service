@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsString, IsArray, IsUUID } from 'class-validator';
+import { IsString, IsArray } from 'class-validator';
 
 export class EditCollectionDto {
   @ApiProperty({

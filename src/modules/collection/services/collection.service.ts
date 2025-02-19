@@ -223,4 +223,21 @@ export class CollectionService {
       throw error;
     }
   }
+
+  async deleteCollection(id: string, userId: string): Promise<void> {
+    this.logger.debug('Deleting collection', { collectionId: id, userId });
+    try {
+      await this.collectionRepository.deleteCollection(id, userId);
+      this.logger.log('Collection deleted successfully', {
+        collectionId: id,
+        userId,
+      });
+    } catch (error) {
+      this.logger.error('Failed to delete collection', error, {
+        collectionId: id,
+        userId,
+      });
+      throw error;
+    }
+  }
 }
