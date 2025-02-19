@@ -354,4 +354,89 @@ export class CollectionRepository {
       return this.mapCollectionToDto(result);
     });
   }
+
+  async editCollection(
+    id: string,
+    userId: string,
+    data: { name?: string; description?: string; algorithmIds?: string[] },
+  ): Promise<CollectionResponseDto> {
+    this.logger.debug('Editing collection', { collectionId: id, userId });
+
+    return this.prisma.$transaction(async (tx) => {
+      // Update collection basic info
+      const updatedCollection = await tx.collection.update({
+        where: {
+          id,
+          userId, // Ensure the collection belongs to the user
+        },
+        data: {
+          name: data.name,
+          description: data.description,
+        },
+        include: {
+          algorithms: {
+            include: {
+              algorithm: {
+                select: {
+                  id: true,
+                  title: true,
+                  difficulty: true,
+                  categories: true,
+                  tags: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      // If algorithmIds are provided, update the algorithms
+      if (data.algorithmIds) {
+        // Delete existing algorithm associations
+        await tx.algorithmCollection.deleteMany({
+          where: {
+            collectionId: id,
+          },
+        });
+
+        // Create new algorithm associations
+        if (data.algorithmIds.length > 0) {
+          await tx.algorithmCollection.createMany({
+            data: data.algorithmIds.map((algorithmId) => ({
+              collectionId: id,
+              algorithmId,
+            })),
+          });
+        }
+
+        // Fetch updated collection with new algorithms
+        const refreshedCollection = await tx.collection.findUnique({
+          where: { id },
+          include: {
+            algorithms: {
+              include: {
+                algorithm: {
+                  select: {
+                    id: true,
+                    title: true,
+                    difficulty: true,
+                    categories: true,
+                    tags: true,
+                  },
+                },
+              },
+            },
+          },
+        });
+
+        if (!refreshedCollection) {
+          throw new Error('Failed to fetch updated collection');
+        }
+
+        return this.mapCollectionToDto(refreshedCollection);
+      }
+
+      return this.mapCollectionToDto(updatedCollection);
+    });
+  }
 }

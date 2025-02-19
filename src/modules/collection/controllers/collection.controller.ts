@@ -9,6 +9,7 @@ import {
   HttpStatus,
   ValidationPipe,
   BadRequestException,
+  Put,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -28,6 +29,7 @@ import { RolesGuard } from '../../../modules/auth/guards/roles.guard';
 import { Roles } from '../../../modules/auth/decorators/roles.decorator';
 import { User } from '../../../modules/auth/decorators/user.decorator';
 import { StructuredLogger } from '../../../logger/structured-logger.service';
+import { EditCollectionDto } from '../dto/edit-collection.dto';
 
 @ApiTags('Collections')
 @Controller('api/v1/collections')
@@ -289,6 +291,50 @@ export class CollectionController {
       this.logger.error('Failed to remove algorithm from collection', error, {
         collectionId,
         algorithmId,
+      });
+      throw error;
+    }
+  }
+
+  @Put(':id')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Edit a collection' })
+  @ApiParam({
+    name: 'id',
+    type: 'string',
+    description: 'Collection ID',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Collection updated successfully',
+    type: CollectionResponseDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Collection not found or does not belong to the user',
+  })
+  async editCollection(
+    @Param('id') id: string,
+    @User('id') userId: string,
+    @Body(new ValidationPipe()) editCollectionDto: EditCollectionDto,
+  ): Promise<CollectionResponseDto> {
+    this.logger.debug('Editing collection', { collectionId: id, userId });
+    try {
+      const collection = await this.collectionService.editCollection(
+        id,
+        userId,
+        editCollectionDto,
+      );
+      this.logger.log('Collection edited', {
+        collectionId: id,
+        userId,
+      });
+      return collection;
+    } catch (error) {
+      this.logger.error('Failed to edit collection', error, {
+        collectionId: id,
+        userId,
       });
       throw error;
     }

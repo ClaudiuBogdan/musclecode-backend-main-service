@@ -4,6 +4,7 @@ import { CollectionRepository } from '../repositories/collection.repository';
 import { CreateCollectionDto } from '../dto/create-collection.dto';
 import { CollectionResponseDto } from '../dto/collection.response.dto';
 import { StructuredLogger } from '../../../logger/structured-logger.service';
+import { EditCollectionDto } from '../dto/edit-collection.dto';
 
 @Injectable()
 export class CollectionService {
@@ -174,6 +175,51 @@ export class CollectionService {
       return collections;
     } catch (error) {
       this.logger.error('Failed to find user collections', error, { userId });
+      throw error;
+    }
+  }
+
+  async editCollection(
+    id: string,
+    userId: string,
+    editCollectionDto: EditCollectionDto,
+  ): Promise<CollectionResponseDto> {
+    this.logger.debug('Editing collection', {
+      collectionId: id,
+      userId,
+      updates: editCollectionDto,
+    });
+    try {
+      // First check if the collection exists and belongs to the user
+      const existingCollection = await this.collectionRepository.findById(id);
+      if (!existingCollection) {
+        this.logger.warn('Collection not found', { collectionId: id });
+        throw new NotFoundException(`Collection with ID ${id} not found`);
+      }
+      if (existingCollection.userId !== userId) {
+        this.logger.warn('Unauthorized collection access', {
+          collectionId: id,
+          userId,
+          ownerUserId: existingCollection.userId,
+        });
+        throw new NotFoundException(`Collection with ID ${id} not found`);
+      }
+
+      const collection = await this.collectionRepository.editCollection(
+        id,
+        userId,
+        editCollectionDto,
+      );
+      this.logger.log('Collection edited', {
+        collectionId: id,
+        userId,
+      });
+      return collection;
+    } catch (error) {
+      this.logger.error('Failed to edit collection', error, {
+        collectionId: id,
+        userId,
+      });
       throw error;
     }
   }
