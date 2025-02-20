@@ -9,7 +9,9 @@ export interface FSRSParameters {
   requestRetention: number; // Target retention rate (default: 0.9)
   maximumInterval: number; // Maximum interval in days (default: 36500)
   w: number[]; // Weights array for the neural network
-  initialStability: number; // Initial stability for new items
+  initialStability: {
+    [key in Rating]: number;
+  }; // Initial stability for new items
 }
 
 export interface SchedulingState {
