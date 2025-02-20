@@ -8,9 +8,16 @@ import { AlgorithmModule } from './modules/algorithm/algorithm.module';
 import { CollectionModule } from './modules/collection/collection.module';
 import { HealthModule } from './modules/health/health.module';
 import { UserIdInterceptor } from './interceptors/user-id.interceptor';
+import { OnboardingModule } from './modules/onboarding/onboarding.module';
 
 @Module({
-  imports: [AuthModule, AlgorithmModule, CollectionModule, HealthModule],
+  imports: [
+    AuthModule,
+    AlgorithmModule,
+    CollectionModule,
+    HealthModule,
+    OnboardingModule,
+  ],
   controllers: [AppController],
   providers: [
     AppService,

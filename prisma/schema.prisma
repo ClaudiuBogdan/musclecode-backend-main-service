@@ -104,4 +104,60 @@ model DailyAlgorithm {
 
   @@unique([userId, algorithmId, date])
   @@index([userId, date])
+}
+
+model UserOnboarding {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  currentStep     String    // welcome, concepts, goals, quiz, summary
+  isCompleted     Boolean   @default(false)
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  goals           UserGoals?
+  quizResults     QuizResults?
+
+  @@index([userId])
+}
+
+model UserGoals {
+  id                String    @id @default(uuid())
+  userId           String    @unique
+  onboardingId     String    @unique
+  onboarding       UserOnboarding @relation(fields: [onboardingId], references: [id])
+  learningGoals    String[]  // e.g., ["master_algorithms", "interview_prep", "competitive_programming"]
+  studyTime        Int       // minutes per day
+  experienceLevel  String    // beginner, intermediate, advanced
+  preferredTopics  String[]  // e.g., ["dynamic_programming", "graphs", "trees"]
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model QuizResults {
+  id              String    @id @default(uuid())
+  userId          String    @unique
+  onboardingId    String    @unique
+  onboarding      UserOnboarding @relation(fields: [onboardingId], references: [id])
+  answers         Json      // Array of {questionId: string, isCorrect: boolean, topicId: string}
+  score           Int
+  recommendations Json      // Personalized recommendations based on quiz results
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([userId])
+}
+
+model OnboardingQuizQuestion {
+  id              String    @id @default(uuid())
+  topic           String    // e.g., "dynamic_programming", "graphs"
+  difficulty      String    // beginner, intermediate, advanced
+  question        String
+  options         Json      // Array of possible answers
+  correctOption   Int       // Index of correct answer
+  explanation     String
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  @@index([topic, difficulty])
 } 
