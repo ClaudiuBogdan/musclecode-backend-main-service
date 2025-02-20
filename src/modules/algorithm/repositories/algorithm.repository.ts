@@ -17,8 +17,9 @@ import { UpdateAlgorithmDto } from '../dto/update-algorithm.dto';
 import { IAlgorithmRepository } from '../interfaces/algorithm-repository.interface';
 import { Prisma } from '@prisma/client';
 import { seedAlgorithms } from '../seed/algorithms.seed';
-import { Rating, SchedulingState } from '../../scheduler/types/scheduler.types';
+import { Rating } from '../../scheduler/types/scheduler.types';
 import { StructuredLogger } from '../../../logger/structured-logger.service';
+import { deserializeScheduleData, serializeScheduleData } from './utils';
 
 @Injectable()
 export class AlgorithmRepository implements IAlgorithmRepository {
@@ -198,7 +199,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
         algorithmId,
         notes,
         due: initialScheduleState.due,
-        scheduleData: JSON.stringify(initialScheduleState),
+        scheduleData: serializeScheduleData(initialScheduleState),
       },
       include: {
         algorithm: true,
@@ -223,7 +224,9 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       data: algorithms.map((algorithm) => ({
         userId,
         algorithmId: algorithm.id,
-        scheduleData: JSON.stringify(this.schedulerService.initializeState()),
+        scheduleData: serializeScheduleData(
+          this.schedulerService.initializeState(),
+        ),
       })),
     });
 
@@ -301,7 +304,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
         timeSpent: submission.timeSpent,
         notes: submission.notes,
         difficulty: submission.rating,
-        scheduleData: JSON.stringify(userData.scheduleData),
+        scheduleData: serializeScheduleData(userData.scheduleData),
       },
     });
     const mappedSubmission = this.mapSubmissionFromDb(created);
@@ -362,7 +365,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       throw new Error(error);
     }
 
-    const currentState = userData.scheduleData as unknown as SchedulingState;
+    const currentState = deserializeScheduleData(userData.scheduleData);
     const newSchedule = this.schedulerService.schedule(
       currentState,
       this.mapRatingToFSRS(rating),
@@ -377,7 +380,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       },
       data: {
         due: newSchedule.nextDue,
-        scheduleData: JSON.stringify(newSchedule.state),
+        scheduleData: serializeScheduleData(newSchedule.state),
       },
       include: {
         algorithm: true,
@@ -548,11 +551,12 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       };
     }>,
   ): AlgorithmPracticeData {
+    const scheduleData = deserializeScheduleData(userData.scheduleData);
     return {
       id: userData.id,
       notes: userData.notes || undefined,
       algorithmTemplate: this.mapTemplateFromDb(userData.algorithm),
-      scheduleData: userData.scheduleData as unknown as SchedulingState,
+      scheduleData,
       due: userData.due,
       submissions: [],
       ratingSchedule: {
@@ -577,6 +581,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
   private mapSubmissionFromDb(
     submission: Prisma.SubmissionGetPayload<any>,
   ): AlgorithmSubmission {
+    const scheduleData = deserializeScheduleData(submission.scheduleData);
     return {
       id: submission.id,
       algorithmId: submission.algorithmId,
@@ -587,7 +592,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       language: submission.language as CodeLanguage,
       timeSpent: submission.timeSpent,
       createdAt: submission.createdAt,
-      scheduleData: submission.scheduleData as unknown as SchedulingState,
+      scheduleData,
     };
   }
 
@@ -618,7 +623,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
   }
 
   private mapRatingToFSRS(rating: AlgorithmRating): Rating {
-    switch (rating) {
+    switch (rating.toLowerCase()) {
       case AlgorithmRating.AGAIN:
         return Rating.Again;
       case AlgorithmRating.HARD:
@@ -628,7 +633,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       case AlgorithmRating.EASY:
         return Rating.Easy;
       default:
-        throw new Error('Invalid rating');
+        throw new Error(`Invalid rating: ${rating}`);
     }
   }
 }

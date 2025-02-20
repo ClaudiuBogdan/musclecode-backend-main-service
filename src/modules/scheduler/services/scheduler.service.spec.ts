@@ -1,6 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { SchedulerService } from './scheduler.service';
-import { Rating, SchedulingState } from '../types/scheduler.types';
+import {
+  FSRSParameters,
+  Rating,
+  SchedulingState,
+} from '../types/scheduler.types';
 import { addDays, subDays, differenceInDays } from 'date-fns';
 
 describe('SchedulerService', () => {
@@ -89,27 +93,59 @@ describe('SchedulerService', () => {
         w: [
           0.5, 0.7, 2.5, 5.9, -5.7, -0.7, 1.7, -0.1, -0.1, -0.1, -0.1, -0.1,
           -0.1,
+        ] as [
+          number,
+          number,
+          number,
+          number,
+          number,
+          number,
+          number,
+          number,
+          number,
+          number,
+          number,
+          number,
+          number,
         ],
         initialStability: {
-          [Rating.Again]: 2,
-          [Rating.Hard]: 3,
-          [Rating.Good]: 4,
-          [Rating.Easy]: 5,
+          [Rating.Again]: 1 as const,
+          [Rating.Hard]: 2 as const,
+          [Rating.Good]: 4 as const,
+          [Rating.Easy]: 5 as const,
         },
       };
       service.setParameters(newParams);
       const params = service.getParameters();
       expect(params.requestRetention).toBe(0.8);
       expect(params.w).toEqual(newParams.w);
-      expect(params.initialStability[Rating.Again]).toBe(2);
-      expect(params.initialStability[Rating.Hard]).toBe(3);
+      expect(params.initialStability[Rating.Again]).toBe(1);
+      expect(params.initialStability[Rating.Hard]).toBe(2);
       expect(params.initialStability[Rating.Good]).toBe(4);
       expect(params.initialStability[Rating.Easy]).toBe(5);
     });
 
     it('should throw error when setting invalid weights array', () => {
       expect(() => {
-        service.setParameters({ w: [1, 2, 3] }); // Too few weights
+        // Create an array with incorrect length to test error handling
+        const invalidWeights = Array(3).fill(1);
+        service.setParameters({
+          w: invalidWeights as unknown as [
+            number,
+            number,
+            number,
+            number,
+            number,
+            number,
+            number,
+            number,
+            number,
+            number,
+            number,
+            number,
+            number,
+          ],
+        });
       }).toThrowError(/Weights array must contain exactly/);
     });
 
@@ -214,7 +250,7 @@ describe('SchedulerService', () => {
       }) => {
         it(description, () => {
           if (paramsOverride) {
-            service.setParameters(paramsOverride);
+            service.setParameters(paramsOverride as Partial<FSRSParameters>);
           }
 
           const result = service['updateDifficulty'](initialDifficulty, rating);
@@ -368,7 +404,7 @@ describe('SchedulerService', () => {
 
     describe('State Transitions', () => {
       it('should transition from relearning to review', () => {
-        const relearningState = { ...baseState, state: 1 }; // relearning state
+        const relearningState = { ...baseState, state: 1 as const }; // relearning state
         const result = service.schedule(relearningState, Rating.Good);
         // On a successful Good rating, the state should transition to review (2)
         expect(result.state.state).toBe(2);
@@ -390,6 +426,20 @@ describe('SchedulerService', () => {
     it('should respect custom weights', () => {
       const customWeights = [
         0.5, 0.7, 3.0, 6.0, -6.0, -0.8, 1.6, -0.2, -0.2, -0.2, -0.2, -0.2, -0.2,
+      ] as [
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
+        number,
       ];
       service.setParameters({ w: customWeights });
 

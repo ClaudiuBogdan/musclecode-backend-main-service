@@ -10,6 +10,7 @@ import {
 } from '../interfaces/algorithm.interface';
 import { AuthGuard } from 'src/modules/auth/guards/auth.guard';
 import { RolesGuard } from 'src/modules/auth/guards/roles.guard';
+import { serializeScheduleData } from '../repositories/utils';
 
 describe('Algorithm Integration Tests', () => {
   let app: INestApplication;
@@ -166,7 +167,7 @@ describe('Algorithm Integration Tests', () => {
           userId: 'test-user',
           algorithmId: template.id,
           notes: 'test notes',
-          scheduleData: JSON.stringify({
+          scheduleData: serializeScheduleData({
             due: new Date(),
             stability: 4,
             difficulty: 0,
@@ -226,7 +227,7 @@ describe('Algorithm Integration Tests', () => {
           userId: 'test-user',
           algorithmId: template.id,
           notes: 'old notes',
-          scheduleData: JSON.stringify({
+          scheduleData: serializeScheduleData({
             due: new Date(),
             stability: 4,
             difficulty: 0,

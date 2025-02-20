@@ -204,7 +204,7 @@ describe('AlgorithmRepository', () => {
           scheduledDays: 0,
           reps: 0,
           lapses: 0,
-          state: 0,
+          state: 0 as const,
           lastReview: new Date(),
         },
         timeSpent: 300,
