@@ -192,7 +192,9 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       throw new NotFoundException(error);
     }
 
-    const initialScheduleState = this.schedulerService.initializeState();
+    const initialScheduleState = this.schedulerService.getInitialState(
+      Rating.Good,
+    );
     const userData = await this.prisma.algorithmUserData.create({
       data: {
         userId,
@@ -225,7 +227,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
         userId,
         algorithmId: algorithm.id,
         scheduleData: serializeScheduleData(
-          this.schedulerService.initializeState(),
+          this.schedulerService.getInitialState(Rating.Good),
         ),
       })),
     });

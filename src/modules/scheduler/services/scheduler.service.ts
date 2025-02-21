@@ -11,65 +11,76 @@ import {
 export class SchedulerService {
   private readonly defaultParameters: FSRSParameters = {
     requestRetention: 0.9,
-    maximumInterval: 36500,
+    maximumInterval: 36500, // ~100 years
+    enableFuzz: true,
+    fuzzFactor: 0.95 + Math.random() * 0.1,
     w: [
-      0.4, // w0  - Initial stability for Again
-      0.6, // w1  - Initial stability for Hard
-      2.4, // w2  - Again review: base
-      5.8, // w3  - Again review: difficulty weight
-      -5.8, // w4 - Again review: retrievability weight
-      -0.8, // w5 - Hard review: base
-      1.6, // w6  - Hard review: difficulty weight
-      -0.2, // w7 - Hard review: retrievability weight
-      -0.2, // w8 - Good review: base
-      -0.2, // w9 - Good review: difficulty weight
-      -0.2, // w10 - Good review: retrievability weight
-      -0.2, // w11 - Easy review: base
-      -0.2, // w12 - Easy review: difficulty & retrievability weight
+      0.40255, // w0: For initStability("again")
+      1.18385, // w1: For initStability("hard")
+      3.173, // w2: For initStability("good")
+      15.69105, // w3: For initStability("easy")
+      7.1949, // w4: Used in initDifficulty
+      0.5345, // w5: Exponential multiplier in initDifficulty
+      1.4604, // w6: Difficulty adjustment multiplier
+      0.0046, // w7: Mean reversion factor
+      1.54575, // w8: Base for recall stability
+      0.1192, // w9: Stability damping exponent
+      1.01925, // w10: Retrievability multiplier
+      1.9395, // w11: Base for forget stability
+      0.11, // w12: Difficulty exponent in forget stability
+      0.29605, // w13: Stability exponent in forget stability
+      2.2698, // w14: Retrievability multiplier in forget stability
+      0.2315, // w15: Hard penalty
+      2.9898, // w16: Easy bonus
+      0.51655, // w17: Short-term stability multiplier
+      0.6621, // w18: Short-term stability offset
     ],
     initialStability: {
-      [Rating.Again]: 1,
-      [Rating.Hard]: 2,
-      [Rating.Good]: 4,
-      [Rating.Easy]: 5,
+      [Rating.Again]: 0.40255, // w0
+      [Rating.Hard]: 1.18385, // w1
+      [Rating.Good]: 3.173, // w2
+      [Rating.Easy]: 15.69105, // w3
     },
   };
 
   private parameters: FSRSParameters;
+  private readonly DECAY = -0.5;
+  private readonly FACTOR = Math.pow(0.9, 1 / -0.5) - 1;
 
   constructor() {
     this.parameters = structuredClone(this.defaultParameters);
   }
 
-  /**
-   * Returns a deep copy of the current parameters to prevent external modification
-   */
+  getInitialState(rating: Rating): SchedulingState {
+    const now = new Date();
+    return {
+      due: now,
+      stability: this.initStability(rating),
+      difficulty: this.initDifficulty(rating),
+      elapsedDays: 0,
+      scheduledDays: 0,
+      reps: 0,
+      lapses: 0,
+      state: 0, // New card
+      lastReview: now,
+    };
+  }
+
   getParameters(): FSRSParameters {
     return structuredClone(this.parameters);
   }
 
-  /**
-   * Updates the scheduling parameters
-   * @param newParams - Partial parameters to update
-   * @throws Error if the weights array length is invalid
-   */
   setParameters(newParams: Partial<FSRSParameters>): void {
-    // Validate weights array if provided
-    if (newParams.w) {
-      if (newParams.w.length !== this.defaultParameters.w.length) {
-        throw new Error(
-          `Weights array must contain exactly ${this.defaultParameters.w.length} elements`,
-        );
-      }
+    if (newParams.w && newParams.w.length !== this.defaultParameters.w.length) {
+      throw new Error(
+        `Weights array must contain exactly ${this.defaultParameters.w.length} elements`,
+      );
     }
 
-    // Create new parameters object with deep cloning for nested objects
     this.parameters = {
       ...this.parameters,
       ...newParams,
-      // If new weights provided, replace the entire array
       ...(newParams.w && { w: [...newParams.w] }),
-      // If new initial stability provided, merge with existing values
       ...(newParams.initialStability && {
         initialStability: {
           ...this.parameters.initialStability,
@@ -79,147 +90,143 @@ export class SchedulerService {
     };
   }
 
-  /**
-   * Initializes the state for a new card
-   * @param rating - Optional initial rating, defaults to Good
-   */
-  initializeState(rating: Rating = Rating.Good): SchedulingState {
-    const now = new Date();
-    return {
-      due: now,
-      stability: this.parameters.initialStability[rating],
-      difficulty: rating === Rating.Again ? 5 : 0,
-      elapsedDays: 0,
-      scheduledDays: 0,
-      reps: 0,
-      lapses: 0,
-      state: 0, // 0 for new cards
-      lastReview: now,
-    };
+  private applyFuzz(interval: number): number {
+    if (!this.parameters.enableFuzz) {
+      return interval;
+    }
+    const fuzzFactor = 0.95 + Math.random() * 0.1; // Random between 0.95 and 1.05
+    return interval * fuzzFactor;
   }
 
-  /**
-   * Calculates the stability after a review
-   * @private
-   */
-  private calculateStability(
-    state: SchedulingState,
-    rating: Rating,
-    elapsed: number,
-  ): number {
-    const { w } = this.parameters;
-    const { stability, difficulty, reps } = state;
-
-    if (reps === 0) {
-      return this.parameters.initialStability[rating];
-    }
-
-    const retrievability = Math.exp((Math.log(0.9) * elapsed) / stability);
-    let newStability;
-
-    switch (rating) {
-      case Rating.Again:
-        newStability =
-          stability *
-          Math.exp(w[2] + w[3] * difficulty + w[4] * retrievability);
-        break;
-      case Rating.Hard:
-        newStability =
-          stability *
-          Math.exp(w[5] + w[6] * difficulty + w[7] * retrievability);
-        break;
-      case Rating.Good:
-        newStability =
-          stability *
-          Math.exp(w[8] + w[9] * difficulty + w[10] * retrievability);
-        break;
-      case Rating.Easy:
-        newStability =
-          stability *
-          Math.exp(w[11] + w[12] * difficulty + w[12] * retrievability);
-        break;
-      default:
-        newStability = stability;
-    }
-
-    const MIN_STABILITY = 0.1;
-    return Math.min(
-      Math.max(newStability, MIN_STABILITY),
-      this.parameters.maximumInterval,
-    );
+  private forgettingCurve(elapsedDays: number, stability: number): number {
+    return Math.pow(1 + (this.FACTOR * elapsedDays) / stability, this.DECAY);
   }
 
-  /**
-   * Calculates the next review interval based on stability
-   * @private
-   */
-  private calculateInterval(stability: number): number {
-    if (stability <= 0) throw new Error('Invalid stability value');
-
+  private nextInterval(stability: number): number {
     const interval =
-      (stability * Math.log(this.parameters.requestRetention)) / Math.log(0.9);
+      (stability / this.FACTOR) *
+      (Math.pow(this.parameters.requestRetention, 1 / this.DECAY) - 1);
 
+    const fuzzedInterval = this.applyFuzz(interval);
     return Math.min(
-      Math.max(1, Math.round(interval)),
+      Math.max(Math.round(fuzzedInterval), 1),
       this.parameters.maximumInterval,
     );
   }
 
-  /**
-   * Updates card difficulty based on the review rating
-   * @private
-   */
-  private updateDifficulty(difficulty: number, rating: Rating): number {
-    let adjustment;
-    switch (rating) {
-      case Rating.Again:
-        adjustment = this.parameters.w[3];
-        break;
-      case Rating.Hard:
-        adjustment = this.parameters.w[6];
-        break;
-      case Rating.Good:
-        adjustment = this.parameters.w[9];
-        break;
-      case Rating.Easy:
-        adjustment = this.parameters.w[12];
-        break;
-    }
-
-    let newDifficulty = difficulty;
-
-    switch (rating) {
-      case Rating.Again:
-        newDifficulty += adjustment;
-        break;
-      case Rating.Hard:
-        newDifficulty += adjustment / 2;
-        break;
-      case Rating.Good:
-        newDifficulty += adjustment / 2;
-        break;
-      case Rating.Easy:
-        newDifficulty += adjustment / 2;
-        break;
-    }
-
-    return Math.min(Math.max(-5, newDifficulty), 5);
+  private constrainDifficulty(difficulty: number): number {
+    return Math.min(Math.max(difficulty, -5), 5);
   }
 
-  /**
-   * Schedules the next review based on the current state and rating
-   */
+  private meanReversion(init: number, current: number): number {
+    return this.parameters.w[7] * init + (1 - this.parameters.w[7]) * current;
+  }
+
+  private nextDifficulty(currentDifficulty: number, rating: Rating): number {
+    const ratingValue = 4 - (Rating.Easy - rating); // Maps Again:1, Hard:2, Good:3, Easy:4
+    const deltaD = -this.parameters.w[6] * (ratingValue - 3);
+    const dampedDelta = (deltaD * (10 - currentDifficulty)) / 9;
+    const newD = currentDifficulty + dampedDelta;
+
+    // Mean reversion toward initial difficulty based on the current rating
+    const initD = this.initDifficulty(rating);
+    return this.constrainDifficulty(this.meanReversion(initD, newD));
+  }
+
+  private nextRecallStability(
+    difficulty: number,
+    stability: number,
+    retrievability: number,
+    rating: Rating,
+  ): number {
+    const w = this.parameters.w;
+    const hardPenalty = rating === Rating.Hard ? w[15] : 1;
+    const easyBonus = rating === Rating.Easy ? w[16] : 1;
+
+    const stabilityUpdate =
+      1 +
+      Math.exp(w[8]) *
+        (11 - difficulty) *
+        Math.pow(stability, -w[9]) *
+        (Math.exp((1 - retrievability) * w[10]) - 1) *
+        hardPenalty *
+        easyBonus;
+
+    return +(stability * stabilityUpdate).toFixed(2);
+  }
+
+  private nextForgetStability(
+    difficulty: number,
+    stability: number,
+    retrievability: number,
+  ): number {
+    const w = this.parameters.w;
+    const newStability =
+      w[11] *
+      Math.pow(difficulty, -w[12]) *
+      (Math.pow(stability + 1, w[13]) - 1) *
+      Math.exp((1 - retrievability) * w[14]);
+
+    return +Math.min(newStability, stability).toFixed(2);
+  }
+
+  private initDifficulty(rating: Rating): number {
+    const ratingValue = 4 - (Rating.Easy - rating);
+    const w = this.parameters.w;
+    return this.constrainDifficulty(
+      w[4] - Math.exp(w[5] * (ratingValue - 1)) + 1,
+    );
+  }
+
+  private initStability(rating: Rating): number {
+    const index = 4 - (Rating.Easy - rating) - 1;
+    return Math.max(this.parameters.w[index], 0.1);
+  }
+
   schedule(
     currentState: SchedulingState | null,
     rating: Rating,
   ): SchedulingResult {
     const now = new Date();
-    const state = currentState || this.initializeState(rating);
-    const elapsed = currentState ? differenceInDays(now, state.lastReview) : 0;
 
-    const newStability = this.calculateStability(state, rating, elapsed);
-    const newInterval = this.calculateInterval(newStability);
-    const newDifficulty = this.updateDifficulty(state.difficulty, rating);
+    // Initialize state for new cards
+    if (!currentState) {
+      currentState = this.getInitialState(rating);
+    }
+
+    const state = { ...currentState };
+    const elapsed = differenceInDays(now, state.lastReview);
+
+    let newStability: number;
+
+    if (rating === Rating.Again) {
+      // For "Again" responses, we still increment reps but also count it as a lapse
+      state.lapses += 1;
+      state.reps += 1; // Increment reps even for "Again" ratings
+      state.state = 1; // Learning/relearning state
+
+      // Use forget stability calculation for "Again" responses
+      const retrievability = this.forgettingCurve(elapsed, state.stability);
+      newStability = this.nextForgetStability(
+        state.difficulty,
+        state.stability,
+        retrievability,
+      );
+    } else {
+      // For Hard/Good/Easy responses
+      const retrievability = this.forgettingCurve(elapsed, state.stability);
+      newStability = this.nextRecallStability(
+        state.difficulty,
+        state.stability,
+        retrievability,
+        rating,
+      );
+      state.reps += 1;
+      state.state = 2; // Review state
+    }
+
+    const newDifficulty = this.nextDifficulty(state.difficulty, rating);
+    const newInterval = this.nextInterval(newStability);
 
     const newState: SchedulingState = {
       due: addDays(now, newInterval),
@@ -227,9 +234,9 @@ export class SchedulerService {
       difficulty: newDifficulty,
       elapsedDays: elapsed,
       scheduledDays: newInterval,
-      reps: state.reps + 1,
-      lapses: rating === Rating.Again ? state.lapses + 1 : state.lapses,
-      state: rating === Rating.Again ? 1 : 2, // 1 for relearning, 2 for review
+      reps: state.reps,
+      lapses: state.lapses,
+      state: state.state,
       lastReview: now,
     };
 
@@ -238,5 +245,13 @@ export class SchedulerService {
       nextDue: newState.due,
       interval: newInterval,
     };
+  }
+
+  simulateSchedule(
+    baseState: SchedulingState,
+    rating: Rating,
+  ): SchedulingResult {
+    const stateClone = structuredClone(baseState);
+    return this.schedule(stateClone, rating);
   }
 }
