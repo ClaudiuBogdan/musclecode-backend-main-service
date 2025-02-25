@@ -1,0 +1,173 @@
+{
+  "id": "binary-tree-compare",
+  "title": "Binary Tree Compare",
+  "categories": ["tree", "recursion"],
+  "summary": "Algorithm to determine if two binary trees are identical in structure and values, operating in O(n) time",
+  "description": "./description.md",
+  "difficulty": "easy",
+  "tags": ["tree", "binary tree", "recursion", "depth-first search"],
+  "files": [
+    {
+      "id": "typescript-binary-tree-compare-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./typescript/exercise.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "typescript-binary-tree-compare-test",
+      "name": "test",
+      "type": "test",
+      "content": "./typescript/test.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "typescript-binary-tree-compare-recursive-solution",
+      "name": "recursive solution",
+      "type": "solution",
+      "content": "./typescript/recursive-solution.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "typescript-binary-tree-compare-iterative-solution",
+      "name": "iterative solution",
+      "type": "solution",
+      "content": "./typescript/iterative-solution.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "javascript-binary-tree-compare-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./javascript/exercise.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "javascript-binary-tree-compare-test",
+      "name": "test",
+      "type": "test",
+      "content": "./javascript/test.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "javascript-binary-tree-compare-iterative-solution",
+      "name": "iterative solution",
+      "type": "solution",
+      "content": "./javascript/iterative-solution.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "javascript-binary-tree-compare-recursive-solution",
+      "name": "recursive solution",
+      "type": "solution",
+      "content": "./javascript/recursive-solution.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "python-binary-tree-compare-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./python/exercise.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "python-binary-tree-compare-test",
+      "name": "test",
+      "type": "test",
+      "content": "./python/test_binary_tree_compare.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "python-binary-tree-compare-iterative-solution",
+      "name": "iterative solution",
+      "type": "solution",
+      "content": "./python/iterative-solution.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "python-binary-tree-compare-recursive-solution",
+      "name": "recursive solution",
+      "type": "solution",
+      "content": "./python/recursive-solution.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "go-binary-tree-compare-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./go/exercise.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "go-binary-tree-compare-test",
+      "name": "test",
+      "type": "test",
+      "content": "./go/exercise_test.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "go-binary-tree-compare-iterative-solution",
+      "name": "iterative solution",
+      "type": "solution",
+      "content": "./go/iterative-solution.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "go-binary-tree-compare-recursive-solution",
+      "name": "recursive solution",
+      "type": "solution",
+      "content": "./go/recursive-solution.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": true,
+      "hidden": true
+    }
+  ],
+  "createdAt": "2024-02-01T00:00:00.000Z",
+  "updatedAt": "2024-02-01T00:00:00.000Z"
+}
