@@ -1,0 +1,179 @@
+{
+  "id": "cycle-detection",
+  "title": "Cycle Detection",
+  "categories": ["graph", "linked list", "algorithm"],
+  "summary": "Algorithm to detect cycles in graphs, linked lists, or sequences, with implementations like Floyd's Tortoise and Hare and DFS-based approaches",
+  "description": "./description.md",
+  "difficulty": "medium",
+  "tags": [
+    "graph",
+    "linked list",
+    "cycle detection",
+    "tortoise and hare",
+    "dfs"
+  ],
+  "files": [
+    {
+      "id": "typescript-cycle-detection-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./typescript/exercise.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "typescript-cycle-detection-test",
+      "name": "test",
+      "type": "test",
+      "content": "./typescript/test.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "typescript-cycle-detection-recursive-solution",
+      "name": "recursive solution",
+      "type": "solution",
+      "content": "./typescript/recursive-solution.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "typescript-cycle-detection-iterative-solution",
+      "name": "iterative solution",
+      "type": "solution",
+      "content": "./typescript/iterative-solution.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "javascript-cycle-detection-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./javascript/exercise.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "javascript-cycle-detection-test",
+      "name": "test",
+      "type": "test",
+      "content": "./javascript/test.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "javascript-cycle-detection-iterative-solution",
+      "name": "iterative solution",
+      "type": "solution",
+      "content": "./javascript/iterative-solution.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "javascript-cycle-detection-recursive-solution",
+      "name": "recursive solution",
+      "type": "solution",
+      "content": "./javascript/recursive-solution.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "python-cycle-detection-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./python/exercise.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "python-cycle-detection-test",
+      "name": "test",
+      "type": "test",
+      "content": "./python/test_cycle_detection.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "python-cycle-detection-iterative-solution",
+      "name": "iterative solution",
+      "type": "solution",
+      "content": "./python/iterative-solution.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "python-cycle-detection-recursive-solution",
+      "name": "recursive solution",
+      "type": "solution",
+      "content": "./python/recursive-solution.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "go-cycle-detection-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./go/exercise.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "go-cycle-detection-test",
+      "name": "test",
+      "type": "test",
+      "content": "./go/exercise_test.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "go-cycle-detection-iterative-solution",
+      "name": "iterative solution",
+      "type": "solution",
+      "content": "./go/iterative-solution.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "go-cycle-detection-recursive-solution",
+      "name": "recursive solution",
+      "type": "solution",
+      "content": "./go/recursive-solution.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": true,
+      "hidden": true
+    }
+  ],
+  "createdAt": "2024-02-25T00:00:00.000Z",
+  "updatedAt": "2024-02-25T00:00:00.000Z"
+}
