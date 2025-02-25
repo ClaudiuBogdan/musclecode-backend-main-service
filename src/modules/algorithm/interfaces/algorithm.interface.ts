@@ -2,6 +2,7 @@ import { ApiProperty } from '@nestjs/swagger';
 import { SchedulingState } from '../../scheduler/types/scheduler.types';
 
 export enum AlgorithmFileType {
+  EXERCISE = 'exercise',
   SOLUTION = 'solution',
   TEST = 'test',
 }
@@ -74,10 +75,10 @@ export class AlgorithmFile {
   readOnly?: boolean;
 
   @ApiProperty({
-    description: 'Whether the file is required',
+    description: 'Whether the file should be hidden from the user',
     required: false,
   })
-  required?: boolean;
+  hidden?: boolean;
 }
 
 export class AlgorithmTemplate {

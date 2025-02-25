@@ -17,5 +17,6 @@
     "strictBindCallApply": true,
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true
-  }
+  },
+  "exclude": ["./src/modules/algorithm/seed/algorithms/**"]
 }

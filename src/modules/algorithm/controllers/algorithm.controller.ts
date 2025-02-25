@@ -120,7 +120,7 @@ export class AlgorithmController {
 
   @Put('templates/:id') // TODO: fix api: /:id/templates
   @UseGuards(AuthGuard, RolesGuard)
-  @Roles('admin')
+  // @Roles('admin') // TODO: it should only update it's own templates
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Update an algorithm template' })
   @ApiParam({

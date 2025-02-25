@@ -30,7 +30,7 @@ describe('AlgorithmRepository', () => {
         content: 'test content',
         language: CodeLanguage.TYPESCRIPT,
         extension: 'ts',
-        required: true,
+        hidden: false,
       },
     ],
     createdAt: new Date(),

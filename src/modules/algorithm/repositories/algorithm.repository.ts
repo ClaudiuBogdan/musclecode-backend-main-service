@@ -16,10 +16,10 @@ import { CreateAlgorithmDto } from '../dto/create-algorithm.dto';
 import { UpdateAlgorithmDto } from '../dto/update-algorithm.dto';
 import { IAlgorithmRepository } from '../interfaces/algorithm-repository.interface';
 import { Prisma } from '@prisma/client';
-import { seedAlgorithms } from '../seed/algorithms.seed';
 import { Rating } from '../../scheduler/types/scheduler.types';
 import { StructuredLogger } from '../../../logger/structured-logger.service';
 import { deserializeScheduleData, serializeScheduleData } from './utils';
+import { loadAlgorithmTemplates } from '../seed/algorithm-loader.util';
 
 @Injectable()
 export class AlgorithmRepository implements IAlgorithmRepository {
@@ -32,16 +32,20 @@ export class AlgorithmRepository implements IAlgorithmRepository {
   async seed(): Promise<void> {
     this.logger.log('SeedStarted', {});
     const algorithms = await this.prisma.algorithmTemplate.findMany();
+
     if (algorithms.length > 0) {
       this.logger.log('SeedSkipped', { count: algorithms.length });
       return;
     }
-    const newAlgorithms = seedAlgorithms().map((algorithm) => ({
-      ...algorithm,
-      categories: algorithm.categories,
-      tags: algorithm.tags,
-      files: JSON.stringify(algorithm.files),
-    }));
+
+    const newAlgorithms = loadAlgorithmTemplates().map(
+      (algorithm: AlgorithmTemplate) => ({
+        ...algorithm,
+        files: JSON.stringify(algorithm.files),
+        createdAt: new Date(),
+        updatedAt: new Date(),
+      }),
+    );
 
     await this.prisma.algorithmTemplate.createMany({
       data: newAlgorithms,
