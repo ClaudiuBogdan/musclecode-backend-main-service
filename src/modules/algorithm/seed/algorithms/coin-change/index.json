@@ -1,0 +1,173 @@
+{
+  "id": "coin-change",
+  "title": "Coin Change",
+  "categories": ["dynamic programming", "optimization"],
+  "summary": "Dynamic programming approach to determine the minimum number of coins needed for a given amount",
+  "description": "./description.md",
+  "difficulty": "medium",
+  "tags": ["dp", "coin change", "dynamic programming"],
+  "files": [
+    {
+      "id": "typescript-coin-change-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./typescript/exercise.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "typescript-coin-change-test",
+      "name": "test",
+      "type": "test",
+      "content": "./typescript/test.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "typescript-coin-change-iterative-solution",
+      "name": "iterative solution",
+      "type": "solution",
+      "content": "./typescript/iterative-solution.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "typescript-coin-change-recursive-solution",
+      "name": "recursive solution",
+      "type": "solution",
+      "content": "./typescript/recursive-solution.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "javascript-coin-change-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./javascript/exercise.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "javascript-coin-change-test",
+      "name": "test",
+      "type": "test",
+      "content": "./javascript/test.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "javascript-coin-change-iterative-solution",
+      "name": "iterative solution",
+      "type": "solution",
+      "content": "./javascript/iterative-solution.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "javascript-coin-change-recursive-solution",
+      "name": "recursive solution",
+      "type": "solution",
+      "content": "./javascript/recursive-solution.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "python-coin-change-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./python/exercise.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "python-coin-change-test",
+      "name": "test",
+      "type": "test",
+      "content": "./python/test_coin_change.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "python-coin-change-iterative-solution",
+      "name": "iterative solution",
+      "type": "solution",
+      "content": "./python/iterative-solution.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "python-coin-change-recursive-solution",
+      "name": "recursive solution",
+      "type": "solution",
+      "content": "./python/recursive-solution.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "go-coin-change-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./go/exercise.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "go-coin-change-test",
+      "name": "test",
+      "type": "test",
+      "content": "./go/exercise_test.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "go-coin-change-iterative-solution",
+      "name": "iterative solution",
+      "type": "solution",
+      "content": "./go/iterative-solution.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "go-coin-change-recursive-solution",
+      "name": "recursive solution",
+      "type": "solution",
+      "content": "./go/recursive-solution.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": true,
+      "hidden": true
+    }
+  ],
+  "createdAt": "2024-02-01T00:00:00.000Z",
+  "updatedAt": "2024-02-01T00:00:00.000Z"
+}
