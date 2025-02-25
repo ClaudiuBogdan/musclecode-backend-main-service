@@ -24,17 +24,23 @@ Output: -1;
 
 _Explanation: The number 50 is not present in the array, so the function returns -1._
 
+<details>
+<summary>
 ### Speed and Efficiency
+</summary>
 
 Linear Search is known for its simplicity rather than speed:
 
 - **Time Complexity**:
   - **Best Case:** $O(1)$ when the target is found at the first position.
   - **Average/Worst Case:** $O(n)$, because in the worst case, every element must be checked.
-  
 - **Space Complexity:** $O(1)$ as it requires only a constant amount of extra space.
+</details>
 
+<details>
+<summary>
 ### Key Principles
+</summary>
 
 Linear Search is built on a few fundamental concepts:
 
@@ -45,18 +51,25 @@ Linear Search is built on a few fundamental concepts:
 - **Comparison-Driven:** Each step involves comparing the target to the current element.
 
 - **Exhaustive Search:** Continues until either finding the target or exhausting all elements.
-
+</details>
+<details>
+<summary>
 ### Visual Learning Aids
+</summary>
 
 For those who benefit from visual explanations, consider checking out these resources for interactive and animated guides:
 
-- [Linear Search Algorithm in 100 Seconds](https://www.youtube.com/watch?v=MFhxShGxHWc)
-- [Linear Search - FreeCodeCamp](https://www.youtube.com/watch?v=IJDJ0kBx2LM)
-- [Visualgo](https://visualgo.net/en)
-- [CS USF CA Visualization](https://www.cs.usfca.edu/~galles/visualization/Search.html)
-- [Mathwarehouse Comparison of Binary vs Linear Search](https://www.mathwarehouse.com/programming/gifs/binary-vs-linear-search.php)
+- [Linear Search Algorithm - GeeksforGeeks](https://www.youtube.com/watch?v=4GPdGsB3OSc)
+- [CS USF CA Visualization Tool](https://www.cs.usfca.edu/~galles/visualization/Search.html) - Interactive comparison of search algorithms
+- [Mathwarehouse Comparison of Binary vs Linear Search](https://www.mathwarehouse.com/programming/gifs/binary-vs-linear-search.php) - Visual comparison showing the efficiency difference
+- [Linear Search Tutorial with Animation - TutorialsPoint](https://www.tutorialspoint.com/data_structures_algorithms/linear_search_algorithm.htm)
 
+</details>
+
+<details>
+<summary>
 ### Common Pitfalls
+</summary>
 
 When implementing or using Linear Search, be mindful of these common challenges:
 
@@ -67,8 +80,12 @@ When implementing or using Linear Search, be mindful of these common challenges:
 - **Edge Cases:** Consider arrays with no elements or only one element.
 
 - **Redundant Comparisons:** In sorted arrays, continuing the search after passing the target's potential position.
+</details>
 
+<details>
+<summary>
 ### When and Where to Use Linear Search
+</summary>
 
 Linear Search is ideal in scenarios such as:
 
@@ -87,8 +104,12 @@ However, it may not be the best choice for:
 - Frequently searched collections where preprocessing would be beneficial.
 
 - Sorted data where binary search would be more efficient.
+</details>
 
+<details>
+<summary>
 ### Real-World Applications
+</summary>
 
 Linear Search isn't just a theoretical concept—it's used in many practical areas, including:
 
@@ -101,8 +122,12 @@ Linear Search isn't just a theoretical concept—it's used in many practical are
 - **Text Editors:** For finding the first occurrence of a character or pattern.
 
 - **Sensor Monitoring:** For scanning through recent readings to identify anomalies.
+</details>
 
+<details>
+<summary>
 ### Variations and Related Methods
+</summary>
 
 Several specialized algorithms extend or modify Linear Search:
 
@@ -113,7 +138,13 @@ Several specialized algorithms extend or modify Linear Search:
 - **Jump Search:** Combines linear and binary search concepts.
 
 - **Interpolation Search:** Uses value-based positioning for uniformly distributed data.
+</details>
 
+<details>
+<summary>
 ### A Brief Look at History
+</summary>
 
 Linear search represents one of the oldest and most fundamental search techniques in computer science. Its simplicity made it a natural starting point in the development of search algorithms, serving as a baseline against which more sophisticated methods are compared. Despite its age and simplicity, it remains relevant in specific contexts where more complex algorithms would be unnecessary overhead.
+
+</details>
