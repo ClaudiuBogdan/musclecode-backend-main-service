@@ -1,0 +1,173 @@
+{
+  "id": "merge-sort",
+  "title": "Merge Sort",
+  "categories": ["sorting", "divide and conquer"],
+  "summary": "An efficient, stable sorting algorithm that uses the divide-and-conquer paradigm to sort an array.",
+  "description": "./description.md",
+  "difficulty": "medium",
+  "tags": ["sort", "merge sort", "divide and conquer"],
+  "files": [
+    {
+      "id": "typescript-merge-sort-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./typescript/exercise.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "typescript-merge-sort-test",
+      "name": "test",
+      "type": "test",
+      "content": "./typescript/test.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "typescript-merge-sort-iterative-solution",
+      "name": "iterative solution",
+      "type": "solution",
+      "content": "./typescript/iterative-solution.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "typescript-merge-sort-recursive-solution",
+      "name": "recursive solution",
+      "type": "solution",
+      "content": "./typescript/recursive-solution.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "javascript-merge-sort-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./javascript/exercise.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "javascript-merge-sort-test",
+      "name": "test",
+      "type": "test",
+      "content": "./javascript/test.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "javascript-merge-sort-iterative-solution",
+      "name": "iterative solution",
+      "type": "solution",
+      "content": "./javascript/iterative-solution.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "javascript-merge-sort-recursive-solution",
+      "name": "recursive solution",
+      "type": "solution",
+      "content": "./javascript/recursive-solution.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "python-merge-sort-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./python/exercise.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "python-merge-sort-test",
+      "name": "test",
+      "type": "test",
+      "content": "./python/test_merge_sort.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "python-merge-sort-iterative-solution",
+      "name": "iterative solution",
+      "type": "solution",
+      "content": "./python/iterative-solution.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "python-merge-sort-recursive-solution",
+      "name": "recursive solution",
+      "type": "solution",
+      "content": "./python/recursive-solution.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "go-merge-sort-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./go/exercise.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "go-merge-sort-test",
+      "name": "test",
+      "type": "test",
+      "content": "./go/exercise_test.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "go-merge-sort-iterative-solution",
+      "name": "iterative solution",
+      "type": "solution",
+      "content": "./go/iterative-solution.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "go-merge-sort-recursive-solution",
+      "name": "recursive solution",
+      "type": "solution",
+      "content": "./go/recursive-solution.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": true,
+      "hidden": true
+    }
+  ],
+  "createdAt": "2024-02-01T00:00:00.000Z",
+  "updatedAt": "2024-02-01T00:00:00.000Z"
+}
