@@ -1,0 +1,138 @@
+{
+  "id": "huffman-encoding",
+  "title": "Huffman Encoding",
+  "categories": ["compression", "data structures"],
+  "summary": "A lossless data compression algorithm that uses variable-length codes to represent symbols based on their frequencies.",
+  "description": "./description.md",
+  "difficulty": "medium",
+  "tags": [
+    "compression",
+    "huffman encoding",
+    "data structures",
+    "greedy algorithm"
+  ],
+  "files": [
+    {
+      "id": "typescript-huffman-encoding-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./typescript/exercise.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "typescript-huffman-encoding-test",
+      "name": "test",
+      "type": "test",
+      "content": "./typescript/test.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "typescript-huffman-encoding-solution",
+      "name": "solution",
+      "type": "solution",
+      "content": "./typescript/solution.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "javascript-huffman-encoding-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./javascript/exercise.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "javascript-huffman-encoding-test",
+      "name": "test",
+      "type": "test",
+      "content": "./javascript/test.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "javascript-huffman-encoding-solution",
+      "name": "solution",
+      "type": "solution",
+      "content": "./javascript/solution.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "python-huffman-encoding-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./python/exercise.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "python-huffman-encoding-test",
+      "name": "test",
+      "type": "test",
+      "content": "./python/test_huffman_encoding.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "python-huffman-encoding-solution",
+      "name": "solution",
+      "type": "solution",
+      "content": "./python/solution.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "go-huffman-encoding-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./go/exercise.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "go-huffman-encoding-test",
+      "name": "test",
+      "type": "test",
+      "content": "./go/exercise_test.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "go-huffman-encoding-solution",
+      "name": "solution",
+      "type": "solution",
+      "content": "./go/solution.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": true,
+      "hidden": true
+    }
+  ],
+  "createdAt": "2024-02-01T00:00:00.000Z",
+  "updatedAt": "2024-02-01T00:00:00.000Z"
+}
