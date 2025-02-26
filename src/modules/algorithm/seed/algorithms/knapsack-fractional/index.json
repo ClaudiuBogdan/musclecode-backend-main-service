@@ -1,0 +1,133 @@
+{
+  "id": "knapsack-fractional",
+  "title": "Fractional Knapsack",
+  "categories": ["optimization", "greedy"],
+  "summary": "A greedy algorithm to maximize the value of items placed in a knapsack with fractional amounts allowed.",
+  "description": "./description.md",
+  "difficulty": "medium",
+  "tags": ["knapsack", "fractional knapsack", "greedy"],
+  "files": [
+    {
+      "id": "typescript-knapsack-fractional-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./typescript/exercise.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "typescript-knapsack-fractional-test",
+      "name": "test",
+      "type": "test",
+      "content": "./typescript/test.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "typescript-knapsack-fractional-greedy-solution",
+      "name": "greedy solution",
+      "type": "solution",
+      "content": "./typescript/greedy-solution.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "javascript-knapsack-fractional-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./javascript/exercise.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "javascript-knapsack-fractional-test",
+      "name": "test",
+      "type": "test",
+      "content": "./javascript/test.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "javascript-knapsack-fractional-greedy-solution",
+      "name": "greedy solution",
+      "type": "solution",
+      "content": "./javascript/greedy-solution.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "python-knapsack-fractional-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./python/exercise.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "python-knapsack-fractional-test",
+      "name": "test",
+      "type": "test",
+      "content": "./python/test_knapsack_fractional.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "python-knapsack-fractional-greedy-solution",
+      "name": "greedy solution",
+      "type": "solution",
+      "content": "./python/greedy-solution.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "go-knapsack-fractional-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./go/exercise.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "go-knapsack-fractional-test",
+      "name": "test",
+      "type": "test",
+      "content": "./go/exercise_test.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "go-knapsack-fractional-greedy-solution",
+      "name": "greedy solution",
+      "type": "solution",
+      "content": "./go/greedy-solution.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": true,
+      "hidden": true
+    }
+  ],
+  "createdAt": "2024-02-01T00:00:00.000Z",
+  "updatedAt": "2024-02-01T00:00:00.000Z"
+}
