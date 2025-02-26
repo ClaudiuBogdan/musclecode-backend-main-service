@@ -1,0 +1,133 @@
+{
+  "id": "two-crystal-balls",
+  "title": "Two Crystal Balls",
+  "categories": ["search", "optimization"],
+  "summary": "Efficiently determine the floor at which crystal balls break using a square root approach.",
+  "description": "./description.md",
+  "difficulty": "medium",
+  "tags": ["search", "two crystal balls", "optimization"],
+  "files": [
+    {
+      "id": "typescript-two-crystal-balls-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./typescript/exercise.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "typescript-two-crystal-balls-test",
+      "name": "test",
+      "type": "test",
+      "content": "./typescript/test.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "typescript-two-crystal-balls-solution",
+      "name": "solution",
+      "type": "solution",
+      "content": "./typescript/solution.ts",
+      "language": "typescript",
+      "extension": "ts",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "javascript-two-crystal-balls-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./javascript/exercise.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "javascript-two-crystal-balls-test",
+      "name": "test",
+      "type": "test",
+      "content": "./javascript/test.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "javascript-two-crystal-balls-solution",
+      "name": "solution",
+      "type": "solution",
+      "content": "./javascript/solution.js",
+      "language": "javascript",
+      "extension": "js",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "python-two-crystal-balls-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./python/exercise.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "python-two-crystal-balls-test",
+      "name": "test",
+      "type": "test",
+      "content": "./python/test_two_crystal_balls.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "python-two-crystal-balls-solution",
+      "name": "solution",
+      "type": "solution",
+      "content": "./python/solution.py",
+      "language": "python",
+      "extension": "py",
+      "readOnly": true,
+      "hidden": true
+    },
+    {
+      "id": "go-two-crystal-balls-exercise",
+      "name": "exercise",
+      "type": "exercise",
+      "content": "./go/exercise.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "go-two-crystal-balls-test",
+      "name": "test",
+      "type": "test",
+      "content": "./go/exercise_test.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": false,
+      "hidden": false
+    },
+    {
+      "id": "go-two-crystal-balls-solution",
+      "name": "solution",
+      "type": "solution",
+      "content": "./go/solution.go",
+      "language": "go",
+      "extension": "go",
+      "readOnly": true,
+      "hidden": true
+    }
+  ],
+  "createdAt": "2024-02-01T00:00:00.000Z",
+  "updatedAt": "2024-02-01T00:00:00.000Z"
+}
