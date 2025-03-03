@@ -89,7 +89,7 @@ export class OnboardingService {
     await this.onboardingRepository.updateOnboardingState(
       userId,
       updateDto.currentStep || (state.currentStep as OnboardingStep),
-      updateDto.isCompleted,
+      updateDto.isCompleted || state.isCompleted,
     );
 
     // Return the updated state
@@ -104,26 +104,16 @@ export class OnboardingService {
       studyTime: goals.studyTime,
     });
 
-    // Log the selected collections for tracking
-    if (goals.selectedCollections && goals.selectedCollections.length > 0) {
-      this.logger.debug('User selected collections', {
-        userId,
-        selectedCollections: goals.selectedCollections,
-      });
-    } else {
-      // If no collections are selected, default to "all-algorithms"
-      this.logger.debug('No collections selected, using default', {
-        userId,
-        defaultCollection: 'all-algorithms',
-      });
-    }
-
     if (goals.selectedCollections && goals.selectedCollections.length > 0) {
       // Update the onboarding state to move to the next step
       for (const collectionId of goals.selectedCollections) {
         await this.collectionService.copyCollection(collectionId, userId);
       }
     }
+
+    await this.updateOnboardingState(userId, {
+      currentStep: this.getNextStep(OnboardingStep.GOALS),
+    });
 
     // Return the updated onboarding state
     return true;
@@ -140,8 +130,8 @@ export class OnboardingService {
       this.onboardingRepository.saveQuizResults(userId, answers),
       this.onboardingRepository.initializeAlgorithmSchedule(userId),
       this.updateOnboardingState(userId, {
-        currentStep: OnboardingStep.SUMMARY,
-        isCompleted: true,
+        currentStep: this.getNextStep(OnboardingStep.QUIZ),
+        isCompleted: this.checkStepCompleted(OnboardingStep.QUIZ),
       }),
     ]);
 
@@ -149,15 +139,35 @@ export class OnboardingService {
     return true;
   }
 
-  async skipOnboarding(userId: string) {
-    this.logger.debug('Skipping onboarding', { userId });
+  async skipOnboardingStep(userId: string, step: OnboardingStep) {
+    this.logger.debug('Skipping onboarding step', { userId, step });
 
     // Update the onboarding state to mark it as completed
     await this.updateOnboardingState(userId, {
-      isCompleted: true,
+      currentStep: this.getNextStep(step),
+      isCompleted: this.checkStepCompleted(step),
     });
 
     // Return true to indicate success
     return true;
+  }
+
+  private getNextStep(step: OnboardingStep): OnboardingStep {
+    switch (step) {
+      case OnboardingStep.WELCOME:
+        return OnboardingStep.GOALS;
+      case OnboardingStep.GOALS:
+        return OnboardingStep.QUIZ;
+      case OnboardingStep.QUIZ:
+        return OnboardingStep.SUMMARY;
+      case OnboardingStep.SUMMARY:
+        return OnboardingStep.SUMMARY;
+      default:
+        throw new Error(`Invalid onboarding step: ${step}`);
+    }
+  }
+
+  private checkStepCompleted(step: OnboardingStep): boolean {
+    return step === OnboardingStep.SUMMARY || step === OnboardingStep.QUIZ;
   }
 }

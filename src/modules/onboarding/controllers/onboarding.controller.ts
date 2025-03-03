@@ -11,6 +11,7 @@ import {
   UserGoalsDto,
   SubmitQuizDto,
   OnboardingResponseDto,
+  SkipOnboardingStepDto,
 } from '../dto/onboarding.dto';
 import { AuthenticatedRequest } from '../../../types/request.types';
 import {
@@ -79,7 +80,10 @@ export class OnboardingController {
     description: 'Skips onboarding and initializes algorithm schedule',
     type: Boolean,
   })
-  async skipOnboarding(@Request() req: AuthenticatedRequest) {
-    return this.onboardingService.skipOnboarding(req.user.id);
+  async skipOnboardingStep(
+    @Request() req: AuthenticatedRequest,
+    @Body() body: SkipOnboardingStepDto,
+  ) {
+    return this.onboardingService.skipOnboardingStep(req.user.id, body.step);
   }
 }

@@ -275,3 +275,11 @@ export class OnboardingResponseDto {
   @IsString()
   updatedAt: string;
 }
+
+export class SkipOnboardingStepDto {
+  @ApiProperty({
+    description: 'Step to skip',
+    enum: OnboardingStep,
+  })
+  step: OnboardingStep;
+}
