@@ -6,47 +6,35 @@ import {
   IsEnum,
   IsObject,
   ValidateNested,
+  IsInt,
+  IsUUID,
+  Min,
+  Max,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export enum OnboardingStep {
   WELCOME = 'welcome',
-  CONCEPTS = 'concepts',
   GOALS = 'goals',
   QUIZ = 'quiz',
   SUMMARY = 'summary',
 }
 
-export enum ExperienceLevel {
-  BEGINNER = 'beginner',
-  INTERMEDIATE = 'intermediate',
-  ADVANCED = 'advanced',
-}
-
-export enum TimeCommitment {
-  LOW = 'low',
-  MEDIUM = 'medium',
-  HIGH = 'high',
-}
-
-export enum LearningPreference {
-  PRACTICAL = 'practical',
-  THEORETICAL = 'theoretical',
-  MIXED = 'mixed',
-}
-
-export enum TopicFamiliarity {
-  UNFAMILIAR = 'unfamiliar',
-  FAMILIAR = 'familiar',
-  VERY_FAMILIAR = 'very_familiar',
-}
-
 export class UpdateOnboardingStateDto {
+  @ApiProperty({
+    description: 'Current step in the onboarding process',
+    enum: OnboardingStep,
+    example: 'goals',
+  })
   @IsEnum(OnboardingStep)
   @IsOptional()
   currentStep?: OnboardingStep;
 
+  @ApiProperty({
+    description: 'Whether onboarding is completed',
+    example: false,
+  })
   @IsBoolean()
   @IsOptional()
   isCompleted?: boolean;
@@ -54,124 +42,236 @@ export class UpdateOnboardingStateDto {
 
 export class UserGoalsDto {
   @ApiProperty({
-    description: 'Time commitment level',
-    enum: TimeCommitment,
-    example: 'medium',
+    description: 'Study time in minutes per day',
+    example: 30,
   })
-  @IsEnum(TimeCommitment)
-  timeCommitment: TimeCommitment;
+  @IsInt()
+  @Min(5)
+  @Max(240)
+  studyTime: number;
 
   @ApiProperty({
-    description: 'Preferred learning style',
-    enum: LearningPreference,
-    example: 'practical',
-  })
-  @IsEnum(LearningPreference)
-  learningPreference: LearningPreference;
-
-  @ApiProperty({
-    description: 'User experience level',
-    enum: ExperienceLevel,
-    example: 'beginner',
-  })
-  @IsEnum(ExperienceLevel)
-  experienceLevel: ExperienceLevel;
-
-  @ApiProperty({
-    description: 'Focus areas for learning',
-    type: [String],
-    example: ['arrays', 'dynamic_programming'],
+    description: 'Selected collection IDs',
+    example: ['sorting-algorithms', 'dynamic-programming'],
+    required: false,
   })
   @IsArray()
   @IsString({ each: true })
-  focusAreas: string[];
+  @IsOptional()
+  selectedCollections?: string[];
 }
 
-export class QuizAnswersMap {
+export class QuizAnswerDto {
   @ApiProperty({
-    description: 'Familiarity with sorting algorithms',
-    enum: TopicFamiliarity,
-    example: 'familiar',
+    description: 'Question ID',
+    example: 'uuid-1',
   })
-  @IsEnum(TopicFamiliarity)
-  @IsOptional()
-  sorting?: TopicFamiliarity;
+  @IsString()
+  @IsUUID('4')
+  questionId: string;
 
   @ApiProperty({
-    description: 'Familiarity with graph algorithms',
-    enum: TopicFamiliarity,
-    example: 'familiar',
+    description: 'Selected option index',
+    example: 2,
   })
-  @IsEnum(TopicFamiliarity)
-  @IsOptional()
-  graphs?: TopicFamiliarity;
-
-  @ApiProperty({
-    description: 'Familiarity with dynamic programming',
-    enum: TopicFamiliarity,
-    example: 'familiar',
-  })
-  @IsEnum(TopicFamiliarity)
-  @IsOptional()
-  dp?: TopicFamiliarity;
-
-  @ApiProperty({
-    description: 'Familiarity with tree algorithms',
-    enum: TopicFamiliarity,
-    example: 'familiar',
-  })
-  @IsEnum(TopicFamiliarity)
-  @IsOptional()
-  trees?: TopicFamiliarity;
-
-  @ApiProperty({
-    description: 'Familiarity with string algorithms',
-    enum: TopicFamiliarity,
-    example: 'familiar',
-  })
-  @IsEnum(TopicFamiliarity)
-  @IsOptional()
-  strings?: TopicFamiliarity;
+  @IsInt()
+  @Min(0)
+  selectedOption: number;
 }
 
 export class SubmitQuizDto {
   @ApiProperty({
-    description: 'Topic familiarity answers',
-    type: QuizAnswersMap,
+    description: 'Quiz answers',
+    type: [QuizAnswerDto],
   })
-  @IsObject()
-  @ValidateNested()
-  @Type(() => QuizAnswersMap)
-  answers: QuizAnswersMap;
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => QuizAnswerDto)
+  answers: QuizAnswerDto[];
 }
 
-export class OnboardingResponseDto {
+export class QuizQuestionDto {
+  @ApiProperty({
+    description: 'Question ID',
+    example: 'uuid-1',
+  })
   @IsString()
   id: string;
 
+  @ApiProperty({
+    description: 'Algorithm ID associated with the question',
+    example: 'uuid-1',
+  })
+  @IsString()
+  algorithmId: string;
+
+  @ApiProperty({
+    description: 'Question text',
+    example: 'What is the time complexity of a linear search?',
+  })
+  @IsString()
+  question: string;
+
+  @ApiProperty({
+    description: 'Answer options',
+    example: ['O(1)', 'O(n)', 'O(n log n)', 'O(n²)'],
+  })
+  @IsArray()
+  @IsString({ each: true })
+  options: string[];
+
+  @ApiProperty({
+    description: 'Correct answer index',
+    example: 0,
+  })
+  @IsInt()
+  correctAnswerIndex: number;
+}
+
+export class QuizGroupDto {
+  @ApiProperty({
+    description: 'Quiz group ID',
+    example: 'data-structures',
+  })
+  @IsString()
+  id: string;
+
+  @ApiProperty({
+    description: 'Quiz group name',
+    example: 'Data Structures',
+  })
+  @IsString()
+  name: string;
+
+  @ApiProperty({
+    description: 'Quiz group description',
+    example:
+      'A comprehensive collection of data structures, from basic to advanced.',
+  })
+  @IsString()
+  description: string;
+
+  @ApiProperty({
+    description: 'Quiz questions',
+    type: [QuizQuestionDto],
+  })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => QuizQuestionDto)
+  questions: QuizQuestionDto[];
+}
+
+export class CollectionDto {
+  @ApiProperty({
+    description: 'Collection ID',
+    example: 'sorting-algorithms',
+  })
+  @IsString()
+  id: string;
+
+  @ApiProperty({
+    description: 'Collection name',
+    example: 'Sorting Algorithms',
+  })
+  @IsString()
+  name: string;
+
+  @ApiProperty({
+    description: 'Collection description',
+    example:
+      'A comprehensive collection of sorting algorithms, from basic to advanced.',
+    required: false,
+  })
+  @IsString()
+  @IsOptional()
+  description?: string;
+}
+
+export class OnboardingResponseDto {
+  @ApiProperty({
+    description: 'Onboarding ID',
+    example: 'uuid-1',
+  })
+  @IsString()
+  id: string;
+
+  @ApiProperty({
+    description: 'User ID',
+    example: 'uuid-1',
+  })
   @IsString()
   userId: string;
 
+  @ApiProperty({
+    description: 'Current step in the onboarding process',
+    enum: OnboardingStep,
+    example: 'goals',
+  })
   @IsEnum(OnboardingStep)
   currentStep: OnboardingStep;
 
+  @ApiProperty({
+    description: 'Whether onboarding is completed',
+    example: false,
+  })
   @IsBoolean()
   isCompleted: boolean;
 
+  @ApiProperty({
+    description: 'User goals',
+    type: UserGoalsDto,
+    required: false,
+  })
   @IsObject()
   @IsOptional()
+  @ValidateNested()
+  @Type(() => UserGoalsDto)
   goals?: UserGoalsDto;
 
+  @ApiProperty({
+    description: 'Available collections',
+    type: [CollectionDto],
+    required: false,
+  })
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => CollectionDto)
+  collections?: CollectionDto[];
+
+  @ApiProperty({
+    description: 'Quiz questions',
+    type: [QuizQuestionDto],
+    required: false,
+  })
+  @IsArray()
+  @IsOptional()
+  @ValidateNested({ each: true })
+  @Type(() => QuizGroupDto)
+  quizQuestions?: QuizGroupDto[];
+
+  @ApiProperty({
+    description: 'Quiz results',
+    type: SubmitQuizDto,
+    required: false,
+  })
   @IsObject()
   @IsOptional()
-  quizResults?: {
-    score: number;
-    recommendations: any;
-  };
+  @ValidateNested()
+  @Type(() => SubmitQuizDto)
+  quizResults?: SubmitQuizDto;
 
+  @ApiProperty({
+    description: 'Creation timestamp',
+    example: '2023-01-01T00:00:00.000Z',
+  })
   @IsString()
   createdAt: string;
 
+  @ApiProperty({
+    description: 'Last update timestamp',
+    example: '2023-01-01T00:00:00.000Z',
+  })
   @IsString()
   updatedAt: string;
 }

@@ -1,239 +1,163 @@
-import {
-  Injectable,
-  NotFoundException,
-  BadRequestException,
-} from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { OnboardingRepository } from '../repositories/onboarding.repository';
 import {
   OnboardingStep,
   UpdateOnboardingStateDto,
   UserGoalsDto,
-  QuizAnswersMap,
-  TopicFamiliarity,
-  TimeCommitment,
+  QuizAnswerDto,
+  OnboardingResponseDto,
 } from '../dto/onboarding.dto';
 import { StructuredLogger } from '../../../logger/structured-logger.service';
-
-interface StudyPlanInput {
-  timeCommitment: TimeCommitment;
-  experienceLevel: string;
-  focusAreas: string[];
-  studyTime: number;
-}
-
-interface UserGoalsModel {
-  id: string;
-  userId: string;
-  onboardingId: string;
-  timeCommitment: TimeCommitment;
-  learningPreference: string;
-  experienceLevel: string;
-  focusAreas: string[];
-  createdAt: Date;
-  updatedAt: Date;
-}
+import { CollectionService } from 'src/modules/collection/services/collection.service';
+import { questions } from '../data/questions';
 
 @Injectable()
 export class OnboardingService {
   constructor(
     private readonly onboardingRepository: OnboardingRepository,
     private readonly logger: StructuredLogger,
+    private readonly collectionService: CollectionService,
   ) {}
 
-  async getOnboardingState(userId: string) {
-    let state = await this.onboardingRepository.getOnboardingState(userId);
+  async getOnboardingState(userId: string): Promise<OnboardingResponseDto> {
+    this.logger.debug('Getting onboarding state', { userId });
 
-    if (!state) {
+    // Get the onboarding state or create it if it doesn't exist
+    let onboardingState =
+      await this.onboardingRepository.getOnboardingState(userId);
+
+    if (!onboardingState) {
       this.logger.debug('Creating new onboarding state for user', { userId });
-      state = await this.onboardingRepository.createOnboardingState(userId);
+      onboardingState =
+        await this.onboardingRepository.createOnboardingState(userId);
     }
 
-    return state;
+    // Get all available collections
+    const collections =
+      await this.onboardingRepository.getAvailableCollections();
+
+    // Format the response according to the OnboardingResponseDto
+    const response: OnboardingResponseDto = {
+      id: onboardingState.id,
+      userId: onboardingState.userId,
+      currentStep: onboardingState.currentStep as OnboardingStep,
+      isCompleted: onboardingState.isCompleted,
+      createdAt: onboardingState.createdAt.toISOString(),
+      updatedAt: onboardingState.updatedAt.toISOString(),
+      collections: collections.map((collection) => ({
+        id: collection.id,
+        name: collection.name,
+        description: collection.description || undefined,
+      })),
+      quizQuestions: questions,
+    };
+
+    if (onboardingState.goals) {
+      response.goals = {
+        studyTime: onboardingState.goals.studyTime,
+        selectedCollections: onboardingState.goals.selectedCollections,
+      };
+    }
+
+    if (onboardingState.quizResults) {
+      response.quizResults = {
+        answers: (onboardingState.quizResults.answers as any).answers || [],
+      };
+    }
+
+    return response;
   }
 
   async updateOnboardingState(
     userId: string,
     updateDto: UpdateOnboardingStateDto,
   ) {
-    const state = await this.getOnboardingState(userId);
+    const state = await this.onboardingRepository.getOnboardingState(userId);
+
     if (!state) {
       throw new NotFoundException('Onboarding state not found');
     }
 
-    const currentStep =
-      updateDto.currentStep || (state.currentStep as OnboardingStep);
-    return this.onboardingRepository.updateOnboardingState(
+    this.logger.debug('Updating onboarding state', {
       userId,
-      currentStep,
+      currentStep: state.currentStep,
+      newStep: updateDto.currentStep,
+      isCompleted: updateDto.isCompleted,
+    });
+
+    // Update the onboarding state
+    await this.onboardingRepository.updateOnboardingState(
+      userId,
+      updateDto.currentStep || (state.currentStep as OnboardingStep),
       updateDto.isCompleted,
     );
+
+    // Return the updated state
+    return true;
   }
 
   async saveUserGoals(userId: string, goals: UserGoalsDto) {
-    const state = await this.getOnboardingState(userId);
-    if (!state) {
-      throw new NotFoundException('Onboarding state not found');
+    this.logger.debug('Saving user goals', { userId, goals });
+
+    // Save the user goals
+    await this.onboardingRepository.saveUserGoals(userId, {
+      studyTime: goals.studyTime,
+    });
+
+    // Log the selected collections for tracking
+    if (goals.selectedCollections && goals.selectedCollections.length > 0) {
+      this.logger.debug('User selected collections', {
+        userId,
+        selectedCollections: goals.selectedCollections,
+      });
+    } else {
+      // If no collections are selected, default to "all-algorithms"
+      this.logger.debug('No collections selected, using default', {
+        userId,
+        defaultCollection: 'all-algorithms',
+      });
     }
 
-    await this.onboardingRepository.saveUserGoals(userId, goals);
-    return this.onboardingRepository.updateOnboardingState(
-      userId,
-      OnboardingStep.QUIZ,
-    );
+    if (goals.selectedCollections && goals.selectedCollections.length > 0) {
+      // Update the onboarding state to move to the next step
+      for (const collectionId of goals.selectedCollections) {
+        await this.collectionService.copyCollection(collectionId, userId);
+      }
+    }
+
+    // Return the updated onboarding state
+    return true;
   }
 
-  async submitQuiz(userId: string, answers: QuizAnswersMap) {
-    const state = await this.getOnboardingState(userId);
-    if (!state) {
-      throw new NotFoundException('Onboarding state not found');
-    }
-
-    if (!state.goals) {
-      throw new BadRequestException(
-        'User goals must be set before taking the quiz',
-      );
-    }
-
-    // Calculate score based on familiarity levels
-    const score = this.calculateQuizScore(answers);
-
-    // Generate recommendations based on familiarity levels
-    const recommendations = await this.generateRecommendations(
+  async submitQuiz(userId: string, answers: QuizAnswerDto[]) {
+    this.logger.debug('Submitting quiz answers', {
       userId,
-      score,
-      state.goals as unknown as UserGoalsModel,
-      answers,
-    );
+      answerCount: answers.length,
+    });
 
-    // Save results and update state
-    await this.onboardingRepository.saveQuizResults(
-      userId,
-      answers,
-      score,
-      recommendations,
-    );
-
-    return this.onboardingRepository.updateOnboardingState(
-      userId,
-      OnboardingStep.SUMMARY,
-      true,
-    );
-  }
-
-  private calculateQuizScore(answers: QuizAnswersMap): number {
-    const familiarityScores = {
-      [TopicFamiliarity.UNFAMILIAR]: 0,
-      [TopicFamiliarity.FAMILIAR]: 50,
-      [TopicFamiliarity.VERY_FAMILIAR]: 100,
-    };
-
-    const topics = Object.keys(answers) as (keyof QuizAnswersMap)[];
-    if (topics.length === 0) {
-      return 0;
-    }
-
-    const totalScore = topics.reduce((sum, topic) => {
-      const familiarity = answers[topic];
-      return sum + (familiarity ? familiarityScores[familiarity] : 0);
-    }, 0);
-
-    return Math.round(totalScore / topics.length);
-  }
-
-  private async generateRecommendations(
-    userId: string,
-    score: number,
-    goals: UserGoalsModel,
-    answers: QuizAnswersMap,
-  ) {
-    // Convert time commitment to study time
-    const studyTimeMap: Record<TimeCommitment, number> = {
-      [TimeCommitment.LOW]: 30,
-      [TimeCommitment.MEDIUM]: 60,
-      [TimeCommitment.HIGH]: 120,
-    };
-
-    const studyTime = studyTimeMap[goals.timeCommitment];
-
-    // Analyze weak areas based on familiarity levels
-    const weakAreas = this.analyzeWeakAreas(answers);
-    const allTopics = Object.keys(answers);
-
-    // Generate personalized recommendations
-    return {
-      dailyAlgorithmsCount: this.calculateDailyAlgorithms(score, studyTime),
-      recommendedTopics: this.getRecommendedTopics(weakAreas, allTopics),
-      difficultyLevel: this.getDifficultyLevel(score, goals.experienceLevel),
-      studyPlan: this.generateStudyPlan(weakAreas, {
-        timeCommitment: goals.timeCommitment,
-        experienceLevel: goals.experienceLevel,
-        focusAreas: allTopics,
-        studyTime,
+    // Save the quiz results
+    await Promise.all([
+      this.onboardingRepository.saveQuizResults(userId, answers),
+      this.onboardingRepository.initializeAlgorithmSchedule(userId),
+      this.updateOnboardingState(userId, {
+        currentStep: OnboardingStep.SUMMARY,
+        isCompleted: true,
       }),
-    };
+    ]);
+
+    // Return the updated onboarding state
+    return true;
   }
 
-  private analyzeWeakAreas(answers: QuizAnswersMap): string[] {
-    return Object.entries(answers)
-      .filter(([, familiarity]) => familiarity === TopicFamiliarity.UNFAMILIAR)
-      .map(([topic]) => topic);
-  }
+  async skipOnboarding(userId: string) {
+    this.logger.debug('Skipping onboarding', { userId });
 
-  private calculateDailyAlgorithms(score: number, studyTime: number): number {
-    const baseCount = Math.max(1, Math.floor(studyTime / 30));
-    const scoreMultiplier = score < 50 ? 0.5 : score < 75 ? 0.75 : 1;
-    return Math.max(1, Math.round(baseCount * scoreMultiplier));
-  }
+    // Update the onboarding state to mark it as completed
+    await this.updateOnboardingState(userId, {
+      isCompleted: true,
+    });
 
-  private getRecommendedTopics(
-    weakAreas: string[],
-    allTopics: string[],
-  ): string[] {
-    const recommended = [...new Set([...weakAreas, ...allTopics])];
-    return recommended.slice(0, 5);
-  }
-
-  private getDifficultyLevel(score: number, experienceLevel: string): string {
-    if (score < 40) return 'beginner';
-    if (score < 70)
-      return experienceLevel === 'beginner' ? 'beginner' : 'intermediate';
-    return experienceLevel;
-  }
-
-  private generateStudyPlan(weakAreas: string[], input: StudyPlanInput) {
-    return {
-      focusAreas: weakAreas.slice(0, 3),
-      suggestedTimeAllocation: {
-        practice: Math.round(input.studyTime * 0.6),
-        theory: Math.round(input.studyTime * 0.2),
-        review: Math.round(input.studyTime * 0.2),
-      },
-      milestones: this.generateMilestones(input),
-    };
-  }
-
-  private generateMilestones(input: StudyPlanInput) {
-    return [
-      {
-        week: 1,
-        focus: 'Fundamentals and Basic Problem Solving',
-        targetTopics: input.focusAreas.slice(0, 2),
-      },
-      {
-        week: 2,
-        focus: 'Advanced Concepts and Pattern Recognition',
-        targetTopics: input.focusAreas.slice(2, 4),
-      },
-      {
-        week: 3,
-        focus: 'Problem-Solving Strategies and Optimization',
-        targetTopics: input.focusAreas.slice(4),
-      },
-      {
-        week: 4,
-        focus: 'Review and Real-world Applications',
-        targetTopics: input.focusAreas,
-      },
-    ];
+    // Return true to indicate success
+    return true;
   }
 }

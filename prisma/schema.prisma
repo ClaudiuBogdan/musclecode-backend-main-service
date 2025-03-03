@@ -4,29 +4,29 @@ datasource db {
 }
 
 generator client {
-  provider        = "prisma-client-js"
+  provider = "prisma-client-js"
 }
 
 model AlgorithmTemplate {
-  id           String              @id @default(uuid())
-  title        String
-  categories   String[]
-  summary      String
-  description  String
-  difficulty   String
-  level        Int?
-  tags         String[]
-  files        Json                // Array stored as JSON
-  userId       String?             // Null indicates system template
-  parentId     String?             // Original template ID if cloned
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  
+  id          String   @id @default(uuid())
+  title       String
+  categories  String[]
+  summary     String
+  description String
+  difficulty  String
+  level       Int?
+  tags        String[]
+  files       Json // Array stored as JSON
+  userId      String? // Null indicates system template
+  parentId    String? // Original template ID if cloned
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   // Relations
-  parent       AlgorithmTemplate?  @relation("TemplateClones", fields: [parentId], references: [id])
-  clones       AlgorithmTemplate[] @relation("TemplateClones")
-  collections  AlgorithmCollection[]
-  userAlgorithms AlgorithmUserData[]
+  parent          AlgorithmTemplate?    @relation("TemplateClones", fields: [parentId], references: [id])
+  clones          AlgorithmTemplate[]   @relation("TemplateClones")
+  collections     AlgorithmCollection[]
+  userAlgorithms  AlgorithmUserData[]
   dailyAlgorithms DailyAlgorithm[]
 
   @@index([userId])
@@ -35,40 +35,40 @@ model AlgorithmTemplate {
 }
 
 model Collection {
-  id           String              @id @default(uuid())
-  name         String
-  description  String?
-  userId       String?             // Null indicates system collection
-  parentId     String?             // Original collection ID if cloned
-  createdAt    DateTime            @default(now())
-  
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  userId      String? // Null indicates system collection
+  parentId    String? // Original collection ID if cloned
+  createdAt   DateTime @default(now())
+
   // Relations
-  parent       Collection?         @relation("CollectionClones", fields: [parentId], references: [id])
-  clones       Collection[]        @relation("CollectionClones")
-  algorithms   AlgorithmCollection[]
+  parent     Collection?           @relation("CollectionClones", fields: [parentId], references: [id])
+  clones     Collection[]          @relation("CollectionClones")
+  algorithms AlgorithmCollection[]
 
   @@index([userId])
   @@index([parentId])
 }
 
 model AlgorithmCollection {
-  algorithmId   String
-  collectionId  String
-  algorithm     AlgorithmTemplate @relation(fields: [algorithmId], references: [id])
-  collection    Collection        @relation(fields: [collectionId], references: [id])
+  algorithmId  String
+  collectionId String
+  algorithm    AlgorithmTemplate @relation(fields: [algorithmId], references: [id])
+  collection   Collection        @relation(fields: [collectionId], references: [id])
 
   @@id([algorithmId, collectionId])
   @@index([collectionId])
 }
 
 model AlgorithmUserData {
-  id           String     @id @default(uuid())
+  id           String            @id @default(uuid())
   userId       String
   algorithmId  String
   notes        String?
-  createdAt    DateTime   @default(now())
-  due          DateTime   @default(now())  // Next review date
-  scheduleData Json       // FSRS scheduling data as JSON
+  createdAt    DateTime          @default(now())
+  due          DateTime          @default(now()) // Next review date
+  scheduleData Json // FSRS scheduling data as JSON
   algorithm    AlgorithmTemplate @relation(fields: [algorithmId], references: [id])
   submissions  Submission[]
 
@@ -87,7 +87,7 @@ model Submission {
   timeSpent           Int
   notes               String?
   difficulty          String
-  scheduleData        Json              // Snapshot of schedule data as JSON string
+  scheduleData        Json // Snapshot of schedule data as JSON string
   createdAt           DateTime          @default(now())
   algorithmUserData   AlgorithmUserData @relation(fields: [algorithmUserDataId], references: [id])
 
@@ -108,57 +108,39 @@ model DailyAlgorithm {
 }
 
 model UserOnboarding {
-  id              String    @id @default(uuid())
-  userId          String    @unique
-  currentStep     String    // welcome, concepts, goals, quiz, summary
-  isCompleted     Boolean   @default(false)
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-  goals           UserGoals?
-  quizResults     QuizResults?
+  id          String       @id @default(uuid())
+  userId      String       @unique
+  currentStep String // welcome, goals, quiz, summary
+  isCompleted Boolean      @default(false)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  goals       UserGoals?
+  quizResults QuizResults?
 
   @@index([userId])
 }
 
 model UserGoals {
-  id                String    @id @default(uuid())
-  userId           String    @unique
-  onboardingId     String    @unique
-  onboarding       UserOnboarding @relation(fields: [onboardingId], references: [id])
-  learningGoals    String[]  // e.g., ["master_algorithms", "interview_prep", "competitive_programming"]
-  studyTime        Int       // minutes per day
-  experienceLevel  String    // beginner, intermediate, advanced
-  preferredTopics  String[]  // e.g., ["dynamic_programming", "graphs", "trees"]
-  createdAt        DateTime  @default(now())
-  updatedAt        DateTime  @updatedAt
+  id                  String         @id @default(uuid())
+  userId              String         @unique
+  onboardingId        String         @unique
+  onboarding          UserOnboarding @relation(fields: [onboardingId], references: [id])
+  studyTime           Int            @default(30) // minutes per day
+  selectedCollections String[]       @default([])
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
 
   @@index([userId])
 }
 
 model QuizResults {
-  id              String    @id @default(uuid())
-  userId          String    @unique
-  onboardingId    String    @unique
-  onboarding      UserOnboarding @relation(fields: [onboardingId], references: [id])
-  answers         Json      // Array of {questionId: string, isCorrect: boolean, topicId: string}
-  score           Int
-  recommendations Json      // Personalized recommendations based on quiz results
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
+  id           String         @id @default(uuid())
+  userId       String         @unique
+  onboardingId String         @unique
+  onboarding   UserOnboarding @relation(fields: [onboardingId], references: [id])
+  answers      Json
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
 
   @@index([userId])
 }
-
-model OnboardingQuizQuestion {
-  id              String    @id @default(uuid())
-  topic           String    // e.g., "dynamic_programming", "graphs"
-  difficulty      String    // beginner, intermediate, advanced
-  question        String
-  options         Json      // Array of possible answers
-  correctOption   Int       // Index of correct answer
-  explanation     String
-  createdAt       DateTime  @default(now())
-  updatedAt       DateTime  @updatedAt
-
-  @@index([topic, difficulty])
-} 
