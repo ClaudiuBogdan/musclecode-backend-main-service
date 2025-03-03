@@ -5,6 +5,7 @@
   "summary": "Efficient sorting algorithm that uses a divide-and-conquer strategy to sort an array in-place.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 4,
   "tags": ["sort", "quick sort", "divide and conquer"],
   "files": [
     {

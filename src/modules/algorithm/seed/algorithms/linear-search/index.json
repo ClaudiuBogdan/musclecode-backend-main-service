@@ -5,6 +5,7 @@
   "summary": "Simple search algorithm that checks each element sequentially, operating in O(n) time on both sorted and unsorted arrays",
   "description": "./description.md",
   "difficulty": "easy",
+  "level": 1,
   "tags": ["search", "linear search"],
   "files": [
     {

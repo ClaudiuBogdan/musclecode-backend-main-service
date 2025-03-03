@@ -5,6 +5,7 @@
   "summary": "Determines if a Hamiltonian Cycle exists in a given graph using backtracking.",
   "description": "./description.md",
   "difficulty": "hard",
+  "level": 8,
   "tags": ["graph", "hamiltonian cycle", "backtracking"],
   "files": [
     {

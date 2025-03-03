@@ -5,6 +5,7 @@
   "summary": "A lossless data compression algorithm that uses variable-length codes to represent symbols based on their frequencies.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 6,
   "tags": [
     "compression",
     "huffman encoding",

@@ -5,6 +5,7 @@
   "summary": "Given an array of integers, find two numbers that add up to a specific target value.",
   "description": "./description.md",
   "difficulty": "easy",
+  "level": 2,
   "tags": ["hash map", "two sum"],
   "files": [
     {

@@ -5,6 +5,7 @@
   "summary": "A greedy algorithm to find the Minimum Spanning Tree (MST) for a weighted, undirected graph.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 6,
   "tags": ["graph", "minimum spanning tree", "greedy"],
   "files": [
     {

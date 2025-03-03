@@ -5,6 +5,7 @@
   "summary": "Kadane's Algorithm is an efficient dynamic programming approach to find the contiguous subarray with the largest sum within a one-dimensional array.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 3,
   "tags": ["dynamic programming", "kadane's algorithm", "maximum subarray"],
   "files": [
     {

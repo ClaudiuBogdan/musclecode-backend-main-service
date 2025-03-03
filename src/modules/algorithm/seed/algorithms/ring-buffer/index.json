@@ -5,6 +5,7 @@
   "summary": "A fixed-size buffer that operates as if its ends were connected, useful for FIFO operations and managing streaming data.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 3,
   "tags": ["data structure", "ring buffer", "circular buffer", "queue"],
   "files": [
     {

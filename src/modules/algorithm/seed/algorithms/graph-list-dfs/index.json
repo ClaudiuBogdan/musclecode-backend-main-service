@@ -5,6 +5,7 @@
   "summary": "Graph traversal algorithm that explores as far as possible along each branch before backtracking, operating in O(V + E) time",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 4,
   "tags": ["graph", "dfs", "traversal"],
   "files": [
     {

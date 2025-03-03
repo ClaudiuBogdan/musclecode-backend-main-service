@@ -5,6 +5,7 @@
   "summary": "A greedy algorithm to select the maximum number of non-conflicting activities that can be performed in a given time frame.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 5,
   "tags": ["greedy", "scheduling", "optimization"],
   "files": [
     {

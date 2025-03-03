@@ -5,6 +5,7 @@
   "summary": "Implementation of a doubly linked list data structure with methods for insertion, deletion, and traversal.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 2,
   "tags": ["data structure", "linked list", "doubly linked list"],
   "files": [
     {

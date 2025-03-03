@@ -14,6 +14,7 @@ model AlgorithmTemplate {
   summary      String
   description  String
   difficulty   String
+  level        Int?
   tags         String[]
   files        Json                // Array stored as JSON
   userId       String?             // Null indicates system template

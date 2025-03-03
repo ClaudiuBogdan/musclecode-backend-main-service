@@ -5,6 +5,7 @@
   "summary": "Efficient algorithm for finding the shortest paths between nodes in a weighted graph, operating in O((V + E) log V) time with a priority queue implementation",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 6,
   "tags": ["graph", "shortest path", "dijkstra", "greedy algorithm"],
   "files": [
     {

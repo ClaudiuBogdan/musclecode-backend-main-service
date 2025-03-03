@@ -5,6 +5,7 @@
   "summary": "A binary tree-based data structure where the value of each parent node is less than or equal to the value of its children, providing O(1) access to the minimum element.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 4,
   "tags": ["data structure", "heap", "min heap", "priority queue"],
   "files": [
     {

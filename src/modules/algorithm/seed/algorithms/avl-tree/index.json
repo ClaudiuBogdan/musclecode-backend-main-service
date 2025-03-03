@@ -5,6 +5,7 @@
   "summary": "Implementation of an AVL Tree, a self-balancing binary search tree that performs rotations to maintain optimal search, insertion, and deletion operations.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 6,
   "tags": ["avl tree", "balanced tree", "binary search tree", "tree"],
   "files": [
     {

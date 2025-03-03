@@ -5,6 +5,7 @@
   "summary": "Implementation of a Hash Map (Hash Table) data structure with insertion, retrieval, and deletion operations.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 3,
   "tags": ["hash map", "hash table", "data structure"],
   "files": [
     {

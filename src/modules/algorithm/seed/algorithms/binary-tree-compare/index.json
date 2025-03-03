@@ -5,6 +5,7 @@
   "summary": "Algorithm to determine if two binary trees are identical in structure and values, operating in O(n) time",
   "description": "./description.md",
   "difficulty": "easy",
+  "level": 3,
   "tags": ["tree", "binary tree", "recursion", "depth-first search"],
   "files": [
     {

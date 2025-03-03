@@ -5,6 +5,7 @@
   "summary": "Implementation of Prim's algorithm using an adjacency list to find the minimum spanning tree of a weighted, undirected graph.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 6,
   "tags": ["graph", "minimum spanning tree", "Prim's algorithm"],
   "files": [
     {

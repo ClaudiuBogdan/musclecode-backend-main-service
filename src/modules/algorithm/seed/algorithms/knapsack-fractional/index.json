@@ -5,6 +5,7 @@
   "summary": "A greedy algorithm to maximize the value of items placed in a knapsack with fractional amounts allowed.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 5,
   "tags": ["knapsack", "fractional knapsack", "greedy"],
   "files": [
     {

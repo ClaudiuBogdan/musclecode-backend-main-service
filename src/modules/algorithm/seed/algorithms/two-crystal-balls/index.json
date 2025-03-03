@@ -5,6 +5,7 @@
   "summary": "Efficiently determine the floor at which crystal balls break using a square root approach.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 3,
   "tags": ["search", "two crystal balls", "optimization"],
   "files": [
     {

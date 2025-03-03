@@ -5,6 +5,7 @@
   "summary": "Inverts a binary tree by swapping the left and right children at each node, creating a mirror image.",
   "description": "./description.md",
   "difficulty": "easy",
+  "level": 3,
   "tags": ["tree", "binary tree", "invert"],
   "files": [
     {

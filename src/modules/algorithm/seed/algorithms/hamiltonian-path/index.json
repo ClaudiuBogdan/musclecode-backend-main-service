@@ -5,6 +5,7 @@
   "summary": "Finds a path in a graph that visits each vertex exactly once.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 7,
   "tags": ["graph", "hamiltonian path", "backtracking", "dynamic programming"],
   "files": [
     {

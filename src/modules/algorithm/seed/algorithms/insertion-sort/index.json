@@ -5,6 +5,7 @@
   "summary": "A simple insertion sort algorithm that builds a sorted array one element at a time, working efficiently on small or partially sorted datasets.",
   "description": "./description.md",
   "difficulty": "easy",
+  "level": 2,
   "tags": ["sort", "insertion sort", "algorithm"],
   "files": [
     {

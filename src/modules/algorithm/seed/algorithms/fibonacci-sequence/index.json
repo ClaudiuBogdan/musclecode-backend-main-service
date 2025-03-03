@@ -5,6 +5,7 @@
   "summary": "Generate the first n numbers of the Fibonacci sequence.",
   "description": "./description.md",
   "difficulty": "easy",
+  "level": 2,
   "tags": ["fibonacci", "sequence", "recursion", "iterative"],
   "files": [
     {

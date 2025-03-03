@@ -5,6 +5,7 @@
   "summary": "A greedy algorithm to maximize profit by scheduling jobs with deadlines.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 5,
   "tags": ["greedy", "job scheduling", "optimization"],
   "files": [
     {

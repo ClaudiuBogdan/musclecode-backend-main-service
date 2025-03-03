@@ -5,6 +5,7 @@
   "summary": "Algorithm to check if a string is a palindrome, ignoring case, spaces, and non-alphanumeric characters.",
   "description": "./description.md",
   "difficulty": "easy",
+  "level": 2,
   "tags": ["palindrome", "string", "two pointers"],
   "files": [
     {

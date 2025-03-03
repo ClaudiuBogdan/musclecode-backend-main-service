@@ -5,6 +5,7 @@
   "summary": "Algorithm to find a path from start to end in a maze, typically using DFS, BFS, or A* search.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 5,
   "tags": ["search", "maze", "pathfinding"],
   "files": [
     {

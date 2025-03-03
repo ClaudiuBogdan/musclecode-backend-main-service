@@ -5,6 +5,7 @@
   "summary": "Dynamic programming approach to determine the minimum number of coins needed for a given amount",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 5,
   "tags": ["dp", "coin change", "dynamic programming"],
   "files": [
     {

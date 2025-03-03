@@ -5,6 +5,7 @@
   "summary": "A self-balancing binary search tree that maintains balance using color-based properties for efficient O(log n) operations.",
   "description": "./description.md",
   "difficulty": "hard",
+  "level": 7,
   "tags": ["tree", "red black tree", "self-balancing", "binary tree"],
   "files": [
     {

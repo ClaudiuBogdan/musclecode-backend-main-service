@@ -5,6 +5,7 @@
   "summary": "An informed search algorithm that efficiently finds the shortest path in a grid using heuristics.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 7,
   "tags": ["a*", "pathfinding", "search"],
   "files": [
     {

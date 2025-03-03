@@ -5,6 +5,7 @@
   "summary": "Determines if two strings are anagrams by comparing character frequencies.",
   "description": "./description.md",
   "difficulty": "easy",
+  "level": 2,
   "tags": ["anagram", "string", "frequency", "algorithm"],
   "files": [
     {

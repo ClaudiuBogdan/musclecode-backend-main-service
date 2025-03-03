@@ -5,6 +5,7 @@
   "summary": "Traverse a binary tree using depth-first search (pre-order traversal) to visit each node.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 3,
   "tags": ["tree", "dfs", "traversal", "binary tree"],
   "files": [
     {

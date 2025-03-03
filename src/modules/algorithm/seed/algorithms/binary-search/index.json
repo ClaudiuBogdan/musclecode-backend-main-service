@@ -5,6 +5,7 @@
   "summary": "Efficient search algorithm that halves the search space at each step, operating in O(log n) time on sorted arrays",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 2,
   "tags": ["search", "binary search"],
   "files": [
     {

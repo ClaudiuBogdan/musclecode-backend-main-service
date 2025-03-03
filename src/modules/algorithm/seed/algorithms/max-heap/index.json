@@ -5,6 +5,7 @@
   "summary": "Implementation of a Max Heap data structure with build, insert, and extract max operations.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 4,
   "tags": ["heap", "max heap", "priority queue"],
   "files": [
     {

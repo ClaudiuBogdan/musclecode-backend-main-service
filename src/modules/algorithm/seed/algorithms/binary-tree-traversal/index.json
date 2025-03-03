@@ -5,6 +5,7 @@
   "summary": "Implement in-order, pre-order, and post-order traversals of a binary tree.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 3,
   "tags": ["binary tree", "traversal", "tree"],
   "files": [
     {

@@ -5,6 +5,7 @@
   "summary": "An algorithm that finds the longest common subsequence between two strings using dynamic programming.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 5,
   "tags": ["dynamic programming", "LCS", "sequence"],
   "files": [
     {

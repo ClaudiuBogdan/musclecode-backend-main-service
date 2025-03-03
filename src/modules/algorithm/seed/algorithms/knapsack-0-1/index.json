@@ -5,6 +5,7 @@
   "summary": "A classic dynamic programming challenge where items with given weights and values must be chosen to maximize total value without exceeding the capacity.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 6,
   "tags": ["knapsack", "0/1", "dynamic programming", "optimization"],
   "files": [
     {

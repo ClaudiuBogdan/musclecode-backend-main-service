@@ -1,10 +1,11 @@
 {
   "id": "singly-linked-list",
   "title": "Singly Linked List",
-  "categories": ["data structure"],
+  "categories": ["data structure", "linked list"],
   "summary": "Implementation of a singly linked list with insertion, deletion, and traversal operations.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 2,
   "tags": ["linked list", "data structure"],
   "files": [
     {

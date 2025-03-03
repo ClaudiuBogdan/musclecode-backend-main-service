@@ -5,6 +5,7 @@
   "summary": "Collection of standard techniques for manipulating dynamic lists, including adding, removing, searching, and transforming elements.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 1,
   "tags": ["arraylist", "data structures", "dynamic array"],
   "files": [
     {

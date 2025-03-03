@@ -5,6 +5,7 @@
   "summary": "A linear data structure that follows the First-In-First-Out (FIFO) principle.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 1,
   "tags": ["data structure", "queue", "FIFO"],
   "files": [
     {

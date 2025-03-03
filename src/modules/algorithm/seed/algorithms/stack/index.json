@@ -5,6 +5,7 @@
   "summary": "A linear data structure that follows the Last In First Out (LIFO) principle.",
   "description": "./description.md",
   "difficulty": "easy",
+  "level": 1,
   "tags": ["data structure", "stack", "LIFO"],
   "files": [
     {

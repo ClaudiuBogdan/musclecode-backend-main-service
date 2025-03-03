@@ -5,6 +5,7 @@
   "summary": "An efficient, stable sorting algorithm that uses the divide-and-conquer paradigm to sort an array.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 4,
   "tags": ["sort", "merge sort", "divide and conquer"],
   "files": [
     {

@@ -5,6 +5,7 @@
   "summary": "Algorithm to detect cycles in graphs, linked lists, or sequences, with implementations like Floyd's Tortoise and Hare and DFS-based approaches",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 5,
   "tags": [
     "graph",
     "linked list",

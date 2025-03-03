@@ -5,6 +5,7 @@
   "summary": "Bubble Sort is a simple sorting algorithm that repeatedly compares and swaps adjacent elements to sort the array in ascending order.",
   "description": "./description.md",
   "difficulty": "easy",
+  "level": 2,
   "tags": ["sort", "bubble sort"],
   "files": [
     {

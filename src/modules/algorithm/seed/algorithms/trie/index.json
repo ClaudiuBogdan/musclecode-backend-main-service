@@ -5,6 +5,7 @@
   "summary": "Trie data structure for efficient storage and retrieval of strings with operations for insertion, search, prefix query, count words equal, count words starting with, and erase.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 5,
   "tags": ["trie", "prefix tree", "data structure"],
   "files": [
     {

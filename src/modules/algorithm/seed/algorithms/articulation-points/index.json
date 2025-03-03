@@ -5,6 +5,7 @@
   "summary": "Identify critical nodes in an undirected graph whose removal increases the number of connected components.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 7,
   "tags": ["graph", "articulation points", "dfs", "tarjan"],
   "files": [
     {

@@ -5,6 +5,7 @@
   "summary": "Implement binary search tree operations: search, insert, and delete while maintaining the BST properties.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 3,
   "tags": ["binary search tree", "BST", "search", "insert", "delete"],
   "files": [
     {

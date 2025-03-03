@@ -5,6 +5,7 @@
   "summary": "Traverse a binary tree in level-order using the BFS algorithm.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 3,
   "tags": ["bfs", "binary tree", "traversal"],
   "files": [
     {

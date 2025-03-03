@@ -5,6 +5,7 @@
   "summary": "Finds the maximum sum of a contiguous subarray of a fixed size using the sliding window technique.",
   "description": "./description.md",
   "difficulty": "medium",
+  "level": 3,
   "tags": ["arrays", "sliding window", "maximum sum"],
   "files": [
     {

@@ -103,6 +103,9 @@ export class AlgorithmTemplate {
   })
   difficulty: 'easy' | 'medium' | 'hard';
 
+  @ApiProperty({ description: 'Level of the algorithm', required: false })
+  level?: number;
+
   @ApiProperty({
     description: 'Tags associated with the algorithm',
     type: [String],
