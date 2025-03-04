@@ -624,7 +624,6 @@ export const miscellaneousQuestions: QuizQuestionDto[] = [
     correctAnswerIndex: 1,
   },
 ];
-
 export const questions = [
   {
     id: 'data-structures',
@@ -632,6 +631,7 @@ export const questions = [
     description:
       'A comprehensive collection of data structures, from basic to advanced.',
     questions: dataStructuresQuestions,
+    collectionId: 'data-structures',
   },
   {
     id: 'searching-sorting',
@@ -639,6 +639,7 @@ export const questions = [
     description:
       'A comprehensive collection of searching and sorting algorithms, from basic to advanced.',
     questions: searchingSortingQuestions,
+    collectionId: 'sorting-algorithms',
   },
   {
     id: 'tree-structures',
@@ -646,6 +647,7 @@ export const questions = [
     description:
       'A comprehensive collection of tree structures, from basic to advanced.',
     questions: treeStructuresQuestions,
+    collectionId: 'tree-algorithms',
   },
   {
     id: 'advanced-data-structures',
@@ -653,6 +655,7 @@ export const questions = [
     description:
       'A comprehensive collection of advanced data structures, from basic to advanced.',
     questions: advancedDataStructuresQuestions,
+    collectionId: 'data-structures',
   },
   {
     id: 'graph-algorithms',
@@ -660,6 +663,7 @@ export const questions = [
     description:
       'A comprehensive collection of graph algorithms, from basic to advanced.',
     questions: graphAlgorithmsQuestions,
+    collectionId: 'graph-algorithms',
   },
   {
     id: 'dynamic-programming',
@@ -667,6 +671,7 @@ export const questions = [
     description:
       'A comprehensive collection of dynamic programming algorithms, from basic to advanced.',
     questions: dynamicProgrammingQuestions,
+    collectionId: 'dynamic-programming',
   },
   {
     id: 'string-array-questions',
@@ -674,6 +679,7 @@ export const questions = [
     description:
       'A comprehensive collection of string and array questions, from basic to advanced.',
     questions: stringArrayQuestions,
+    collectionId: 'array-techniques',
   },
   {
     id: 'miscellaneous-questions',
@@ -681,5 +687,6 @@ export const questions = [
     description:
       'A comprehensive collection of miscellaneous questions, from basic to advanced.',
     questions: miscellaneousQuestions,
+    collectionId: '',
   },
 ];

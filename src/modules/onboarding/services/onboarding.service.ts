@@ -96,6 +96,17 @@ export class OnboardingService {
     return true;
   }
 
+  async saveUserWelcome(userId: string) {
+    this.logger.debug('Saving user welcome', { userId });
+
+    await this.updateOnboardingState(userId, {
+      currentStep: this.getNextStep(OnboardingStep.WELCOME),
+    });
+
+    // Return the updated onboarding state
+    return true;
+  }
+
   async saveUserGoals(userId: string, goals: UserGoalsDto) {
     this.logger.debug('Saving user goals', { userId, goals });
 
@@ -125,15 +136,23 @@ export class OnboardingService {
       answerCount: answers.length,
     });
 
-    // Save the quiz results
-    await Promise.all([
-      this.onboardingRepository.saveQuizResults(userId, answers),
-      this.onboardingRepository.initializeAlgorithmSchedule(userId),
-      this.updateOnboardingState(userId, {
-        currentStep: this.getNextStep(OnboardingStep.QUIZ),
-        isCompleted: this.checkStepCompleted(OnboardingStep.QUIZ),
-      }),
-    ]);
+    try {
+      // Save the quiz results
+      await Promise.all([
+        this.onboardingRepository.saveQuizResults(userId, answers),
+        this.onboardingRepository.initializeAlgorithmSchedule(userId),
+        this.updateOnboardingState(userId, {
+          currentStep: this.getNextStep(OnboardingStep.QUIZ),
+          isCompleted: this.checkStepCompleted(OnboardingStep.QUIZ),
+        }),
+      ]);
+    } catch (error) {
+      this.logger.error('Error submitting quiz', error, {
+        userId,
+        error: error.message,
+      });
+      throw error;
+    }
 
     // Return the updated onboarding state
     return true;

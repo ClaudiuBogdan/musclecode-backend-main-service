@@ -152,6 +152,13 @@ export class QuizGroupDto {
   description: string;
 
   @ApiProperty({
+    description: 'Quiz group collection ID',
+    example: 'data-structures',
+  })
+  @IsString()
+  collectionId: string;
+
+  @ApiProperty({
     description: 'Quiz questions',
     type: [QuizQuestionDto],
   })

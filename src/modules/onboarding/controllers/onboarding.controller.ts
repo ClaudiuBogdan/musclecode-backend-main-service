@@ -40,6 +40,17 @@ export class OnboardingController {
     return this.onboardingService.getOnboardingState(req.user.id);
   }
 
+  @Post('welcome')
+  @ApiOperation({ summary: 'Save user welcome' })
+  @ApiResponse({
+    status: 200,
+    description: 'Saves user welcome and returns updated onboarding state',
+    type: Boolean,
+  })
+  async saveUserWelcome(@Request() req: AuthenticatedRequest) {
+    return this.onboardingService.saveUserWelcome(req.user.id);
+  }
+
   @Post('goals')
   @ApiOperation({ summary: 'Save user goals' })
   @ApiResponse({
