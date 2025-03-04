@@ -61,8 +61,8 @@ export interface IAlgorithmRepository {
   findDailyAlgorithms(userId: string, date: Date): Promise<DailyAlgorithm[]>;
   createDailyAlgorithms(
     userId: string,
-    algorithms: AlgorithmTemplate[],
     date: Date,
+    algorithmCount: number,
   ): Promise<DailyAlgorithm[]>;
   markDailyAlgorithmAsCompleted(
     userId: string,

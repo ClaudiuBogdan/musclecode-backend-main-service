@@ -200,56 +200,27 @@ export class AlgorithmService implements OnModuleInit {
     const endOfDay = new Date(date);
     endOfDay.setHours(23, 59, 59, 999);
 
-    let dailyAlgorithms = await this.algorithmRepository.findDailyAlgorithms(
+    const dailyAlgorithms = await this.algorithmRepository.findDailyAlgorithms(
       userId,
       startOfDay,
     );
 
-    if (dailyAlgorithms.length === 0) {
-      this.logger.log('NoDailyAlgorithmsFound', {
-        userId,
-        date: date.toISOString(),
-      });
-      const totalDailyAlgorithms = 5;
-      const dueAlgorithms = await this.algorithmRepository.findDueAlgorithms(
-        userId,
-        startOfDay,
-        endOfDay,
-      );
-      const allAlgorithms = await this.algorithmRepository.findAllTemplates();
-      const availableAlgorithms = allAlgorithms.filter(
-        (algorithm) =>
-          !dueAlgorithms.some(
-            (due) => due.algorithmTemplate.id === algorithm.id,
-          ),
-      );
-      const remainingCount = Math.max(
-        0,
-        totalDailyAlgorithms - dueAlgorithms.length,
-      );
-      const selectedAlgorithms = [
-        ...dueAlgorithms.map((data) => data.algorithmTemplate),
-        ...availableAlgorithms
-          .sort(() => Math.random() - 0.5)
-          .slice(0, remainingCount),
-      ];
-
-      dailyAlgorithms = await this.algorithmRepository.createDailyAlgorithms(
-        userId,
-        selectedAlgorithms,
-        startOfDay,
-      );
-      this.logger.log('DailyAlgorithmsCreated', {
-        userId,
-        count: dailyAlgorithms.length,
-      });
-    } else {
-      this.logger.log('DailyAlgorithmsFound', {
-        userId,
-        count: dailyAlgorithms.length,
-      });
+    if (dailyAlgorithms.length > 0) {
+      return dailyAlgorithms;
     }
-    return dailyAlgorithms;
+
+    this.logger.log('NoDailyAlgorithmsFound', {
+      userId,
+      date: date.toISOString(),
+    });
+
+    const dailyAlgorithmsLimit = 5;
+
+    return this.algorithmRepository.createDailyAlgorithms(
+      userId,
+      startOfDay,
+      dailyAlgorithmsLimit,
+    );
   }
 
   async createSubmission(

@@ -5,10 +5,15 @@ import {
   QuizAnswerDto,
   OnboardingStep,
 } from '../dto/onboarding.dto';
+import { SchedulerService } from '../../../modules/scheduler/services/scheduler.service';
+import { Rating } from 'src/modules/scheduler/types/scheduler.types';
 
 @Injectable()
 export class OnboardingRepository {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private schedulerService: SchedulerService,
+  ) {}
 
   async getOnboardingState(userId: string) {
     return this.prisma.userOnboarding.findUnique({
@@ -188,33 +193,22 @@ export class OnboardingRepository {
   }
 
   // TODO: FIXME: This is a temporary function to initialize the algorithm schedule. I need a better logic for scheduling algorithms.
-  async initializeAlgorithmSchedule(userId: string) {
-    const onboarding = await this.prisma.userOnboarding.findUnique({
-      where: { userId },
-      include: {
-        goals: true,
-        quizResults: true,
-      },
-    });
-
-    if (!onboarding) {
-      throw new NotFoundException('Onboarding state not found');
-    }
-
-    // Get all algorithm templates
-    const algorithms = await this.prisma.algorithmTemplate.findMany({
-      where: {
-        userId: null, // System templates only
-      },
+  async initializeAlgorithmSchedule(userId: string, algorithmIds: string[]) {
+    const templates = await this.prisma.algorithmTemplate.findMany({
+      where: { parentId: { in: algorithmIds }, userId },
     });
 
     // Initialize all algorithms with default schedule
-    for (const algorithm of algorithms) {
+    for (const algorithm of templates) {
       // Default due date based on algorithm level
       const level = algorithm.level || 1;
-      const daysToAdd = level * 2;
+      const defaultDaysToAdd = 30;
+      const daysToAdd = defaultDaysToAdd / level;
       const dueDate = new Date();
       dueDate.setDate(dueDate.getDate() + daysToAdd);
+
+      const initialState = this.schedulerService.getInitialState(Rating.Easy);
+      initialState.due = dueDate;
 
       // The initial state should come from the algorithm scheduler.
       await this.prisma.algorithmUserData.create({
@@ -222,11 +216,7 @@ export class OnboardingRepository {
           userId,
           algorithmId: algorithm.id,
           due: dueDate,
-          scheduleData: {
-            difficulty: 0,
-            stability: 0,
-            retrievability: 0,
-          },
+          scheduleData: JSON.stringify(initialState),
         },
       });
     }

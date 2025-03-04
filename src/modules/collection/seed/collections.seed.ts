@@ -1,7 +1,16 @@
 import { Prisma } from '@prisma/client';
-
+import { loadAlgorithmTemplates } from 'src/modules/algorithm/seed/algorithm-loader.util';
+import { INITIAL_COLLECTION_ID } from '../const';
 export const seedCollections = (): Prisma.CollectionCreateInput[] => {
   return [
+    {
+      id: INITIAL_COLLECTION_ID,
+      name: 'All Basic Algorithms',
+      description:
+        'A collection of the most important algorithms, including sorting, dynamic programming, graph algorithms, tree algorithms, array techniques, data structures, search algorithms, string manipulation, optimization, and greedy algorithms.',
+      userId: null,
+      algorithms: { create: [] },
+    },
     {
       id: 'sorting-algorithms',
       name: 'Sorting Algorithms',
@@ -85,11 +94,22 @@ export const seedCollections = (): Prisma.CollectionCreateInput[] => {
   ];
 };
 
-export const seedAlgorithmCollections = (): {
-  algorithmId: string;
-  collectionId: string;
-}[] => {
+export const seedAlgorithmCollections = async (): Promise<
+  {
+    algorithmId: string;
+    collectionId: string;
+  }[]
+> => {
+  const allAlgorithms = await loadAlgorithmTemplates();
+  const defaultCollection = allAlgorithms.map((algorithm) => ({
+    algorithmId: algorithm.id,
+    collectionId: 'all-basic-algorithms',
+  }));
+
   return [
+    // Default Collection
+    ...defaultCollection,
+
     // Sorting Algorithms Collection
     { algorithmId: 'bubble-sort', collectionId: 'sorting-algorithms' },
     { algorithmId: 'insertion-sort', collectionId: 'sorting-algorithms' },

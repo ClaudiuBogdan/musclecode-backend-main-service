@@ -38,14 +38,14 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       return;
     }
 
-    const newAlgorithms = loadAlgorithmTemplates().map(
-      (algorithm: AlgorithmTemplate) => ({
+    const newAlgorithms = loadAlgorithmTemplates()
+      .map((algorithm: AlgorithmTemplate) => ({
         ...algorithm,
         files: JSON.stringify(algorithm.files),
         createdAt: new Date(),
         updatedAt: new Date(),
-      }),
-    );
+      }))
+      .sort((a, b) => (a.level ?? Infinity) - (b.level ?? Infinity));
 
     await this.prisma.algorithmTemplate.createMany({
       data: newAlgorithms,
@@ -470,24 +470,78 @@ export class AlgorithmRepository implements IAlgorithmRepository {
 
   async createDailyAlgorithms(
     userId: string,
-    algorithms: AlgorithmTemplate[],
     date: Date,
+    algorithmCount: number,
   ): Promise<DailyAlgorithm[]> {
     this.logger.log('createDailyAlgorithmsStarted', {
       userId,
-      count: algorithms.length,
+      count: algorithmCount,
       date: date.toISOString(),
     });
-    const data = algorithms.map((algorithm) => ({
-      userId,
-      algorithmId: algorithm.id,
-      date,
-      completed: false,
-    }));
 
-    await this.prisma.dailyAlgorithm.createMany({
-      data,
+    // Set up date boundaries for today
+    const startOfDay = new Date(date);
+    startOfDay.setHours(0, 0, 0, 0);
+
+    const endOfDay = new Date(date);
+    endOfDay.setHours(23, 59, 59, 999);
+
+    // 1. Get all user algorithm data in a single query
+    const userAlgorithmData = await this.prisma.algorithmUserData.findMany({
+      where: { userId },
+      include: { algorithm: true },
+      orderBy: { due: 'asc' }, // Get earliest due first
+      take: algorithmCount,
     });
+
+    // 2. Get all templates relevant to this user
+    // - Templates owned by the user
+    const userAlgorithmIds = userAlgorithmData.map((data) => data.algorithmId);
+    const relevantTemplates = await this.prisma.algorithmTemplate.findMany({
+      where: { id: { notIn: userAlgorithmIds }, userId },
+      orderBy: { level: 'asc' },
+      take: algorithmCount,
+    });
+
+    // 3. Sort algorithms by priority
+    const prioritizedAlgorithms: AlgorithmTemplate[] = [];
+
+    // First priority: Algorithms due today
+    const dueTodayAlgorithms = userAlgorithmData
+      .filter((data) => data.due >= startOfDay && data.due <= endOfDay)
+      .map((data) => this.mapTemplateFromDb(data.algorithm));
+    prioritizedAlgorithms.push(...dueTodayAlgorithms);
+
+    // Second priority: New algorithms
+    const userOwnedTemplates = relevantTemplates.map((template) =>
+      this.mapTemplateFromDb(template),
+    );
+
+    prioritizedAlgorithms.push(...userOwnedTemplates);
+
+    // Third priority: Algorithms due on other days
+    const otherDueAlgorithms = userAlgorithmData
+      .filter((data) => data.due < startOfDay || data.due > endOfDay)
+      .map((data) => this.mapTemplateFromDb(data.algorithm));
+    prioritizedAlgorithms.push(...otherDueAlgorithms);
+
+    // 4. Take the required number of algorithms
+    const selectedAlgorithms = prioritizedAlgorithms.slice(0, algorithmCount);
+
+    // 5. Create daily algorithm entries
+    if (selectedAlgorithms.length > 0) {
+      const dailyAlgorithmData = selectedAlgorithms.map((algorithm) => ({
+        userId,
+        algorithmId: algorithm.id,
+        date,
+        completed: false,
+      }));
+
+      await this.prisma.dailyAlgorithm.createMany({
+        data: dailyAlgorithmData,
+        skipDuplicates: true, // Skip if already exists for this day
+      });
+    }
 
     const dailyAlgorithms = await this.findDailyAlgorithms(userId, date);
     this.logger.log('createDailyAlgorithmsCompleted', {

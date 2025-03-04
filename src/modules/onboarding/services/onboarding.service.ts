@@ -9,7 +9,8 @@ import {
 } from '../dto/onboarding.dto';
 import { StructuredLogger } from '../../../logger/structured-logger.service';
 import { CollectionService } from 'src/modules/collection/services/collection.service';
-import { questions } from '../data/questions';
+import { dataStructuresQuestions, questions } from '../data/questions';
+import { INITIAL_COLLECTION_ID } from 'src/modules/collection/const';
 
 @Injectable()
 export class OnboardingService {
@@ -120,6 +121,11 @@ export class OnboardingService {
       for (const collectionId of goals.selectedCollections) {
         await this.collectionService.copyCollection(collectionId, userId);
       }
+    } else {
+      await this.collectionService.copyCollection(
+        INITIAL_COLLECTION_ID,
+        userId,
+      );
     }
 
     await this.updateOnboardingState(userId, {
@@ -136,11 +142,28 @@ export class OnboardingService {
       answerCount: answers.length,
     });
 
+    const questionToAnswerMap = new Map(
+      dataStructuresQuestions.map((question) => [question.id, question]),
+    );
+
+    const correctAlgorithmIds = answers
+      .filter((answer) => {
+        const question = questionToAnswerMap.get(answer.questionId)!;
+        return question.correctAnswerIndex === answer.selectedOption;
+      })
+      .map((answer) => {
+        const question = questionToAnswerMap.get(answer.questionId)!;
+        return question.algorithmId;
+      });
+
     try {
       // Save the quiz results
       await Promise.all([
         this.onboardingRepository.saveQuizResults(userId, answers),
-        this.onboardingRepository.initializeAlgorithmSchedule(userId),
+        this.onboardingRepository.initializeAlgorithmSchedule(
+          userId,
+          correctAlgorithmIds,
+        ),
         this.updateOnboardingState(userId, {
           currentStep: this.getNextStep(OnboardingStep.QUIZ),
           isCompleted: this.checkStepCompleted(OnboardingStep.QUIZ),

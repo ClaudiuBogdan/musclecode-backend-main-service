@@ -4,6 +4,7 @@ import {
   AlgorithmCollection,
   AlgorithmTemplate,
 } from '@prisma/client';
+import { v4 as uuidv4 } from 'uuid';
 import { CreateCollectionDto } from '../dto/create-collection.dto';
 import {
   CollectionResponseDto,
@@ -243,12 +244,17 @@ export class CollectionRepository {
   }
 
   async copyCollection(
-    sourceCollectionId: string,
+    parentCollectionId: string,
     userId: string,
   ): Promise<CollectionResponseDto> {
+    this.logger.debug('Copying collection', {
+      sourceCollectionId: parentCollectionId,
+      userId,
+    });
+
     // Get the source collection with its algorithms
-    const sourceCollection = await this.prisma.collection.findUnique({
-      where: { id: sourceCollectionId },
+    const parentCollection = await this.prisma.collection.findUnique({
+      where: { id: parentCollectionId },
       include: {
         algorithms: {
           include: {
@@ -258,74 +264,126 @@ export class CollectionRepository {
       },
     });
 
-    if (!sourceCollection) {
-      throw new Error(`Collection with ID ${sourceCollectionId} not found`);
+    if (!parentCollection) {
+      throw new Error(`Collection with ID ${parentCollectionId} not found`);
     }
 
     // Check if user already has a copy of this collection
     const existingCopy = await this.findUserCollectionByParentId(
       userId,
-      sourceCollectionId,
+      parentCollectionId,
     );
 
+    // If the collection already exists for this user, return it directly
+    if (existingCopy) {
+      this.logger.debug(
+        'Collection already exists for user, returning existing copy',
+        {
+          collectionId: existingCopy.id,
+        },
+      );
+
+      const existingCollection = await this.prisma.collection.findUnique({
+        where: { id: existingCopy.id },
+        include: {
+          algorithms: {
+            include: {
+              algorithm: {
+                select: {
+                  id: true,
+                  title: true,
+                  difficulty: true,
+                  categories: true,
+                  tags: true,
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!existingCollection) {
+        throw new Error('Failed to fetch existing collection');
+      }
+
+      return this.mapCollectionToDto(existingCollection);
+    }
+
     return this.prisma.$transaction(async (tx) => {
-      let userCollection: Collection;
-
-      if (existingCopy) {
-        // Use existing collection
-        userCollection = existingCopy;
-      } else {
-        // Create new collection copy
-        userCollection = await tx.collection.create({
-          data: {
-            name: sourceCollection.name,
-            description: sourceCollection.description,
-            userId,
-            parentId: sourceCollectionId,
-          },
-        });
-      }
-
-      // Process each algorithm in the source collection
-      for (const { algorithm } of sourceCollection.algorithms) {
-        // Check if user already has a copy of this algorithm
-        let userAlgorithm = await this.findUserAlgorithmByParentId(
+      // Create new collection copy since it doesn't exist yet
+      const userCollection = await tx.collection.create({
+        data: {
+          name: parentCollection.name,
+          description: parentCollection.description,
           userId,
-          algorithm.id,
-        );
+          parentId: parentCollectionId,
+        },
+      });
+      this.logger.debug('Created new collection copy', {
+        collectionId: userCollection.id,
+      });
 
-        if (!userAlgorithm) {
-          // Create algorithm copy if it doesn't exist
-          userAlgorithm = await tx.algorithmTemplate.create({
-            data: {
-              title: algorithm.title,
-              categories: algorithm.categories,
-              summary: algorithm.summary,
-              description: algorithm.description,
-              difficulty: algorithm.difficulty,
-              tags: algorithm.tags,
-              files: algorithm.files as InputJsonValue,
-              userId,
-              parentId: algorithm.id,
-            },
-          });
-        }
+      // Get all source algorithm IDs from the collection
+      const parentTemplatesIds = parentCollection.algorithms.map(
+        (algo) => algo.algorithm.id,
+      );
 
-        // Create or ensure the algorithm-collection relationship exists
-        await tx.algorithmCollection.upsert({
-          where: {
-            algorithmId_collectionId: {
-              algorithmId: userAlgorithm.id,
-              collectionId: userCollection.id,
-            },
+      // Find existing templates for this user that are already copied from source algorithms
+      const existingTemplates = await tx.algorithmTemplate.findMany({
+        where: {
+          userId,
+          parentId: {
+            in: parentTemplatesIds,
           },
-          update: {},
-          create: {
-            algorithmId: userAlgorithm.id,
-            collectionId: userCollection.id,
+        },
+      });
+
+      // Create a map for quick lookup of existing templates by parentId
+      const existingTemplateMap = new Map(
+        existingTemplates.map((template) => [template.parentId, template]),
+      );
+
+      // Create templates for algorithms that don't have a copy yet
+      const templatesIdsToCreate: string[] = parentCollection.algorithms
+        .filter((algo) => {
+          return !existingTemplateMap.has(algo.algorithm.id);
+        })
+        .map((algo) => algo.algorithm.id);
+
+      const templatesToCreate = await tx.algorithmTemplate.findMany({
+        where: {
+          id: {
+            in: templatesIdsToCreate,
           },
-        });
-      }
+        },
+      });
+
+      await tx.algorithmTemplate.createMany({
+        data: templatesToCreate.map((template) => ({
+          ...template,
+          id: uuidv4(),
+          userId,
+          parentId: template.id,
+          files: template.files as InputJsonValue,
+        })),
+      });
+
+      // Combine existing and new templates
+      const newUserTemplates = await tx.algorithmTemplate.findMany({
+        where: {
+          userId,
+          parentId: {
+            in: parentTemplatesIds,
+          },
+        },
+      });
+
+      await tx.algorithmCollection.createMany({
+        data: newUserTemplates.map((template) => ({
+          algorithmId: template.id,
+          collectionId: userCollection.id,
+        })),
+      });
 
       // Fetch the complete collection with algorithms
       const result = await tx.collection.findUnique({

@@ -80,6 +80,7 @@ export const loadAlgorithmTemplates = (): AlgorithmTemplate[] => {
             categories: meta.categories || [],
             tags: meta.tags || [],
             description: descriptionFile,
+            level: meta.level,
             files: meta.files.map((file: AlgorithmFile) => {
               const filePath = path.join(algorithmPath, file.content);
 
