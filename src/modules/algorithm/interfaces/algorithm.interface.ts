@@ -196,7 +196,7 @@ export class AlgorithmSubmission {
   algorithmUserDataId: string;
 
   @ApiProperty({ description: 'Submitted code' })
-  code: string;
+  files: AlgorithmFile[];
 
   @ApiProperty({ description: 'Programming language' })
   language: CodeLanguage;

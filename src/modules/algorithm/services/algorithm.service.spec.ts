@@ -191,7 +191,7 @@ describe('AlgorithmService', () => {
         algorithmId: 'algorithm-id',
         algorithmUserDataId: 'user-data-id',
         rating: AlgorithmRating.EASY,
-        code: 'test code',
+        files: [],
         language: CodeLanguage.TYPESCRIPT,
         timeSpent: 300,
         scheduleData: {
@@ -229,7 +229,7 @@ describe('AlgorithmService', () => {
           algorithmId: 'algorithm-id',
           algorithmUserDataId: 'user-data-id',
           rating: AlgorithmRating.EASY,
-          code: 'test code',
+          files: [],
           language: CodeLanguage.TYPESCRIPT,
           timeSpent: 300,
           scheduleData: {

@@ -82,7 +82,7 @@ model Submission {
   userId              String
   algorithmUserDataId String
   algorithmId         String
-  code                String
+  files               Json
   language            String
   timeSpent           Int
   notes               String?

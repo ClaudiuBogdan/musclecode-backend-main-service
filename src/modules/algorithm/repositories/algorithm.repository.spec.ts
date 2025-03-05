@@ -194,7 +194,7 @@ describe('AlgorithmRepository', () => {
         algorithmId: 'algorithm-id',
         algorithmUserDataId: 'user-data-id',
         rating: AlgorithmRating.EASY,
-        code: 'test code',
+        files: [],
         language: CodeLanguage.TYPESCRIPT,
         scheduleData: {
           due: new Date(),
