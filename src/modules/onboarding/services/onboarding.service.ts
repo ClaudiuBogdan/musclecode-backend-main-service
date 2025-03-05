@@ -184,6 +184,17 @@ export class OnboardingService {
   async skipOnboardingStep(userId: string, step: OnboardingStep) {
     this.logger.debug('Skipping onboarding step', { userId, step });
 
+    const isCompleted = this.checkStepCompleted(step);
+    const collections =
+      await this.onboardingRepository.getUserCollections(userId);
+
+    if (isCompleted && collections.length === 0) {
+      await this.collectionService.copyCollection(
+        INITIAL_COLLECTION_ID,
+        userId,
+      );
+    }
+
     // Update the onboarding state to mark it as completed
     await this.updateOnboardingState(userId, {
       currentStep: this.getNextStep(step),

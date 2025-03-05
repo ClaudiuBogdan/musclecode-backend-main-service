@@ -221,4 +221,10 @@ export class OnboardingRepository {
       });
     }
   }
+
+  async getUserCollections(userId: string) {
+    return this.prisma.collection.findMany({
+      where: { userId },
+    });
+  }
 }
