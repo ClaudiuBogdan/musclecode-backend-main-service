@@ -146,7 +146,7 @@
     },
     {
       "id": "go-cycle-detection-test",
-      "name": "test",
+      "name": "exercise_test",
       "type": "test",
       "content": "./go/exercise_test.go",
       "language": "go",

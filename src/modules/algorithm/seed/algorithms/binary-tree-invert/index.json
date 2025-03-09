@@ -140,7 +140,7 @@
     },
     {
       "id": "go-binary-tree-invert-test",
-      "name": "test",
+      "name": "exercise_test",
       "type": "test",
       "content": "./go/exercise_test.go",
       "language": "go",

@@ -110,7 +110,7 @@
     },
     {
       "id": "go-doubly-linked-list-test",
-      "name": "test",
+      "name": "exercise_test",
       "type": "test",
       "content": "./go/exercise_test.go",
       "language": "go",

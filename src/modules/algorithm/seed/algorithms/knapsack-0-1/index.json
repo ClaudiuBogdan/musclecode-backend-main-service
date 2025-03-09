@@ -140,7 +140,7 @@
     },
     {
       "id": "go-knapsack-0-1-test",
-      "name": "test",
+      "name": "exercise_test",
       "type": "test",
       "content": "./go/exercise_test.go",
       "language": "go",

@@ -140,7 +140,7 @@
     },
     {
       "id": "go-graph-list-dfs-test",
-      "name": "test",
+      "name": "exercise_test",
       "type": "test",
       "content": "./go/test.go",
       "language": "go",
