@@ -18,23 +18,20 @@ export class ChatService {
     private chatRepository: ChatRepository,
   ) {}
 
-  // async getThreads(userId: string): Promise<ThreadResponse[]> {
-  //   // TODO: Implement
-  // }
-
-  // async getThreadById(
-  //   threadId: string,
-  //   userId: string,
-  // ): Promise<ThreadResponse> {
-  //   // TODO: Implement
-  // }
-
   async streamMessage(
     sendMessageDto: SendMessageDto,
     userId: string,
-  ): Promise<{ stream: ReadableStream<string>; messageId: string }> {
-    const { messageId, threadId, algorithmId, parentId, content } =
-      sendMessageDto;
+  ): Promise<{
+    stream: ReadableStream<string>;
+  }> {
+    const {
+      messageId,
+      assistantMessageId,
+      threadId,
+      algorithmId,
+      parentId,
+      content,
+    } = sendMessageDto;
     try {
       // Find or create thread
       let thread = await this.chatRepository.getThreadById(threadId, userId);
@@ -56,15 +53,15 @@ export class ChatService {
         timestamp: new Date().getTime(),
       });
 
+      const messages = this.getMainBranch(thread.messages);
+
       // Call the OpenAIService to get a streaming response
       const sourceStream = await this.openaiService.streamChatCompletion(
         content,
-        thread.messages
-          .map((msg) => ({
-            content: msg.content,
-            sender: msg.role,
-          }))
-          .slice(0, 3),
+        messages.map((msg) => ({
+          content: msg.content,
+          sender: msg.role,
+        })),
       );
 
       // Wrap the source stream to accumulate the tokens and save the final message when done
@@ -82,10 +79,10 @@ export class ChatService {
 
             // When streaming is complete, save the assistant's message to the database
             const newMessage: Message = {
-              id: messageId,
+              id: assistantMessageId,
               content: finalContent,
               threadId: thread.id,
-              parentId: parentId || null,
+              parentId: messageId,
               role: 'assistant',
               timestamp: new Date().getTime(),
             };
@@ -104,11 +101,36 @@ export class ChatService {
         },
       });
 
-      return { stream, messageId };
+      return { stream };
     } catch (error) {
       this.logger.error('Error in streamMessage', error);
       throw error;
     }
+  }
+
+  private getMainBranch(messages: Message[]): Message[] {
+    // Create a map: key = parentId, value = child message with the most recent timestamp
+    const childMap = new Map();
+    messages.forEach((msg) => {
+      childMap.set(msg.parentId, msg);
+    });
+
+    const root = childMap.get(null);
+    if (!root) return [];
+
+    // Construct the branch from the root using the childMap
+    const branch = [root];
+    let current = root;
+    while (childMap.has(current.id)) {
+      const child = childMap.get(current.id);
+      branch.push(child);
+      current = child;
+      if (child.parentId === child.id) {
+        break;
+      }
+    }
+
+    return branch;
   }
 
   private mapThreadToThreadDto(thread: Thread): ThreadDto {

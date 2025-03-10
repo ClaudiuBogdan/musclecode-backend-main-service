@@ -4,7 +4,7 @@ import { PrismaService } from 'src/infrastructure/database/prisma.service';
 import { ChatThread } from '@prisma/client';
 import { Thread, Message } from '../entities/thread';
 import { JsonValue } from '@prisma/client/runtime/library';
-import { Prisma } from '@prisma/client';
+
 @Injectable()
 export class ChatRepository {
   private readonly logger = new StructuredLogger(ChatRepository.name);

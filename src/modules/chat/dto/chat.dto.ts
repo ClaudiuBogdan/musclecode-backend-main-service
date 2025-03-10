@@ -17,6 +17,12 @@ export class SendMessageDto {
   messageId: string;
 
   @ApiProperty({
+    description: 'The assistant message ID that will be streamed to the user',
+  })
+  @IsString()
+  assistantMessageId: string;
+
+  @ApiProperty({
     description: 'Message content',
   })
   @IsString()

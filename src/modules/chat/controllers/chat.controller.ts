@@ -76,13 +76,10 @@ export class ChatController {
     });
 
     try {
-      const { stream, messageId } = await this.chatService.streamMessage(
+      const { stream } = await this.chatService.streamMessage(
         sendMessageDto,
         userId,
       );
-
-      // Send message ID as first event
-      response.write(`data: ${JSON.stringify({ messageId })}\n\n`);
 
       const reader = stream.getReader();
       const pump = async () => {
