@@ -2,7 +2,6 @@ import {
   Controller,
   Post,
   Body,
-  Param,
   UseGuards,
   Req,
   Header,
@@ -21,6 +20,7 @@ import { Response } from 'express';
 import { AuthGuard } from '../../auth/guards/auth.guard';
 import { AuthenticatedRequest } from 'src/types/request.types';
 import { StructuredLogger } from 'src/logger/structured-logger.service';
+import { SyncThreadsDto } from '../dto/sync-threads.dto';
 
 @ApiTags('chat')
 @Controller('api/v1/chat')
@@ -112,6 +112,29 @@ export class ChatController {
       // Send error event
       response.write(`data: ${JSON.stringify({ error: error.message })}\n\n`);
       response.end();
+    }
+  }
+
+  @Post('threads/sync')
+  @ApiOperation({ summary: 'Sync client threads with server state' })
+  @ApiResponse({
+    status: 200,
+    description: 'Returns updated or new threads with all messages.',
+  })
+  async syncThreads(
+    @Req() req: AuthenticatedRequest,
+    @Body() syncThreadsDto: SyncThreadsDto,
+  ) {
+    try {
+      const userId = req.user.id;
+      this.logger.log('syncThreads', {
+        userId,
+        threadCount: syncThreadsDto.threads.length,
+      });
+      return await this.chatService.syncThreads(syncThreadsDto, userId);
+    } catch (error) {
+      this.logger.error('Error syncing threads', error);
+      throw error;
     }
   }
 }

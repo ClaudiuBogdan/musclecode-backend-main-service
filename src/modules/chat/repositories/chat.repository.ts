@@ -4,7 +4,7 @@ import { PrismaService } from 'src/infrastructure/database/prisma.service';
 import { ChatThread } from '@prisma/client';
 import { Thread, Message } from '../entities/thread';
 import { JsonValue } from '@prisma/client/runtime/library';
-
+import { Prisma } from '@prisma/client';
 @Injectable()
 export class ChatRepository {
   private readonly logger = new StructuredLogger(ChatRepository.name);
@@ -23,7 +23,7 @@ export class ChatRepository {
       this.logger.log(`Thread ${threadId} not found`);
       return null;
     }
-    return this.mapThreadToThread(thread);
+    return this.mapThreadFromDb(thread);
   }
 
   async createThread(
@@ -39,7 +39,7 @@ export class ChatRepository {
         messages: JSON.stringify([]),
       },
     });
-    return this.mapThreadToThread(thread);
+    return this.mapThreadFromDb(thread);
   }
 
   async updateThread(userId: string, thread: Thread): Promise<Thread> {
@@ -49,10 +49,20 @@ export class ChatRepository {
         messages: JSON.stringify(thread.messages),
       },
     });
-    return this.mapThreadToThread(updatedThread);
+    return this.mapThreadFromDb(updatedThread);
   }
 
-  private mapThreadToThread(thread: ChatThread): Thread {
+  async getThreads(userId: string, algorithmId?: string): Promise<Thread[]> {
+    const threads = await this.prisma.chatThread.findMany({
+      where: {
+        userId,
+        ...(algorithmId ? { algorithmId } : {}),
+      },
+    });
+    return threads.map(this.mapThreadFromDb.bind(this));
+  }
+
+  private mapThreadFromDb(thread: ChatThread): Thread {
     return {
       id: thread.id,
       algorithmId: thread.algorithmId,
