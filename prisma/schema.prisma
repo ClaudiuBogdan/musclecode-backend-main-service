@@ -144,3 +144,15 @@ model QuizResults {
 
   @@index([userId])
 }
+
+model ChatThread {
+  id           String    @id @default(uuid())
+  userId       String
+  algorithmId  String
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  messages     Json?     // Array of messages stored as JSON
+
+  @@index([userId])
+  @@index([algorithmId])
+}

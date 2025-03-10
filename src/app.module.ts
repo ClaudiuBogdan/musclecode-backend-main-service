@@ -9,6 +9,7 @@ import { CollectionModule } from './modules/collection/collection.module';
 import { HealthModule } from './modules/health/health.module';
 import { UserIdInterceptor } from './interceptors/user-id.interceptor';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
+import { ChatModule } from './modules/chat/chat.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { OnboardingModule } from './modules/onboarding/onboarding.module';
     CollectionModule,
     HealthModule,
     OnboardingModule,
+    ChatModule,
   ],
   controllers: [AppController],
   providers: [
