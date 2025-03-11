@@ -1,7 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import OpenAI from 'openai';
-import { Message } from '../interfaces/chat.interfaces';
+import { Message } from '../entities/thread';
+import { createChatPrompt } from '../prompts';
 
 @Injectable()
 export class OpenAIService {
@@ -14,15 +15,15 @@ export class OpenAIService {
       baseURL: this.configService.get<string>('OPENAI_API_URL'),
     });
     this.model =
-      this.configService.get<string>('OPENAI_MODEL') || 'gpt-3.5-turbo';
+      this.configService.get<string>('OPENAI_MODEL') || 'gpt-4o-mini';
   }
 
   private convertMessagesToOpenAIFormat(
     messages: Message[],
   ): OpenAI.ChatCompletionMessageParam[] {
     return messages.map((message) => ({
-      role: message.sender === 'user' ? 'user' : 'assistant',
-      content: message.content,
+      role: message.role,
+      content: createChatPrompt(message),
     }));
   }
 
@@ -53,22 +54,5 @@ export class OpenAIService {
         controller.close();
       },
     });
-  }
-
-  async chatCompletion(
-    content: string,
-    history: Message[] = [],
-  ): Promise<string> {
-    const messages = [
-      ...this.convertMessagesToOpenAIFormat(history),
-      { role: 'user' as const, content },
-    ];
-
-    const response = await this.openai.chat.completions.create({
-      model: this.model,
-      messages,
-    });
-
-    return response.choices[0]?.message?.content || '';
   }
 }

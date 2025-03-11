@@ -8,6 +8,7 @@ import { SyncThreadsDto } from '../dto/sync-threads.dto';
 import { SyncThreadsResponseDto } from '../dto';
 import { ThreadDto } from '../dto/thread.dto';
 import { Thread } from '../entities/thread';
+import { createChatPrompt } from '../prompts';
 
 @Injectable()
 export class ChatService {
@@ -31,6 +32,7 @@ export class ChatService {
       algorithmId,
       parentId,
       content,
+      type: messageType,
     } = sendMessageDto;
     try {
       // Find or create thread
@@ -41,27 +43,28 @@ export class ChatService {
           threadId,
           userId,
           algorithmId,
+          messageType,
         );
       }
 
-      thread.messages.push({
+      const message: Message = {
         id: messageId,
         content,
-        threadId,
+        type: messageType,
         parentId: parentId || null,
         role: 'user',
         timestamp: new Date().getTime(),
-      });
+        context: sendMessageDto.context,
+      };
+
+      thread.messages.push(message);
 
       const messages = this.getMainBranch(thread.messages);
 
       // Call the OpenAIService to get a streaming response
       const sourceStream = await this.openaiService.streamChatCompletion(
-        content,
-        messages.map((msg) => ({
-          content: msg.content,
-          sender: msg.role,
-        })),
+        createChatPrompt(message),
+        messages,
       );
 
       // Wrap the source stream to accumulate the tokens and save the final message when done
@@ -81,7 +84,7 @@ export class ChatService {
             const newMessage: Message = {
               id: assistantMessageId,
               content: finalContent,
-              threadId: thread.id,
+              type: messageType,
               parentId: messageId,
               role: 'assistant',
               timestamp: new Date().getTime(),

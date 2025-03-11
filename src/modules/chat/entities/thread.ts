@@ -8,9 +8,21 @@ export interface Thread {
 
 export interface Message {
   id: string;
-  threadId: string;
   content: string;
-  timestamp: number;
+  type: 'chat' | 'hint';
+  context?: MessageContext;
   role: 'user' | 'assistant';
   parentId: string | null;
+  timestamp: number;
+}
+
+export interface MessageContext {
+  prompt?: 'hint-prompt';
+  files?: ContextFile[];
+}
+
+export interface ContextFile {
+  name: string;
+  description: string;
+  content: string;
 }

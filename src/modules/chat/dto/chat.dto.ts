@@ -1,5 +1,12 @@
-import { IsString, IsUUID, IsOptional, IsBoolean } from 'class-validator';
+import {
+  IsString,
+  IsUUID,
+  IsOptional,
+  ValidateNested,
+  IsArray,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 export class CreateThreadDto {
   @ApiProperty({
@@ -9,12 +16,57 @@ export class CreateThreadDto {
   algorithmId: string;
 }
 
+export class ContextFileDto {
+  @ApiProperty({
+    description: 'Name of the file',
+  })
+  @IsString()
+  name: string;
+
+  @ApiProperty({
+    description: 'Description of the file',
+  })
+  @IsString()
+  description: string;
+
+  @ApiProperty({
+    description: 'Content of the file',
+  })
+  @IsString()
+  content: string;
+}
+
+export class MessageContextDto {
+  @ApiPropertyOptional({
+    description: 'Prompt used for the message',
+  })
+  @IsString()
+  @IsOptional()
+  prompt?: 'hint-prompt';
+
+  @ApiPropertyOptional({
+    description: 'Files used as context for the message',
+    type: [ContextFileDto],
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => ContextFileDto)
+  files?: ContextFileDto[];
+}
+
 export class SendMessageDto {
   @ApiProperty({
     description: 'The user message ID',
   })
   @IsString()
   messageId: string;
+
+  @ApiProperty({
+    description: 'The type of message',
+  })
+  @IsString()
+  type: 'chat' | 'hint';
 
   @ApiProperty({
     description: 'The assistant message ID that will be streamed to the user',
@@ -47,12 +99,12 @@ export class SendMessageDto {
   })
   @IsString()
   algorithmId: string;
-}
 
-export class MessageVoteDto {
   @ApiProperty({
-    description: 'Whether this is an upvote (true) or downvote (false)',
+    description: 'Message context',
   })
-  @IsBoolean()
-  isUpvote: boolean;
+  @IsOptional()
+  @ValidateNested()
+  @Type(() => MessageContextDto)
+  context?: MessageContextDto;
 }

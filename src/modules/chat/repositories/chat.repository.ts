@@ -30,12 +30,14 @@ export class ChatRepository {
     threadId: string,
     userId: string,
     algorithmId: string,
+    type: 'chat' | 'hint',
   ): Promise<Thread> {
     const thread = await this.prisma.chatThread.create({
       data: {
         id: threadId,
         userId,
         algorithmId,
+        type,
         messages: JSON.stringify([]),
       },
     });
@@ -57,6 +59,9 @@ export class ChatRepository {
       where: {
         userId,
         ...(algorithmId ? { algorithmId } : {}),
+      },
+      orderBy: {
+        createdAt: 'desc',
       },
     });
     return threads.map(this.mapThreadFromDb.bind(this));
