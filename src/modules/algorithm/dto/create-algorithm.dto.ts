@@ -11,6 +11,7 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import {
   AlgorithmFileType,
+  AlgorithmLesson,
   CodeLanguage,
 } from '../interfaces/algorithm.interface';
 
@@ -75,10 +76,12 @@ export class CreateAlgorithmDto {
   @IsNotEmpty()
   summary: string;
 
-  @ApiProperty({ description: 'The description of the algorithm' })
-  @IsString()
+  @ApiProperty({ description: 'The lessons of the algorithm' })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => AlgorithmLesson)
   @IsNotEmpty()
-  description: string;
+  lessons: AlgorithmLesson[];
 
   @ApiProperty({
     description: 'The difficulty level of the algorithm',

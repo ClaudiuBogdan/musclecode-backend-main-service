@@ -8,19 +8,19 @@ generator client {
 }
 
 model AlgorithmTemplate {
-  id          String   @id @default(uuid())
-  title       String
-  categories  String[]
-  summary     String
-  description String
-  difficulty  String
-  level       Int?
-  tags        String[]
-  files       Json // Array stored as JSON
-  userId      String? // Null indicates system template
-  parentId    String? // Original template ID if cloned
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id         String   @id @default(uuid())
+  title      String
+  categories String[]
+  summary    String
+  lessons    Json     @default("[]") @db.JsonB // Array of lessons stored as JSON
+  difficulty String
+  level      Int?
+  tags       String[]
+  files      Json // Array stored as JSON
+  userId     String? // Null indicates system template
+  parentId   String? // Original template ID if cloned
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
 
   // Relations
   parent          AlgorithmTemplate?    @relation("TemplateClones", fields: [parentId], references: [id])

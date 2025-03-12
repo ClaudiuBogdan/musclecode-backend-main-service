@@ -364,6 +364,7 @@ export class CollectionRepository {
           id: uuidv4(),
           userId,
           parentId: template.id,
+          lessons: template.lessons as unknown as InputJsonValue,
           files: template.files as InputJsonValue,
         })),
       });

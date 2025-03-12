@@ -7,6 +7,7 @@ import {
 } from '../dto/onboarding.dto';
 import { SchedulerService } from '../../../modules/scheduler/services/scheduler.service';
 import { Rating } from 'src/modules/scheduler/types/scheduler.types';
+import { InputJsonValue } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class OnboardingRepository {
@@ -216,7 +217,7 @@ export class OnboardingRepository {
           userId,
           algorithmId: algorithm.id,
           due: dueDate,
-          scheduleData: JSON.stringify(initialState),
+          scheduleData: initialState as unknown as InputJsonValue,
         },
       });
     }

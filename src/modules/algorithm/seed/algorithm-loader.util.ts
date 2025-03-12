@@ -4,6 +4,7 @@ import {
   AlgorithmFile,
   AlgorithmTemplate,
 } from '../interfaces/algorithm.interface';
+import { v4 as uuidv4 } from 'uuid';
 
 export const loadAlgorithmTemplates = (): AlgorithmTemplate[] => {
   try {
@@ -77,9 +78,16 @@ export const loadAlgorithmTemplates = (): AlgorithmTemplate[] => {
 
           return {
             ...meta,
+            description: undefined,
             categories: meta.categories || [],
             tags: meta.tags || [],
-            description: descriptionFile,
+            lessons: [
+              {
+                id: uuidv4(),
+                title: 'Description',
+                content: descriptionFile,
+              },
+            ],
             level: meta.level,
             files: meta.files.map((file: AlgorithmFile) => {
               const filePath = path.join(algorithmPath, file.content);

@@ -11,6 +11,7 @@ import {
   AlgorithmDifficulty,
   DailyAlgorithm,
   AlgorithmFile,
+  AlgorithmLesson,
 } from '../interfaces/algorithm.interface';
 import { CreateAlgorithmDto } from '../dto/create-algorithm.dto';
 import { UpdateAlgorithmDto } from '../dto/update-algorithm.dto';
@@ -20,6 +21,7 @@ import { Rating } from '../../scheduler/types/scheduler.types';
 import { StructuredLogger } from '../../../logger/structured-logger.service';
 import { deserializeScheduleData, serializeScheduleData } from './utils';
 import { loadAlgorithmTemplates } from '../seed/algorithm-loader.util';
+import { InputJsonValue } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class AlgorithmRepository implements IAlgorithmRepository {
@@ -41,7 +43,9 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     const newAlgorithms = loadAlgorithmTemplates()
       .map((algorithm: AlgorithmTemplate) => ({
         ...algorithm,
-        files: JSON.stringify(algorithm.files),
+        description: undefined,
+        lessons: algorithm.lessons as unknown as InputJsonValue,
+        files: algorithm.files as unknown as InputJsonValue,
         createdAt: new Date(),
         updatedAt: new Date(),
       }))
@@ -85,10 +89,10 @@ export class AlgorithmRepository implements IAlgorithmRepository {
           ? createAlgorithmDto.categories
           : [createAlgorithmDto.categories],
         summary: createAlgorithmDto.summary,
-        description: createAlgorithmDto.description,
+        lessons: createAlgorithmDto.lessons as unknown as InputJsonValue,
         difficulty: createAlgorithmDto.difficulty,
         tags: createAlgorithmDto.tags,
-        files: JSON.stringify(createAlgorithmDto.files),
+        files: createAlgorithmDto.files as unknown as InputJsonValue,
       },
     });
     const mappedTemplate = this.mapTemplateFromDb(template);
@@ -116,11 +120,11 @@ export class AlgorithmRepository implements IAlgorithmRepository {
             : [updateAlgorithmDto.categories]
           : undefined,
         summary: updateAlgorithmDto.summary,
-        description: updateAlgorithmDto.description,
+        lessons: updateAlgorithmDto.lessons as unknown as InputJsonValue,
         difficulty: updateAlgorithmDto.difficulty,
         tags: updateAlgorithmDto.tags,
         files: updateAlgorithmDto.files
-          ? JSON.stringify(updateAlgorithmDto.files)
+          ? (updateAlgorithmDto.files as unknown as InputJsonValue)
           : undefined,
       },
     });
@@ -305,7 +309,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
         userId,
         algorithmId: submission.algorithmId,
         algorithmUserDataId: submission.algorithmUserDataId,
-        files: JSON.stringify(submission.files),
+        files: submission.files as unknown as InputJsonValue,
         language: submission.language,
         timeSpent: submission.timeSpent,
         notes: submission.notes,
@@ -593,14 +597,14 @@ export class AlgorithmRepository implements IAlgorithmRepository {
     return {
       id: template.id,
       title: template.title,
-      description: template.description,
+      lessons: template.lessons as unknown as AlgorithmLesson[],
       difficulty: template.difficulty as AlgorithmDifficulty,
       createdAt: template.createdAt,
       updatedAt: template.updatedAt,
       categories: template.categories,
       summary: template.summary,
       tags: template.tags,
-      files: JSON.parse(template.files as string) as AlgorithmFile[],
+      files: template.files as unknown as AlgorithmFile[],
     };
   }
 
@@ -646,7 +650,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
       id: submission.id,
       algorithmId: submission.algorithmId,
       algorithmUserDataId: submission.algorithmUserDataId,
-      files: JSON.parse(submission.files as string) as AlgorithmFile[],
+      files: submission.files as unknown as AlgorithmFile[],
       notes: submission.notes || undefined,
       rating: submission.difficulty as AlgorithmRating,
       language: submission.language as CodeLanguage,

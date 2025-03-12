@@ -3,7 +3,7 @@ import { StructuredLogger } from '../../../logger/structured-logger.service';
 import { PrismaService } from 'src/infrastructure/database/prisma.service';
 import { ChatThread } from '@prisma/client';
 import { Thread, Message } from '../entities/thread';
-import { JsonValue } from '@prisma/client/runtime/library';
+import { InputJsonValue } from '@prisma/client/runtime/library';
 
 @Injectable()
 export class ChatRepository {
@@ -38,7 +38,7 @@ export class ChatRepository {
         userId,
         algorithmId,
         type,
-        messages: JSON.stringify([]),
+        messages: [],
       },
     });
     return this.mapThreadFromDb(thread);
@@ -48,7 +48,7 @@ export class ChatRepository {
     const updatedThread = await this.prisma.chatThread.update({
       where: { id: thread.id, userId },
       data: {
-        messages: JSON.stringify(thread.messages),
+        messages: thread.messages as unknown as InputJsonValue,
       },
     });
     return this.mapThreadFromDb(updatedThread);
@@ -71,19 +71,9 @@ export class ChatRepository {
     return {
       id: thread.id,
       algorithmId: thread.algorithmId,
-      messages: this.mapMessagesFromDb(thread.messages),
+      messages: thread.messages as unknown as Message[],
       createdAt: thread.createdAt.getTime(),
       updatedAt: thread.updatedAt.getTime(),
     };
-  }
-
-  private mapMessagesFromDb(messages: JsonValue): Message[] {
-    if (!messages) {
-      return [];
-    }
-    if (typeof messages !== 'string') {
-      throw new Error('Messages are not a string');
-    }
-    return JSON.parse(messages) as Message[];
   }
 }

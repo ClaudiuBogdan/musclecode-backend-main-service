@@ -21,7 +21,7 @@ describe('AlgorithmService', () => {
     title: 'Test Algorithm',
     categories: ['test'],
     summary: 'test summary',
-    description: 'test description',
+    lessons: 'test description',
     difficulty: 'easy',
     tags: ['test'],
     files: [],

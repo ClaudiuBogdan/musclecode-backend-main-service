@@ -1,4 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
+import { v4 as uuidv4 } from 'uuid';
 import { AlgorithmController } from './algorithm.controller';
 import { AlgorithmService } from '../services/algorithm.service';
 import { CreateAlgorithmDto } from '../dto/create-algorithm.dto';
@@ -18,7 +19,13 @@ describe('AlgorithmController', () => {
     title: 'Test Algorithm',
     categories: ['test'],
     summary: 'test summary',
-    description: 'test description',
+    lessons: [
+      {
+        id: uuidv4(),
+        title: 'Lesson 1',
+        content: 'test content',
+      },
+    ],
     difficulty: 'easy',
     tags: ['test'],
     files: [
@@ -88,7 +95,13 @@ describe('AlgorithmController', () => {
         title: 'New Algorithm',
         categories: ['test'],
         summary: 'test summary',
-        description: 'test description',
+        lessons: [
+          {
+            id: uuidv4(),
+            title: 'Lesson 1',
+            content: 'test content',
+          },
+        ],
         difficulty: 'easy',
         tags: ['test'],
         files: [

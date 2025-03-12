@@ -81,6 +81,17 @@ export class AlgorithmFile {
   hidden?: boolean;
 }
 
+export class AlgorithmLesson {
+  @ApiProperty({ description: 'Unique identifier of the lesson' })
+  id: string;
+
+  @ApiProperty({ description: 'Title of the lesson' })
+  title: string;
+
+  @ApiProperty({ description: 'Content of the lesson' })
+  content: string;
+}
+
 export class AlgorithmTemplate {
   @ApiProperty({ description: 'Unique identifier of the algorithm' })
   id: string;
@@ -94,8 +105,8 @@ export class AlgorithmTemplate {
   @ApiProperty({ description: 'Summary of the algorithm' })
   summary: string;
 
-  @ApiProperty({ description: 'Description of the algorithm' })
-  description: string;
+  @ApiProperty({ description: 'Lessons of the algorithm' })
+  lessons: AlgorithmLesson[];
 
   @ApiProperty({
     description: 'Difficulty level of the algorithm',
