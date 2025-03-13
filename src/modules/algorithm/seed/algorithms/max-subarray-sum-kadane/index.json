@@ -1,133 +1,16 @@
 {
   "id": "max-subarray-sum-kadane",
   "title": "Maximum Subarray Sum (Kadane's Algorithm)",
-  "categories": ["dynamic programming"],
+  "categories": [
+    "dynamic programming"
+  ],
   "summary": "Kadane's Algorithm is an efficient dynamic programming approach to find the contiguous subarray with the largest sum within a one-dimensional array.",
-  "description": "./description.md",
   "difficulty": "medium",
   "level": 3,
-  "tags": ["dynamic programming", "kadane's algorithm", "maximum subarray"],
-  "files": [
-    {
-      "id": "typescript-kadane-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./typescript/exercise.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "typescript-kadane-test",
-      "name": "test",
-      "type": "test",
-      "content": "./typescript/test.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "typescript-kadane-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./typescript/iterative-solution.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "javascript-kadane-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./javascript/exercise.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "javascript-kadane-test",
-      "name": "test",
-      "type": "test",
-      "content": "./javascript/test.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "javascript-kadane-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./javascript/iterative-solution.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "python-kadane-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./python/exercise.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "python-kadane-test",
-      "name": "test",
-      "type": "test",
-      "content": "./python/test_kadane.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "python-kadane-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./python/iterative-solution.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "go-kadane-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./go/exercise.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "go-kadane-test",
-      "name": "exercise_test",
-      "type": "test",
-      "content": "./go/exercise_test.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "go-kadane-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./go/iterative-solution.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": true,
-      "hidden": true
-    }
+  "tags": [
+    "dynamic programming",
+    "kadane's algorithm",
+    "maximum subarray"
   ],
   "createdAt": "2024-02-01T00:00:00.000Z",
   "updatedAt": "2024-02-01T00:00:00.000Z"

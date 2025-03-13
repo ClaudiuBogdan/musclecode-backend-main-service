@@ -1,173 +1,18 @@
 {
   "id": "trie",
   "title": "Trie",
-  "categories": ["tree", "data structure", "prefix tree"],
+  "categories": [
+    "tree",
+    "data structure",
+    "prefix tree"
+  ],
   "summary": "Trie data structure for efficient storage and retrieval of strings with operations for insertion, search, prefix query, count words equal, count words starting with, and erase.",
-  "description": "./description.md",
   "difficulty": "medium",
   "level": 5,
-  "tags": ["trie", "prefix tree", "data structure"],
-  "files": [
-    {
-      "id": "typescript-trie-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./typescript/exercise.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "typescript-trie-test",
-      "name": "test",
-      "type": "test",
-      "content": "./typescript/test.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "typescript-trie-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./typescript/iterative-solution.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "typescript-trie-recursive-solution",
-      "name": "recursive solution",
-      "type": "solution",
-      "content": "./typescript/recursive-solution.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "javascript-trie-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./javascript/exercise.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "javascript-trie-test",
-      "name": "test",
-      "type": "test",
-      "content": "./javascript/test.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "javascript-trie-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./javascript/iterative-solution.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "javascript-trie-recursive-solution",
-      "name": "recursive solution",
-      "type": "solution",
-      "content": "./javascript/recursive-solution.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "python-trie-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./python/exercise.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "python-trie-test",
-      "name": "test",
-      "type": "test",
-      "content": "./python/test_trie.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "python-trie-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./python/iterative-solution.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "python-trie-recursive-solution",
-      "name": "recursive solution",
-      "type": "solution",
-      "content": "./python/recursive-solution.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "go-trie-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./go/exercise.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "go-trie-test",
-      "name": "exercise_test",
-      "type": "test",
-      "content": "./go/exercise_test.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "go-trie-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./go/iterative-solution.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "go-trie-recursive-solution",
-      "name": "recursive solution",
-      "type": "solution",
-      "content": "./go/recursive-solution.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": true,
-      "hidden": true
-    }
+  "tags": [
+    "trie",
+    "prefix tree",
+    "data structure"
   ],
   "createdAt": "2024-02-01T00:00:00.000Z",
   "updatedAt": "2024-02-01T00:00:00.000Z"

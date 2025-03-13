@@ -1,174 +1,19 @@
 {
   "id": "avl-tree",
   "title": "AVL Tree",
-  "categories": ["tree", "balanced tree"],
+  "categories": [
+    "tree",
+    "balanced tree"
+  ],
   "summary": "Implementation of an AVL Tree, a self-balancing binary search tree that performs rotations to maintain optimal search, insertion, and deletion operations.",
-  "description": "./description.md",
   "difficulty": "medium",
   "level": 6,
-  "tags": ["avl tree", "balanced tree", "binary search tree", "tree"],
-  "files": [
-    {
-      "id": "typescript-avl-tree-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./typescript/exercise.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "typescript-avl-tree-test",
-      "name": "test",
-      "type": "test",
-      "content": "./typescript/test.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "typescript-avl-tree-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./typescript/iterative-solution.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "typescript-avl-tree-recursive-solution",
-      "name": "recursive solution",
-      "type": "solution",
-      "content": "./typescript/recursive-solution.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "javascript-avl-tree-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./javascript/exercise.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "javascript-avl-tree-test",
-      "name": "test",
-      "type": "test",
-      "content": "./javascript/test.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "javascript-avl-tree-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./javascript/iterative-solution.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "javascript-avl-tree-recursive-solution",
-      "name": "recursive solution",
-      "type": "solution",
-      "content": "./javascript/recursive-solution.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "python-avl-tree-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./python/exercise.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "python-avl-tree-test",
-      "name": "test",
-      "type": "test",
-      "content": "./python/test_avl_tree.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "python-avl-tree-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./python/iterative-solution.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "python-avl-tree-recursive-solution",
-      "name": "recursive solution",
-      "type": "solution",
-      "content": "./python/recursive-solution.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "go-avl-tree-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./go/exercise.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "go-avl-tree-test",
-      "name": "exercise_test",
-      "type": "test",
-      "content": "./go/exercise_test.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "go-avl-tree-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./go/iterative-solution.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "go-avl-tree-recursive-solution",
-      "name": "recursive solution",
-      "type": "solution",
-      "content": "./go/recursive-solution.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": true,
-      "hidden": true
-    }
+  "tags": [
+    "avl tree",
+    "balanced tree",
+    "binary search tree",
+    "tree"
   ],
   "createdAt": "2024-02-01T00:00:00.000Z",
   "updatedAt": "2024-02-01T00:00:00.000Z"
-} 
+}

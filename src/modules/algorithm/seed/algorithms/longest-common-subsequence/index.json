@@ -1,174 +1,18 @@
 {
   "id": "longest-common-subsequence",
   "title": "Longest Common Subsequence",
-  "categories": ["dynamic programming", "sequence"],
+  "categories": [
+    "dynamic programming",
+    "sequence"
+  ],
   "summary": "An algorithm that finds the longest common subsequence between two strings using dynamic programming.",
-  "description": "./description.md",
   "difficulty": "medium",
   "level": 5,
-  "tags": ["dynamic programming", "LCS", "sequence"],
-  "files": [
-    {
-      "id": "typescript-lcs-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./typescript/exercise.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "typescript-lcs-test",
-      "name": "test",
-      "type": "test",
-      "content": "./typescript/test.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "typescript-lcs-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./typescript/iterative-solution.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "typescript-lcs-recursive-solution",
-      "name": "recursive solution",
-      "type": "solution",
-      "content": "./typescript/recursive-solution.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "javascript-lcs-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./javascript/exercise.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "javascript-lcs-test",
-      "name": "test",
-      "type": "test",
-      "content": "./javascript/test.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "javascript-lcs-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./javascript/iterative-solution.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "javascript-lcs-recursive-solution",
-      "name": "recursive solution",
-      "type": "solution",
-      "content": "./javascript/recursive-solution.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "python-lcs-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./python/exercise.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "python-lcs-test",
-      "name": "test",
-      "type": "test",
-      "content": "./python/test_longest_common_subsequence.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "python-lcs-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./python/iterative-solution.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "python-lcs-recursive-solution",
-      "name": "recursive solution",
-      "type": "solution",
-      "content": "./python/recursive-solution.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "go-lcs-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./go/exercise.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "go-lcs-test",
-      "name": "exercise_test",
-      "type": "test",
-      "content": "./go/exercise_test.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "go-lcs-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./go/iterative-solution.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "go-lcs-recursive-solution",
-      "name": "recursive solution",
-      "type": "solution",
-      "content": "./go/recursive-solution.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": true,
-      "hidden": true
-    }
+  "tags": [
+    "dynamic programming",
+    "LCS",
+    "sequence"
   ],
   "createdAt": "2024-02-01T00:00:00.000Z",
   "updatedAt": "2024-02-01T00:00:00.000Z"
-} 
+}

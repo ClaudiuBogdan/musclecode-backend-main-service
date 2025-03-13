@@ -1,133 +1,19 @@
 {
   "id": "graph-matrix-bfs",
   "title": "Graph Matrix BFS",
-  "categories": ["graph", "bfs", "matrix"],
+  "categories": [
+    "graph",
+    "bfs",
+    "matrix"
+  ],
   "summary": "Breadth-First Search algorithm for graphs represented as adjacency matrices, with O(V^2) time complexity.",
-  "description": "./description.md",
   "difficulty": "medium",
   "level": 4,
-  "tags": ["graph", "bfs", "matrix", "traversal"],
-  "files": [
-    {
-      "id": "typescript-graph-matrix-bfs-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./typescript/exercise.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "typescript-graph-matrix-bfs-test",
-      "name": "test",
-      "type": "test",
-      "content": "./typescript/test.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "typescript-graph-matrix-bfs-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./typescript/iterative-solution.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "javascript-graph-matrix-bfs-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./javascript/exercise.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "javascript-graph-matrix-bfs-test",
-      "name": "test",
-      "type": "test",
-      "content": "./javascript/test.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "javascript-graph-matrix-bfs-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./javascript/iterative-solution.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "python-graph-matrix-bfs-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./python/exercise.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "python-graph-matrix-bfs-test",
-      "name": "test",
-      "type": "test",
-      "content": "./python/test_graph_matrix_bfs.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "python-graph-matrix-bfs-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./python/iterative-solution.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "go-graph-matrix-bfs-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./go/exercise.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "go-graph-matrix-bfs-test",
-      "name": "exercise_test",
-      "type": "test",
-      "content": "./go/exercise_test.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "go-graph-matrix-bfs-iterative-solution",
-      "name": "iterative solution",
-      "type": "solution",
-      "content": "./go/iterative-solution.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": true,
-      "hidden": true
-    }
+  "tags": [
+    "graph",
+    "bfs",
+    "matrix",
+    "traversal"
   ],
   "createdAt": "2024-02-26T00:00:00.000Z",
   "updatedAt": "2024-02-26T00:00:00.000Z"

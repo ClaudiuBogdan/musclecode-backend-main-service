@@ -1,11 +1,18 @@
 {
   "id": "a-star",
   "title": "A* Search Algorithm",
-  "categories": ["pathfinding", "graph search"],
+  "categories": [
+    "pathfinding",
+    "graph search"
+  ],
   "summary": "An informed search algorithm that efficiently finds the shortest path in a grid using heuristics.",
   "difficulty": "medium",
   "level": 7,
-  "tags": ["a*", "pathfinding", "search"],
+  "tags": [
+    "a*",
+    "pathfinding",
+    "search"
+  ],
   "createdAt": "2024-02-01T00:00:00.000Z",
   "updatedAt": "2024-02-01T00:00:00.000Z"
 }

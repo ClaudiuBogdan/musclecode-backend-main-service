@@ -1,133 +1,18 @@
 {
   "id": "ring-buffer",
   "title": "Ring Buffer",
-  "categories": ["data structure", "queue"],
+  "categories": [
+    "data structure",
+    "queue"
+  ],
   "summary": "A fixed-size buffer that operates as if its ends were connected, useful for FIFO operations and managing streaming data.",
-  "description": "./description.md",
   "difficulty": "medium",
   "level": 3,
-  "tags": ["data structure", "ring buffer", "circular buffer", "queue"],
-  "files": [
-    {
-      "id": "typescript-ring-buffer-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./typescript/exercise.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "typescript-ring-buffer-test",
-      "name": "test",
-      "type": "test",
-      "content": "./typescript/test.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "typescript-ring-buffer-array-solution",
-      "name": "array solution",
-      "type": "solution",
-      "content": "./typescript/array-solution.ts",
-      "language": "typescript",
-      "extension": "ts",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "javascript-ring-buffer-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./javascript/exercise.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "javascript-ring-buffer-test",
-      "name": "test",
-      "type": "test",
-      "content": "./javascript/test.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "javascript-ring-buffer-array-solution",
-      "name": "array solution",
-      "type": "solution",
-      "content": "./javascript/array-solution.js",
-      "language": "javascript",
-      "extension": "js",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "python-ring-buffer-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./python/exercise.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "python-ring-buffer-test",
-      "name": "test",
-      "type": "test",
-      "content": "./python/test_ring_buffer.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "python-ring-buffer-array-solution",
-      "name": "array solution",
-      "type": "solution",
-      "content": "./python/array-solution.py",
-      "language": "python",
-      "extension": "py",
-      "readOnly": true,
-      "hidden": true
-    },
-    {
-      "id": "go-ring-buffer-exercise",
-      "name": "exercise",
-      "type": "exercise",
-      "content": "./go/exercise.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "go-ring-buffer-test",
-      "name": "exercise_test",
-      "type": "test",
-      "content": "./go/exercise_test.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": false,
-      "hidden": false
-    },
-    {
-      "id": "go-ring-buffer-array-solution",
-      "name": "array solution",
-      "type": "solution",
-      "content": "./go/array-solution.go",
-      "language": "go",
-      "extension": "go",
-      "readOnly": true,
-      "hidden": true
-    }
+  "tags": [
+    "data structure",
+    "ring buffer",
+    "circular buffer",
+    "queue"
   ],
   "createdAt": "2024-02-01T00:00:00.000Z",
   "updatedAt": "2024-02-01T00:00:00.000Z"
