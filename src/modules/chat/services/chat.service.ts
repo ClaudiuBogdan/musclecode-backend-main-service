@@ -55,12 +55,12 @@ export class ChatService {
         role: 'user',
         timestamp: new Date().getTime(),
         context: sendMessageDto.context,
+        commands: sendMessageDto.commands,
       };
 
       thread.messages.push(message);
 
       const messages = this.getMainBranch(thread.messages);
-
       // Call the OpenAIService to get a streaming response
       const sourceStream = await this.openaiService.streamChatCompletion(
         createChatPrompt(message),

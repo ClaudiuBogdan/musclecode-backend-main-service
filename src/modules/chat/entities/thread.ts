@@ -11,6 +11,7 @@ export interface Message {
   content: string;
   type: 'chat' | 'hint';
   context?: MessageContext;
+  commands?: MessageCommand[];
   role: 'user' | 'assistant';
   parentId: string | null;
   timestamp: number;
@@ -25,4 +26,11 @@ export interface ContextFile {
   name: string;
   description: string;
   content: string;
+}
+
+export interface MessageCommand {
+  name: string;
+  description: string;
+  command: string;
+  prompt: string;
 }

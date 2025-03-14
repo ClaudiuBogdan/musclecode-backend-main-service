@@ -36,6 +36,32 @@ export class ContextFileDto {
   content: string;
 }
 
+export class MessageCommandDto {
+  @ApiProperty({
+    description: 'Name of the command',
+  })
+  @IsString()
+  name: string;
+
+  @ApiProperty({
+    description: 'Description of the command',
+  })
+  @IsString()
+  description: string;
+
+  @ApiProperty({
+    description: 'Command to execute',
+  })
+  @IsString()
+  command: string;
+
+  @ApiProperty({
+    description: 'Prompt to execute the command',
+  })
+  @IsString()
+  prompt: string;
+}
+
 export class MessageContextDto {
   @ApiPropertyOptional({
     description: 'Prompt used for the message',
@@ -107,4 +133,14 @@ export class SendMessageDto {
   @ValidateNested()
   @Type(() => MessageContextDto)
   context?: MessageContextDto;
+
+  @ApiPropertyOptional({
+    description: 'Message commands',
+    type: [MessageCommandDto],
+  })
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => MessageCommandDto)
+  commands?: MessageCommandDto[];
 }
