@@ -7,6 +7,24 @@ title: Variations and Extensions of the Articulation Points Algorithm
 > [!NOTE]
 > The articulation points algorithm is part of a family of related algorithms for analyzing graph connectivity. Let's explore some variations and extensions!
 
+## Practical Comparison: When to Use Each Variation
+
+| Problem | Algorithm | When to Use | Example |
+|---------|-----------|-------------|---------|
+| Find critical nodes | Articulation Points | When node failures are the concern | Server failures in a network |
+| Find critical connections | Bridge Finding | When connection failures are the concern | Fiber optic cable cuts |
+| Find robust subgraphs | Biconnected Components | When designing redundant systems | Backup routing paths |
+| Analyze directed networks | Strongly Connected Components | When flow direction matters | Traffic flow in a city |
+| Find multiple failure points | k-Vertex Connectivity | When multiple simultaneous failures are possible | Military network design |
+
+### Example Scenario: Network Design Decision
+
+You're designing a city's emergency services network. Should you use articulation points, bridges, or biconnected components?
+
+- If you're placing critical infrastructure (hospitals, fire stations): Use articulation points to identify locations that wouldn't be isolated by a single road closure
+- If you're reinforcing roads: Use the bridge finding algorithm to identify critical roads that need backup routes
+- If you're designing service zones: Use biconnected components to create zones that remain internally connected even if a single junction fails
+
 ## Bridge Finding Algorithm 🌉
 
 A **bridge** (or cut edge) is an edge whose removal increases the number of connected components in a graph. Bridges are the edge counterpart to articulation points.
@@ -43,6 +61,39 @@ if low[v] > disc[u]:  # Note the strict inequality
 Notice the strict inequality (`>` instead of `>=`) for bridges. This is because:
 - For articulation points, we're checking if the subtree rooted at v can reach u or its ancestors
 - For bridges, we're checking if the subtree rooted at v can reach u's ancestors (but not u itself)
+
+## Side-by-Side Implementation: Articulation Points vs. Bridges
+
+The two algorithms are nearly identical, with just one crucial difference:
+
+```python
+# Articulation Points condition
+if low[v] >= disc[u]:
+    # u is an articulation point
+
+# Bridges condition
+if low[v] > disc[u]:
+    # Edge (u,v) is a bridge
+```
+
+This difference is because:
+- For articulation points, we check if the subtree rooted at v can reach u or its ancestors
+- For bridges, we check if the subtree rooted at v can reach u's ancestors (but not u itself)
+
+Let's see this in action with an example graph:
+
+```
+0 -- 1 -- 2
+     |    |
+     3 -- 4
+```
+
+Running both algorithms:
+- Articulation points: [1]
+- Bridges: [(0,1)]
+
+Vertex 1 is an articulation point because removing it disconnects vertex 0.
+Edge (0,1) is a bridge because removing it disconnects vertex 0.
 
 ### Implementation
 
@@ -246,6 +297,17 @@ To find the "most critical" articulation point, we could modify the algorithm to
 <summary>Can a graph have bridges but no articulation points?</summary>
 
 No, if a graph has bridges, it must also have articulation points. Specifically, the endpoints of a bridge are articulation points, unless they are leaf nodes (degree 1). This is because removing a bridge endpoint would disconnect at least the vertex at the other end of the bridge.
+</details>
+
+<details>
+<summary>How would you adapt these algorithms for weighted graphs where some connections are more important than others?</summary>
+
+For weighted graphs, we could modify the algorithms to consider the weight or capacity of edges:
+1. For bridges: Prioritize finding bridges with high weights or capacities
+2. For articulation points: Calculate the total weight of connections that would be lost if the vertex is removed
+3. For biconnected components: Consider the minimum-weight vertex that needs to be removed to disconnect the component
+
+This would help identify critical points where high-capacity or high-importance connections might be disrupted.
 </details>
 
 In the next lesson, we'll explore some common challenges and optimizations when implementing the articulation points algorithm! 

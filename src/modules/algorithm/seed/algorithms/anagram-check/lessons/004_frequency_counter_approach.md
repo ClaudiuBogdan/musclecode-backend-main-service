@@ -80,31 +80,123 @@ The frequency counter approach has several advantages:
 - **Early termination**: Can return false as soon as a mismatch is found
 - **More flexible**: Can be easily modified to handle case-insensitivity or ignore certain characters
 
-## 🧠 Visualization
+## 🧠 Enhanced Visualization
+
+Let's visualize the entire process step by step:
 
 ```
-"listen" vs "silent"
+Checking if "listen" and "silent" are anagrams:
 
-Step 1: Count frequencies in "listen"
-┌───┬───┐
-│ l │ 1 │
-│ i │ 1 │
-│ s │ 1 │
-│ t │ 1 │
-│ e │ 1 │
-│ n │ 1 │
-└───┴───┘
+Step 1: Initialize empty frequency map
+{}
 
-Step 2: Process "silent" and decrement counts
-'s' → Decrement count for 's' (1 → 0)
-'i' → Decrement count for 'i' (1 → 0)
-'l' → Decrement count for 'l' (1 → 0)
-'e' → Decrement count for 'e' (1 → 0)
-'n' → Decrement count for 'n' (1 → 0)
-'t' → Decrement count for 't' (1 → 0)
+Step 2: Process each character in "listen"
+Process 'l': { l: 1 }
+Process 'i': { l: 1, i: 1 }
+Process 's': { l: 1, i: 1, s: 1 }
+Process 't': { l: 1, i: 1, s: 1, t: 1 }
+Process 'e': { l: 1, i: 1, s: 1, t: 1, e: 1 }
+Process 'n': { l: 1, i: 1, s: 1, t: 1, e: 1, n: 1 }
 
-Step 3: All counts are zero, so they are anagrams!
+Step 3: Process each character in "silent"
+Process 's': { l: 1, i: 1, s: 0, t: 1, e: 1, n: 1 }
+Process 'i': { l: 1, i: 0, s: 0, t: 1, e: 1, n: 1 }
+Process 'l': { l: 0, i: 0, s: 0, t: 1, e: 1, n: 1 }
+Process 'e': { l: 0, i: 0, s: 0, t: 1, e: 0, n: 1 }
+Process 'n': { l: 0, i: 0, s: 0, t: 1, e: 0, n: 0 }
+Process 't': { l: 0, i: 0, s: 0, t: 0, e: 0, n: 0 }
+
+Step 4: All counts are zero, so they are anagrams!
 ```
+
+## 🔄 Alternative Implementations
+
+### Using Map in JavaScript
+
+```javascript
+function isAnagram(s1, s2) {
+  // Check if lengths are equal
+  if (s1.length !== s2.length) return false;
+
+  // Create a frequency counter using Map
+  const count = new Map();
+  
+  // Count characters in the first string
+  for (let char of s1) {
+    count.set(char, (count.get(char) || 0) + 1);
+  }
+  
+  // Decrement counts for characters in the second string
+  for (let char of s2) {
+    // If character doesn't exist or count is 0, strings aren't anagrams
+    if (!count.has(char) || count.get(char) === 0) {
+      return false;
+    }
+    count.set(char, count.get(char) - 1);
+  }
+  
+  return true;
+}
+```
+
+### Using Array for ASCII Characters
+
+```javascript
+function isAnagram(s1, s2) {
+  // Check if lengths are equal
+  if (s1.length !== s2.length) return false;
+
+  // Create a frequency array for ASCII characters (0-127)
+  const counts = new Array(128).fill(0);
+  
+  // Count characters in the first string
+  for (let i = 0; i < s1.length; i++) {
+    counts[s1.charCodeAt(i)]++;
+  }
+  
+  // Decrement counts for characters in the second string
+  for (let i = 0; i < s2.length; i++) {
+    if (counts[s2.charCodeAt(i)] === 0) {
+      return false;
+    }
+    counts[s2.charCodeAt(i)]--;
+  }
+  
+  return true;
+}
+```
+
+This array-based approach can be more efficient for strings with ASCII characters, as array access is typically faster than object property access.
+
+## 💭 Interactive Exercise
+
+Try tracing through this example yourself:
+
+Check if "anagram" and "nagaram" are anagrams:
+
+1. First, create a frequency map for "anagram"
+2. Then, process each character in "nagaram" and decrement counts
+3. Check if all counts are zero at the end
+
+<details>
+<summary>Solution</summary>
+
+1. Frequency map for "anagram": 
+   ```
+   { 'a': 3, 'n': 1, 'g': 1, 'r': 1, 'm': 1 }
+   ```
+
+2. Process "nagaram":
+   - 'n': { 'a': 3, 'n': 0, 'g': 1, 'r': 1, 'm': 1 }
+   - 'a': { 'a': 2, 'n': 0, 'g': 1, 'r': 1, 'm': 1 }
+   - 'g': { 'a': 2, 'n': 0, 'g': 0, 'r': 1, 'm': 1 }
+   - 'a': { 'a': 1, 'n': 0, 'g': 0, 'r': 1, 'm': 1 }
+   - 'r': { 'a': 1, 'n': 0, 'g': 0, 'r': 0, 'm': 1 }
+   - 'a': { 'a': 0, 'n': 0, 'g': 0, 'r': 0, 'm': 1 }
+   - 'm': { 'a': 0, 'n': 0, 'g': 0, 'r': 0, 'm': 0 }
+
+3. All counts are zero, so they are anagrams!
+</details>
 
 ## 💭 Think About It
 

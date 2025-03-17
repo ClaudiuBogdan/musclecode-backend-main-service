@@ -6,14 +6,13 @@ title: Insertion - Adding Nodes to an AVL Tree
 
 Insertion is one of the fundamental operations in AVL trees. It involves adding a new node to the tree while maintaining the binary search tree property and the AVL balance property.
 
-## The Insertion Process 🔍
+## The Three-Step Dance of Insertion 💃
 
-The insertion process in an AVL tree consists of two main steps:
+Think of insertion like carefully placing a new book on a balanced bookshelf:
 
-1. **Standard BST Insertion**: Insert the new node as you would in a regular binary search tree.
-2. **Rebalancing**: Check if the insertion has caused any imbalance, and if so, perform the appropriate rotations to restore balance.
-
-Let's break down this process step by step.
+1. **Find the Right Spot**: Just like in a regular BST, find where the new value belongs based on comparisons.
+2. **Place the Node**: Put the new node in its correct position as a leaf.
+3. **Check and Rebalance**: Walk back up the tree, checking if any node became unbalanced, and rebalance as needed.
 
 ## Step 1: Standard BST Insertion 🌱
 
@@ -44,6 +43,17 @@ insertNode(node, value) {
   // Step 2: Update height and rebalance (coming next)
   // ...
 }
+```
+
+### Visualizing Step 1:
+
+```
+Starting tree:        Insert 15:            After BST insertion: 
+     20                   20                      20
+    /  \                 /  \                    /  \
+   10   30              10   30                 10   30
+  /       \            /      \               /  \     \
+ 5         40         5        40            5    15    40
 ```
 
 > [!NOTE]
@@ -90,6 +100,19 @@ insertNode(node, value) {
   // Return the unchanged node pointer
   return node;
 }
+```
+
+### Visualizing Step 2:
+
+```
+After BST insertion:    Check balance:       After rebalancing:
+      20                    20                     15
+     /  \                  /  \                   /  \
+    10   30     →         10   30     →         10    20
+   /  \     \            /  \     \            /     /  \
+  5    15    40         5    15    40         5     null 30
+                        BF=1 BF=0  BF=0                   \
+                                                           40
 ```
 
 ## Complete Insertion Method 🧩
@@ -147,6 +170,42 @@ insertNode(node, value) {
   
   // Return the unchanged node pointer
   return node;
+}
+```
+
+## Handling Edge Cases 🧪
+
+### Empty Tree Insertion
+
+When inserting into an empty tree, the code above handles it correctly by simply creating a new node as the root. No balancing is needed for a single-node tree.
+
+```javascript
+// Empty tree: null
+// Insert 10:
+//      10
+```
+
+### Duplicate Values
+
+The code above handles duplicates by ignoring them, which is a common approach. However, there are other strategies:
+
+1. **Ignore duplicates** (as shown in the code)
+2. **Replace the existing value** (useful if nodes contain additional data)
+3. **Store count** (maintain a count field in each node for duplicates)
+4. **Allow duplicates** (store duplicate values in the right subtree)
+
+If you need to handle duplicates differently, modify the else condition:
+
+```javascript
+// For storing count:
+} else {
+  node.count++; // Increment counter for duplicates
+  return node;
+}
+
+// For allowing duplicates in right subtree:
+} else if (value >= node.value) {
+  node.right = this.insertNode(node.right, value);
 }
 ```
 
@@ -208,11 +267,43 @@ Let's trace through the insertion of these values into an initially empty AVL tr
 - **Time Complexity**: O(log n) - We need to traverse the height of the tree to find the insertion point, and then perform at most one rotation operation.
 - **Space Complexity**: O(log n) - Due to the recursive call stack.
 
+## Interactive Walk-Through: Insertion with Rotations 🔍
+
+Let's walk through a more complex insertion that requires rotation:
+
+1. Starting tree:
+```
+    30
+   /  \
+  20   40
+ /
+10
+```
+
+2. Insert 5:
+```
+    30                  30                   20
+   /  \                /  \                 /  \
+  20   40    →        20   40     →       10   30
+ /                   /                    /    / \
+10                  10                   5    null 40
+                   /
+                  5
+```
+
+In this example:
+1. We first insert 5 as a left child of 10 (standard BST insertion)
+2. Update heights: 10's height becomes 2, 20's height becomes 3
+3. Check balance: 20 has a balance factor of 2 (left-heavy)
+4. Determine rotation: Since 10 has a balance factor of 1 (left-heavy), we need a right rotation on 20
+5. Perform the rotation: 20 becomes the new root, 10 becomes its left child, 30 becomes its right child
+
 ## Common Pitfalls to Avoid ⚠️
 
 1. **Forgetting to update heights**: Always update the height of each node after any operation that might change the structure of its subtrees.
 2. **Incorrect rotation selection**: Make sure to choose the correct rotation based on the balance factor and the value being inserted.
 3. **Not handling duplicates**: Decide how to handle duplicate values (ignore, update, or allow duplicates with a different approach).
+4. **Not updating the root**: Remember that rotations can change the root of the tree, so always update the root reference.
 
 ## Practice Exercise 💪
 
@@ -319,5 +410,15 @@ After right rotation on 25:
 ```
 
 </details>
+
+## Quick Knowledge Check ✅
+
+Before moving on, make sure you understand:
+
+1. What's the first step in AVL tree insertion?
+2. When do we need to perform rotations during insertion?
+3. How many rotations might be needed after inserting a single node?
+4. How does insertion handle the empty tree case?
+5. What options do we have for handling duplicate values?
 
 In the next section, we'll explore the search operation in AVL trees, which is identical to the search operation in regular binary search trees. 

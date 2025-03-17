@@ -192,6 +192,151 @@ function isAnagram(s1, s2) {
 
 **Why it matters**: The sorting approach has O(n log n) complexity, which can be significantly slower than O(n) approaches for very long strings.
 
+## 🔧 Debugging Strategies for Anagram Checkers
+
+When your anagram checker isn't working as expected, try these debugging techniques:
+
+### 1. Unit Testing with Comprehensive Test Cases
+
+Create test cases for specific categories:
+
+```javascript
+const testCases = [
+  // Basic cases
+  { s1: "listen", s2: "silent", expected: true, name: "Basic anagram" },
+  { s1: "hello", s2: "world", expected: false, name: "Non-anagram, same length" },
+  
+  // Edge cases
+  { s1: "", s2: "", expected: true, name: "Empty strings" },
+  { s1: "a", s2: "", expected: false, name: "One empty string" },
+  
+  // Case sensitivity
+  { s1: "Listen", s2: "Silent", expected: true, name: "Case-insensitive anagram" },
+  
+  // Special characters
+  { s1: "a b c", s2: "cba", expected: true, name: "Ignoring spaces" },
+  
+  // Unicode
+  { s1: "café", s2: "ecafé", expected: false, name: "Unicode characters" }
+];
+
+// Run all tests
+for (const test of testCases) {
+  const result = isAnagram(test.s1, test.s2);
+  console.log(`Test ${test.name}: ${result === test.expected ? 'PASS' : 'FAIL'}`);
+  if (result !== test.expected) {
+    console.log(`  Expected: ${test.expected}, Got: ${result}`);
+    console.log(`  Inputs: "${test.s1}" vs "${test.s2}"`);
+  }
+}
+```
+
+### 2. Visualize Character Counts
+
+Add debugging output to visualize character counts:
+
+```javascript
+function debugAnagram(s1, s2) {
+  console.log(`Checking if "${s1}" and "${s2}" are anagrams:`);
+  
+  if (s1.length !== s2.length) {
+    console.log(`❌ Length mismatch: ${s1.length} vs ${s2.length}`);
+    return false;
+  }
+  
+  const count = {};
+  console.log("Building frequency map:");
+  
+  for (let char of s1) {
+    count[char] = (count[char] || 0) + 1;
+    console.log(`  After adding '${char}': ${JSON.stringify(count)}`);
+  }
+  
+  console.log("Processing second string:");
+  for (let char of s2) {
+    console.log(`  Processing '${char}': current count = ${count[char]}`);
+    
+    if (!count[char]) {
+      console.log(`  ❌ Character '${char}' not found or already used up`);
+      return false;
+    }
+    
+    count[char]--;
+    console.log(`  After decrementing '${char}': ${JSON.stringify(count)}`);
+  }
+  
+  console.log("✅ All characters matched, strings are anagrams");
+  return true;
+}
+```
+
+### 3. Common Issue: Character Counting Bugs
+
+If your function fails with specific inputs, check these common issues:
+
+```javascript
+// Issue: Not handling undefined values correctly
+if (count[char] === 0) return false; // ❌ Bug: 0 is falsy in JavaScript!
+
+// Correct way:
+if (count[char] === undefined || count[char] === 0) return false; // ✅
+// Or more concisely:
+if (!count[char]) return false; // ✅
+```
+
+## 🌐 Handling Unicode and International Characters
+
+Anagram checking becomes more complex with international text:
+
+### 1. Unicode Normalization
+
+Characters with accents can have multiple representations:
+
+```javascript
+function isInternationalAnagram(s1, s2) {
+  // Normalize strings to ensure consistent representation
+  s1 = s1.normalize('NFC');
+  s2 = s2.normalize('NFC');
+  
+  // Continue with normal anagram checking...
+  // ...
+}
+```
+
+### 2. Grapheme Clusters vs. Code Points
+
+Some characters (like emoji with modifiers) consist of multiple code points:
+
+```javascript
+// Using a library like "grapheme-splitter"
+function isEmojiAnagram(s1, s2) {
+  const splitter = new GraphemeSplitter();
+  const chars1 = splitter.splitGraphemes(s1);
+  const chars2 = splitter.splitGraphemes(s2);
+  
+  if (chars1.length !== chars2.length) return false;
+  
+  // Continue with frequency counting using the grapheme arrays
+  // ...
+}
+```
+
+### 3. Locale-Specific Considerations
+
+In some languages, certain character combinations are treated as a single unit:
+
+```javascript
+// Spanish example where "ch" is traditionally considered one character
+function isSpanishAnagram(s1, s2) {
+  // Replace digraphs with single tokens before comparison
+  s1 = s1.replace(/ch/g, 'Φ').replace(/ll/g, 'Ψ');
+  s2 = s2.replace(/ch/g, 'Φ').replace(/ll/g, 'Ψ');
+  
+  // Continue with normal anagram checking...
+  // ...
+}
+```
+
 ## 💭 Think About It
 
 1. What other edge cases might you encounter when implementing an anagram check?

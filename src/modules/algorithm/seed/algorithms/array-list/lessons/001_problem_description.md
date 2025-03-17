@@ -9,6 +9,30 @@ An ArrayList is a dynamic array-like data structure that automatically resizes i
 > [!NOTE]
 > ArrayLists combine the best of both worlds: the random access efficiency of arrays with the flexibility of dynamic sizing.
 
+```mermaid
+graph TD
+    subgraph "Static Array [size=5]"
+        A1["Item 1"] --- A2["Item 2"] --- A3["Item 3"] --- A4["Empty"] --- A5["Empty"]
+    end
+    
+    subgraph "ArrayList [size=3, capacity=5]"
+        B1["Item 1"] --- B2["Item 2"] --- B3["Item 3"] 
+        B3 -.-> B4["(capacity for growth)"]
+        B4 -.-> B5["(capacity for growth)"]
+    end
+```
+
+## 🌍 Language-Specific Implementations
+
+ArrayLists appear in many programming languages, often with different names but similar behavior:
+
+- **Java**: `ArrayList<T>`
+- **C#**: `List<T>`
+- **Python**: `list` (built-in type)
+- **JavaScript**: Standard arrays have ArrayList-like behavior
+- **C++**: `std::vector<T>`
+- **Kotlin**: `ArrayList<T>` or `MutableList<T>`
+
 ## 🤔 The Problem We're Solving
 
 When working with data in programming, we often need to:
@@ -36,6 +60,16 @@ An ArrayList is more like a valet parking service:
 - Cars (elements) can be added without worrying about space
 - When cars leave, the space is reclaimed
 - The service handles all the logistics of finding or creating space
+
+## 🚀 Real-World Applications
+
+ArrayLists are used in countless applications:
+
+- **Social Media Feeds**: Dynamically loading and displaying posts
+- **Music Playlists**: Adding and removing songs from your queue
+- **E-commerce Shopping Carts**: Managing items before checkout
+- **Browser History**: Tracking pages you've visited
+- **Game Development**: Managing collections of game objects
 
 ## 🎯 What We'll Learn
 

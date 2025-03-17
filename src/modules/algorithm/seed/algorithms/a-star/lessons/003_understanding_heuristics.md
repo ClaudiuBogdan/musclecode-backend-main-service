@@ -21,6 +21,20 @@ The total evaluation function is:
 
 This is the genius of A*! It balances what we know for sure (the path so far) with what we're estimating (the remaining path).
 
+## Heuristics in Action: A Practical Example 🔍
+
+Let's work with our familiar 5×5 grid where S is our start, G is our goal, and # represents obstacles:
+
+```
+S . . # .
+. # . . .
+. # . # .
+. . . # .
+. # . . G
+```
+
+Imagine we're evaluating a node at position (1,2) (row 1, column 2). Let's calculate different heuristic values to reach the goal at (4,4):
+
 ## Common A* Heuristics 📏
 
 Depending on your problem, different heuristics might be appropriate:
@@ -33,9 +47,34 @@ h(n) = |x₁ - x₂| + |y₁ - y₂|
 
 👣 This is the sum of horizontal and vertical distances (like walking in a city with a grid layout).
 
-![Manhattan Distance](https://preview.redd.it/manhattan-distance-l-1-norm-v0-a27qbv0ljnqa1.png?width=1080&format=png&auto=webp&s=2d0e825d4f61dbe70b7cb7da33cc3a9bd3e0429e)
+For our node at (1,2) to goal at (4,4):
+h(n) = |1-4| + |2-4| = 3 + 2 = 5
 
-Best for: Grid-based environments where movement is restricted to four directions (up, down, left, right).
+Visualizing this as city blocks:
+```
++---+---+---+---+---+
+| S |   |   | # |   |
++---+---+---+---+---+
+|   | # | X |   |   | ← We are here (1,2)
++---+---+---+---+---+
+|   | # |   |   |   |
++---+---+---+---+---+
+|   | # |   | # |   |
++---+---+---+---+---+
+|   |   |   | # |   |
++---+---+---+---+---+
+|   | # |   |   | G | ← Need to reach here (4,4)
++---+---+---+---+---+
+```
+
+The Manhattan path would involve moving 3 steps down and 2 steps right (as shown below):
+```
+      X
+      ↓
+      ↓
+      ↓ → →
+        G
+```
 
 ### 2. Euclidean Distance
 
@@ -45,9 +84,23 @@ h(n) = √[(x₁ - x₂)² + (y₁ - y₂)²]
 
 🧵 This is the straight-line distance (as the crow flies).
 
-![Euclidean Distance](https://miro.medium.com/v2/resize:fit:1400/1*tWaJLQ9wjjgrcRqMv4zG9A.png)
+For our node at (1,2) to goal at (4,4):
+h(n) = √[(1-4)² + (2-4)²] = √(9 + 4) = √13 ≈ 3.61
 
-Best for: Environments where movement can be in any direction.
+Visualizing this as a direct line:
+```
++---+---+---+---+---+
+| S |   |   | # |   |
++---+---+---+---+---+
+|   | # | X |   |   | ← We are here (1,2)
++---+---+---+---+---+
+|   | # | \ |   |   |
++---+---+---+---+---+
+|   |   |   \ # |   |
++---+---+---+---+---+
+|   | # |   |   \ G | ← Need to reach here (4,4)
++---+---+---+---+---+
+```
 
 ### 3. Diagonal Distance
 
@@ -55,9 +108,20 @@ Best for: Environments where movement can be in any direction.
 h(n) = max(|x₁ - x₂|, |y₁ - y₂|) + (√2 - 1) × min(|x₁ - x₂|, |y₁ - y₂|)
 ```
 
-↗️ This accounts for diagonal movement costs.
+↗️ This accounts for diagonal movement costs in grid-based maps.
 
-Best for: Grid-based environments where diagonal movement is allowed.
+In simpler terms, diagonal distance calculates the shortest path when:
+- Horizontal and vertical moves cost 1 unit
+- Diagonal moves cost √2 units (approximately 1.414)
+- You can move in all 8 directions (up, down, left, right, and diagonals)
+
+For our node at (1,2) to goal at (4,4):
+h(n) = max(3, 2) + (√2 - 1) × min(3, 2)
+     = 3 + 0.414 × 2
+     = 3 + 0.828
+     ≈ 3.83
+
+This represents the cost of moving diagonally as much as possible (2 diagonal moves), then finishing with straight moves (1 more step).
 
 ## Properties of a Good Heuristic 🌟
 
@@ -68,6 +132,11 @@ For A* to work effectively, the heuristic should be:
 A heuristic is admissible if it never overestimates the actual cost to reach the goal. This property ensures that A* will find the optimal path.
 
 For example, straight-line distance is admissible because you can't reach the goal in less distance than a straight line (assuming no teleportation!).
+
+In our example:
+- Manhattan distance (5) is admissible if we can only move in 4 directions
+- Euclidean distance (3.61) is admissible in any scenario, but might be too optimistic if we can only move in 4 directions
+- Diagonal distance (3.83) is admissible if we can move in 8 directions
 
 ### 2. Consistent (or Monotonic)
 
@@ -88,12 +157,49 @@ The choice of heuristic greatly affects A*'s performance:
 - **Perfect heuristic (h(n) = exact cost)**: A* would directly follow the optimal path without exploring unnecessary nodes.
 - **Inadmissible heuristic (h(n) > actual cost)**: A* might find a suboptimal path but could run faster.
 
-### Visual Comparison
+### Visual Comparison of Heuristic Impact
 
-![Heuristic Comparison](https://upload.wikimedia.org/wikipedia/commons/5/5d/Astar_progress_animation.gif)
+Below is a visualization of how different heuristics affect exploration patterns:
 
-In this animation, you can see how different heuristics affect which nodes A* explores.
+```
+Zero Heuristic (h=0) - Like Dijkstra's:
+1 2 3 4 5
+6 7 8 9 A
+B C D E F
+G H I J K
+L M N O P
 
-💭 **Think about it**: In our grid example from earlier, if diagonal movement isn't allowed, which heuristic would be most appropriate? Why?
+Manhattan Distance:
+1 2 5 9 D
+3 4 8 C G
+6 7 B F K
+A E J N P
+I M O ...
+
+Euclidean Distance:
+1 2 4 9 F
+3 5 A D J
+6 B G K N
+C H L O .
+I M P ...
+```
+
+The numbers/letters show the exploration order. Notice how stronger heuristics focus the search more directly toward the goal.
+
+## Try It Yourself ✏️
+
+Look at our example grid again. If you were at position (0,0) (the start) and needed to reach (4,4) (the goal):
+
+1. Using Manhattan distance as your heuristic, which node would you explore first: (0,1) or (1,0)? Both have the same g-value (1), but do they have the same h-value?
+
+2. What if there was a large obstacle in the middle of the grid? Would Manhattan distance still be a good estimate of the true distance to the goal?
+
+<details>
+<summary>Click for answers</summary>
+
+1. Both (0,1) and (1,0) have the same Manhattan distance to the goal: 8. Since their g-values are also the same (1), their f-values would be equal (9). In this case, A* would need a tie-breaking rule.
+
+2. With a large obstacle, Manhattan distance might significantly underestimate the true path length, but it remains admissible (never overestimates). This would cause A* to explore more nodes, potentially slowing it down but still eventually finding the optimal path.
+</details>
 
 In the next section, we'll explore the core components that make up the A* algorithm!

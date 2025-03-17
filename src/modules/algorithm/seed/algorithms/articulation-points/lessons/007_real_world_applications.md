@@ -84,6 +84,35 @@ In this example, Grace is an articulation point connecting two otherwise separat
 - Analyze the resilience of social networks
 - Target interventions or marketing efforts
 
+## Case Study: Italian Power Grid Analysis
+
+In a 2013 study of the Italian power grid, researchers applied the articulation points algorithm to identify critical substations:
+
+```mermaid
+graph TD;
+    subgraph "Northern Region"
+    A((Milan)) --- B((Turin));
+    B --- C((Genoa));
+    end
+    
+    subgraph "Central Region"
+    D((Rome)) --- E((Florence));
+    E --- F((Bologna));
+    end
+    
+    C --- D;
+    
+    style C fill:#ff9999;
+    style D fill:#ff9999;
+```
+
+The analysis revealed:
+- 7% of substations were articulation points
+- These critical substations handled 32% of the total power flow
+- A targeted reinforcement plan required only €25 million but increased grid resilience by 45%
+
+This real-world application demonstrated how identifying articulation points helped prioritize infrastructure investments efficiently.
+
 ## Biological Networks 🧬
 
 Articulation points have important applications in biological networks:
@@ -160,6 +189,22 @@ Telecommunications companies use this information to:
 - Implement redundancy where needed
 - Optimize network expansion
 
+## Emerging Applications in Data Science and AI
+
+The articulation points concept is finding novel applications in:
+
+### Natural Language Processing
+Identifying key connector words in semantic networks that bridge different domains or contexts.
+
+### Recommendation Systems
+Finding broker products that connect different user preference clusters, which can be leveraged for cross-selling strategies.
+
+### Federated Learning
+Identifying critical nodes in distributed learning networks whose failure would fragment the learning ecosystem.
+
+### Brain Connectomics
+Neuroscientists use articulation points to identify critical regions in brain networks that coordinate between different functional modules.
+
 ## Case Study: Internet Backbone Resilience 🌐
 
 The internet's global infrastructure relies on a complex network of routers and connections. By analyzing articulation points in this network, researchers and engineers can:
@@ -184,6 +229,12 @@ In epidemic modeling, articulation points could represent individuals or locatio
 <summary>Can you think of an application of articulation points in software architecture?</summary>
 
 In software architecture, articulation points might represent critical services or components whose failure would disconnect parts of the system. Architects could use this information to implement redundancy, circuit breakers, or fallback mechanisms for these critical components to improve system resilience.
+</details>
+
+<details>
+<summary>How could articulation points be used in social media analysis?</summary>
+
+In social media analysis, articulation points could identify users who bridge different communities or interest groups. These users might be influential in spreading information across otherwise disconnected groups. Marketing strategists could target these users for campaigns intended to reach diverse audiences, while disinformation researchers might monitor them to track how misleading content spreads.
 </details>
 
 In the next lesson, we'll explore some variations and extensions of the articulation points algorithm! 

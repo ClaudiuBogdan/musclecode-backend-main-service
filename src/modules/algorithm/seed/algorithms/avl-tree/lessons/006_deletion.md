@@ -6,6 +6,17 @@ title: Deletion - Removing Nodes from an AVL Tree
 
 Deletion is the most complex operation in AVL trees. It involves removing a node from the tree while maintaining both the binary search tree property and the AVL balance property.
 
+## The Surgical Approach to Deletion 🩺
+
+Think of deletion as performing surgery on the tree:
+
+1. **Diagnosis**: Find the node to be removed
+2. **Surgical Plan**: Determine the best removal strategy based on the node's children
+3. **Operation**: Remove the node according to the plan
+4. **Recovery**: Update heights and rebalance the tree
+
+Just as a good surgeon aims to minimize disruption to surrounding tissue, we want to maintain the tree's structure and balance as much as possible.
+
 ## The Deletion Process 🔍
 
 The deletion process in an AVL tree consists of three main steps:
@@ -24,61 +35,88 @@ The first step is to delete the node as you would in a regular binary search tre
 Simply remove the node by setting its parent's reference to null.
 
 ```
-Before:
-    50
-   /  \
-  30   70
- /  \
-20  40
-
-Delete 20:
-
-After:
-    50
-   /  \
-  30   70
-    \
-    40
+Before:                     After:
+    50                         50
+   /  \                       /  \
+  30   70                    30   70
+ /  \                       /
+20  40                     20
 ```
+
+This is the simplest case - just remove the node directly.
 
 ### Case 2: Node with One Child
 Replace the node with its child.
 
 ```
-Before:
-    50
-   /  \
-  30   70
+Before:                     After:
+    50                         50
+   /  \                       /  \
+  30   70                    20   70
  /
 20
-
-Delete 30:
-
-After:
-    50
-   /  \
-  20   70
 ```
+
+In this case, the node's parent adopts its grandchild.
 
 ### Case 3: Node with Two Children
 Replace the node with its in-order successor (the smallest node in its right subtree) or its in-order predecessor (the largest node in its left subtree), then delete the successor/predecessor.
 
 ```
-Before:
-    50
-   /  \
-  30   70
- / \   / \
-20 40 60  80
+Before:                     After (using successor 60):
+    50                         60
+   /  \                       /  \
+  30   70                    30   70
+ / \   / \                  / \     \
+20 40 60  80               20 40     80
+```
 
-Delete 50:
+This case is more complex because it involves two nodes - the one being deleted and its replacement.
 
-After (using in-order successor 60):
-    60
-   /  \
-  30   70
- / \     \
-20 40    80
+## Visual Step-by-Step Example of Case 3
+
+Let's trace through deleting node 50 (which has two children) step by step:
+
+```
+1. Initial tree:
+       50
+      /  \
+     30   70
+    / \   / \
+   20 40 60  80
+
+2. Find the in-order successor (smallest in right subtree):
+   The successor is 60
+       50
+      /  \
+     30   70
+    / \   / \
+   20 40 60  80
+        ↑
+    successor
+
+3. Copy successor's value to node being deleted:
+       60
+      /  \
+     30   70
+    / \   / \
+   20 40 60  80
+            ↑
+        duplicate 60
+
+4. Delete the successor from its original position:
+       60
+      /  \
+     30   70
+    / \     \
+   20 40     80
+
+5. Final tree after deletion:
+       60
+      /  \
+     30   70
+    / \     \
+   20 40     80
 ```
 
 ## Implementation of Standard BST Deletion 💻
@@ -174,6 +212,20 @@ deleteNode(root, value) {
 }
 ```
 
+## The Key Difference in Rotation Selection
+
+Notice that for deletion, we choose rotations based on the balance factors of both the unbalanced node and its child:
+
+1. For a left-heavy node (balance > 1):
+   - If the left child is left-heavy or balanced (balance >= 0), do a right rotation
+   - If the left child is right-heavy (balance < 0), do a left-right rotation
+
+2. For a right-heavy node (balance < -1):
+   - If the right child is right-heavy or balanced (balance <= 0), do a left rotation
+   - If the right child is left-heavy (balance > 0), do a right-left rotation
+
+This differs from insertion, where we based the decision on the value being inserted.
+
 ## Complete Deletion Method 🧩
 
 Here's the complete deletion method that combines all steps:
@@ -249,11 +301,35 @@ deleteNode(root, value) {
 > [!NOTE]
 > The key difference in the rotation selection compared to insertion is that we need to check the balance factor of the child nodes to determine the appropriate rotation.
 
-## Visual Example: Deleting 20 from an AVL Tree 🖼️
+## Handling Edge Cases 🧪
+
+### Empty Tree
+
+If the tree is empty or the node to be deleted is not found, the deletion operation should handle it gracefully:
+
+```javascript
+// If the tree is empty
+if (!this.root) return null;
+
+// If the node is not found, the function will return null
+if (!node) return null;
+```
+
+### Deleting the Root
+
+When deleting the root node, we need to be careful to update the tree's root reference:
+
+```javascript
+// The root might change after deletion, so we update it
+this.root = this.deleteNode(this.root, value);
+```
+
+## Deletion Walkthrough: Removing 20 from an AVL Tree 🖼️
 
 Consider the following AVL tree:
 
 ```
+Initial tree:
     30
    /  \
   20   40
@@ -263,12 +339,30 @@ Consider the following AVL tree:
 
 Let's trace through the deletion of the node with value 20:
 
-1. Find the node to delete (20).
-2. Since it has only one child (10), replace it with its child.
-3. Update heights and check for imbalances.
-
 ```
-After deletion (before rebalancing):
+Step 1: Find the node to delete (20)
+    30
+   /  \
+ [20]  40
+ /      \
+10       50
+
+Step 2: 20 has one child (10), replace it with its child
+    30
+   /  \
+  10   40
+        \
+        50
+
+Step 3: Update heights
+  - Height of 10: 1
+  - Height of 40: 2
+  - Height of 30: 3
+
+Step 4: Check balance factors
+  - Balance of 30: 1 - 2 = -1 (still balanced)
+
+Result:
     30
    /  \
   10   40
@@ -276,18 +370,73 @@ After deletion (before rebalancing):
         50
 ```
 
-The tree is still balanced (balance factor of 30 is -1), so no rotations are needed.
+The tree remains balanced after deletion, so no rotations are needed.
 
 ## Deletion Time Complexity ⏱️
 
 - **Time Complexity**: O(log n) - We need to traverse the height of the tree to find the deletion point, and then perform at most O(log n) rotations to restore balance.
 - **Space Complexity**: O(log n) - Due to the recursive call stack.
 
+## Interactive Deletion Example 🎮
+
+Let's trace through a more complex deletion that requires rebalancing:
+
+```
+Initial tree:
+       50
+      /  \
+     30   70
+    / \   / \
+   20 40 60  80
+  /
+ 10
+
+Delete 80:
+```
+
+Let's go through the steps:
+
+1. Remove 80 (a leaf node)
+2. Update heights: Height of 70 becomes 2, height of 50 remains 3
+3. Check balance factors: 50 has a balance factor of 1, 70 has a balance factor of 1 (still balanced)
+4. Final tree:
+
+```
+       50
+      /  \
+     30   70
+    / \   /
+   20 40 60
+  /
+ 10
+```
+
+Now, let's delete one more node:
+
+```
+Delete 60:
+```
+
+1. Remove 60 (a leaf node)
+2. Update heights: Height of 70 becomes 1, height of 50 becomes 3
+3. Check balance factors: 50 has a balance factor of 2 (unbalanced!)
+4. Determine rotation: Left subtree (30) has a balance factor of 1 (left-heavy), so we need a right rotation on 50
+5. After rotation:
+
+```
+       30
+      /  \
+     20   50
+    /    /  \
+   10   40   70
+```
+
 ## Common Pitfalls to Avoid ⚠️
 
 1. **Forgetting to update heights**: Always update the height of each node after any operation that might change the structure of its subtrees.
 2. **Incorrect rotation selection**: Make sure to choose the correct rotation based on the balance factors of the unbalanced node and its children.
 3. **Not handling the case of deleting the root**: The root of the tree can change after deletion, so make sure to update the root reference.
+4. **Not handling the successor deletion correctly**: After replacing a node with its successor, make sure to delete the successor from its original position.
 
 ## Practice Exercise 💪
 
@@ -353,6 +502,16 @@ Trace through the deletion of the following nodes, drawing the tree after each d
    - The tree is still balanced, so no rotations are needed.
 
 </details>
+
+## Knowledge Check ✅
+
+Before moving on, make sure you understand:
+
+1. What are the three cases for deleting a node in a BST?
+2. How do we handle deletion of a node with two children?
+3. Why do we need to check the balance factor of child nodes when rebalancing after deletion?
+4. What happens if we delete the root node?
+5. How many rotations might be needed after deleting a single node?
 
 ## Variations and Optimizations 🔧
 

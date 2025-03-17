@@ -28,7 +28,25 @@ Let's break down the operations in our algorithm:
 - Recursive approach (naive): O(n log n) + O(n²) = O(n²)
 - Recursive approach (optimized): O(n log n) + O(n log n) = O(n log n)
 
-> 🔑 **Key Insight**: The sorting step dominates the time complexity of the algorithm. Once the activities are sorted, the actual selection process is very efficient.
+## 🔢 Making Time Complexity Intuitive
+
+To understand what O(n log n) means in practical terms:
+
+```
+For n = 1,000 activities:
+- log₂(1,000) ≈ 10
+- n log n = 1,000 × 10 = 10,000 operations for sorting
+- n = 1,000 operations for selection
+- Total: ~11,000 operations
+
+For n = 2,000 activities:
+- log₂(2,000) ≈ 11
+- n log n = 2,000 × 11 = 22,000 operations for sorting
+- n = 2,000 operations for selection
+- Total: ~24,000 operations
+```
+
+This means that if we double the input size, the processing time just slightly more than doubles. This is much better than quadratic growth (n²), where doubling the input would quadruple the processing time.
 
 ## 🗃️ Space Complexity Analysis
 
@@ -64,6 +82,43 @@ While the theoretical analysis gives us O(n log n) time complexity, there are pr
 
 4. **Language and Platform**: The efficiency of certain operations can vary based on the programming language and platform used.
 
+## 💹 Comparing With Alternative Approaches
+
+To truly appreciate the efficiency of our greedy approach, let's compare it with other methods:
+
+### 1. Brute Force Approach
+- **Strategy**: Try all possible combinations of activities and pick the largest valid set
+- **Time Complexity**: O(2ⁿ) - exponential!
+- **Practicality**: Only feasible for tiny inputs (less than 20-25 activities)
+
+```
+For n = 30 activities:
+- 2³⁰ = 1,073,741,824 combinations to check!
+- This would take seconds or minutes even on fast computers
+```
+
+### 2. Dynamic Programming (for standard activity selection)
+- **Strategy**: Build up solutions to subproblems systematically
+- **Time Complexity**: O(n²)
+- **Practicality**: Works well for medium-sized inputs but less efficient than our greedy approach
+
+```
+For n = 1,000 activities:
+- n² = 1,000,000 operations
+- Much more than our 11,000 operations with the greedy approach
+```
+
+### 3. Our Greedy Approach
+- **Strategy**: Always select the activity with the earliest finish time
+- **Time Complexity**: O(n log n)
+- **Practicality**: Efficient even for large inputs and simple to implement
+
+```
+For n = 1,000,000 activities:
+- n log n = 20,000,000 operations (approx.)
+- Can be processed in milliseconds on modern hardware
+```
+
 ## 🧪 Edge Cases and Optimizations
 
 Here are some edge cases to consider and potential optimizations:
@@ -80,6 +135,14 @@ Here are some edge cases to consider and potential optimizations:
 
 Consider this scenario: What if we need to find the maximum number of activities that can be performed by two people instead of one? How would this change our approach and complexity? 
 
-(Hint: This is a more complex problem that might require a different algorithm altogether.)
+<details>
+<summary>Hint</summary>
+
+This becomes a more complex problem. One approach is to first find the maximum activities for one person using our algorithm, remove those from the pool, and then find the maximum activities for the second person from the remaining activities.
+
+But that's not optimal! A better approach is to use a graph-based algorithm where we model activities as nodes and conflicts as edges, then solve it as a graph coloring problem with two colors.
+
+This variant has a time complexity of O(n²) in a typical implementation.
+</details>
 
 In the next lesson, we'll explore real-world applications and variations of the activity selection problem. 

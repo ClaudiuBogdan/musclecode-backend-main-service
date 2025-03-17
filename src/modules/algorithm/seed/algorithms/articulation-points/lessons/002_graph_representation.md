@@ -57,8 +57,28 @@ For the articulation points algorithm, we'll use an **adjacency list** represent
 2. It's space-efficient for sparse graphs (O(V+E) space)
 3. It makes depth-first traversal straightforward
 
+## Why Adjacency List is Perfect for Articulation Points
+
+The articulation points algorithm heavily relies on:
+
+1. **Neighbor exploration**: We need to quickly iterate through each vertex's neighbors during DFS
+2. **Sparse access patterns**: We only need to access a vertex's direct connections
+3. **Memory efficiency**: Many real-world graphs where we search for articulation points are sparse
+
+The adjacency list gives us O(degree(v)) access to a vertex's neighbors, which is exactly what our DFS-based algorithm needs. In contrast, an adjacency matrix would waste space and time checking non-existent edges.
+
 > [!TIP]
 > The adjacency list is the most common representation for graph algorithms that need to explore neighbors, like DFS and BFS.
+
+## Choosing the Right Representation: Quick Reference
+
+| Graph Characteristic | Best Representation | Why |
+|----------------------|---------------------|-----|
+| Sparse graph (few edges) | Adjacency List | Saves space, faster neighbor iteration |
+| Dense graph (many edges) | Adjacency Matrix | Faster edge lookup, simple implementation |
+| Need fast edge existence check | Adjacency Matrix | O(1) lookup for any edge |
+| Need to iterate through neighbors | Adjacency List | Direct access to neighbors |
+| Memory-constrained environment | Edge List | Minimal memory for very sparse graphs |
 
 ## Converting Between Representations
 
@@ -150,6 +170,17 @@ An adjacency matrix always requires O(V²) space regardless of how many edges ex
 <summary>How would you handle disconnected graphs?</summary>
 
 When working with potentially disconnected graphs, we need to ensure our algorithm visits all vertices. This is typically done by running our traversal algorithm (like DFS) from each unvisited vertex.
+</details>
+
+<details>
+<summary>When would you choose an edge list over an adjacency list?</summary>
+
+You might choose an edge list when:
+1. The graph is extremely sparse (E << V)
+2. You frequently need to iterate through all edges
+3. You're working with a very large graph and memory is a constraint
+4. You need to store additional information about edges (like weights)
+5. The graph structure doesn't change often
 </details>
 
 In the next lesson, we'll explore the depth-first search (DFS) approach, which forms the foundation of our articulation points algorithm! 

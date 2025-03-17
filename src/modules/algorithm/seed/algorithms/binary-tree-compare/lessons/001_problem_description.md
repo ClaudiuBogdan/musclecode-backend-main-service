@@ -7,6 +7,17 @@ title: Understanding the Problem - Binary Tree Comparison
 > [!NOTE]
 > In this lesson, we'll explore the fascinating problem of determining whether two binary trees are identical.
 
+## 🌍 Why Compare Trees?
+
+Before diving into the technical details, let's understand why tree comparison is important in real-world applications:
+
+- **File Synchronization**: Services like Dropbox need to compare directory trees to determine which files need syncing
+- **Web Development**: Frameworks like React compare component trees to efficiently update only changed parts of a UI
+- **Game Development**: Game engines compare scene graphs to optimize rendering
+- **Version Control**: Git and other systems compare file hierarchies to track changes
+
+Understanding how to efficiently compare trees is a fundamental skill with wide-ranging applications!
+
 ## 🔍 The Problem
 
 Imagine you have two binary trees, and you need to determine if they are exactly the same. But what does "the same" mean for trees?
@@ -31,11 +42,14 @@ Let's visualize some examples to better understand the problem:
 
 ```mermaid
 graph TD;
-    A1[1] --> B1[2]
-    A1 --> C1[3]
+    A1[1 (Root)] --> B1[2 (Left)]
+    A1 --> C1[3 (Right)]
     
-    A2[1] --> B2[2]
-    A2 --> C2[3]
+    A2[1 (Root)] --> B2[2 (Left)]
+    A2 --> C2[3 (Right)]
+    
+    style A1 fill:#f9f,stroke:#333,stroke-width:2px
+    style A2 fill:#f9f,stroke:#333,stroke-width:2px
 ```
 
 **Tree 1**: `[1,2,3]`  
@@ -46,12 +60,17 @@ graph TD;
 
 ```mermaid
 graph TD;
-    A1[1] --> B1[2]
-    A1 --> C1[3]
+    A1[1 (Root)] --> B1[2 (Left)]
+    A1 --> C1[3 (Right)]
     
-    A2[1] --> B2[2]
-    B2 --> D2[3]
+    A2[1 (Root)] --> B2[2 (Left)]
+    B2 --> D2[3 (Left of 2)]
     A2 --> C2[null]
+    
+    style A1 fill:#f9f,stroke:#333,stroke-width:2px
+    style A2 fill:#f9f,stroke:#333,stroke-width:2px
+    style C1 fill:#bbf,stroke:#333,stroke-width:1px
+    style D2 fill:#bbf,stroke:#333,stroke-width:1px
 ```
 
 **Tree 1**: `[1,2,3]`  
@@ -62,26 +81,42 @@ graph TD;
 
 ```mermaid
 graph TD;
-    A1[1] --> B1[2]
-    A1 --> C1[3]
+    A1[1 (Root)] --> B1[2 (Left)]
+    A1 --> C1[3 (Right)]
     
-    A2[1] --> B2[2]
-    A2 --> C2[4]
+    A2[1 (Root)] --> B2[2 (Left)]
+    A2 --> C2[4 (Right)]
+    
+    style A1 fill:#f9f,stroke:#333,stroke-width:2px
+    style A2 fill:#f9f,stroke:#333,stroke-width:2px
+    style C1 fill:#bbf,stroke:#333,stroke-width:1px
+    style C2 fill:#fbb,stroke:#333,stroke-width:1px
 ```
 
 **Tree 1**: `[1,2,3]`  
 **Tree 2**: `[1,2,4]`  
 **Result**: `false` (Different value at the right child of the root)
 
+## 🧩 Breaking Down the Problem
+
+To solve this problem, we need to:
+
+1. Compare the values at the current nodes
+2. Compare the structures of the left subtrees
+3. Compare the structures of the right subtrees
+
+If all three comparisons return true, then the trees are identical.
+
 ## 🤔 Think About It
 
 Before we dive into the solution, take a moment to consider:
 
 1. How would you approach comparing two trees?
-2. What are the base cases to consider?
+2. What are the base cases to consider? (Hint: What if one or both trees are empty?)
 3. Could you solve this iteratively? Recursively? Which might be more intuitive?
+4. How would you handle trees of different sizes?
 
 > [!TIP]
 > When working with tree problems, drawing them out can help visualize the solution!
 
-In the next lesson, we'll start building our understanding of how to approach this problem systematically. 
+In the next lesson, we'll start building our understanding of binary trees to approach this problem systematically. 

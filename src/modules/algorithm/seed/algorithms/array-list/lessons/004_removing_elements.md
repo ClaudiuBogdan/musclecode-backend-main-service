@@ -25,54 +25,62 @@ Let's look at how the `remove` method is implemented:
 
 ```javascript
 remove(index) {
-  if (index >= 0 && index < this.data.length) {
-    for (let i = index; i < this.data.length - 1; i++) {
-      this.data[i] = this.data[i + 1];
-    }
-    this.data.pop();
+  if (index < 0 || index >= this.size) {
+    throw new Error("Index out of bounds");
   }
+  
+  // Save the removed element (optional, for returning)
+  const removedElement = this.data[index];
+  
+  // Shift all elements after the removed element
+  for (let i = index; i < this.size - 1; i++) {
+    this.data[i] = this.data[i + 1];
+  }
+  
+  // Clear the last position and update size
+  this.data[this.size - 1] = undefined; // Help garbage collection
+  this.size--;
+  
+  // Optionally shrink the array if it's too empty
+  // this.shrinkIfNeeded();
+  
+  return removedElement;
 }
 ```
 
 This implementation:
-1. Checks if the index is valid
+1. Validates the index
 2. Shifts all elements after the removed element one position to the left
-3. Removes the last element (which is now a duplicate) using `pop()`
+3. Clears the last element to help with garbage collection
+4. Updates the size
 
-Let's visualize this process:
-
-```mermaid
-graph TD
-    A["Start: [A, B, C, D]"] --> B["Remove(1) - Remove 'B'"]
-    B --> C["Shift elements: [A, C, D, D]"]
-    C --> D["Remove duplicate: [A, C, D]"]
-```
-
-## 🔄 Step-by-Step Example
+## 🎬 Step-by-Step Removal Visualization
 
 Let's walk through removing an element at index 1 from `[Apple, Banana, Orange, Mango]`:
 
-1. Verify index 1 is valid (it is)
-2. Start shifting elements:
-   - Move `Orange` from index 2 to index 1: `[Apple, Orange, Orange, Mango]`
-   - Move `Mango` from index 3 to index 2: `[Apple, Orange, Mango, Mango]`
-3. Remove the last element: `[Apple, Orange, Mango]`
+```
+Initial state: [Apple, Banana, Orange, Mango]
+              size=4, capacity=4
 
-> [!TIP]
-> Some implementations might set the last element to `null` or `undefined` before removing it to help with garbage collection.
+Step 1: Remove element at index 1 (Banana)
+Step 2: Shift elements after index 1:
+         - Move Orange from index 2 to index 1: [Apple, Orange, Orange, Mango]
+         - Move Mango from index 3 to index 2: [Apple, Orange, Mango, Mango]
+Step 3: Clear last element: [Apple, Orange, Mango, undefined]
+Step 4: Decrement size: size=3, capacity=4
+```
 
 ## ⏱️ Time Complexity Analysis
 
 The time complexity of removing an element from an ArrayList depends on the position:
 
-- **Removing from the end**: O(1) - constant time
-- **Removing from the beginning or middle**: O(n) - linear time, where n is the number of elements after the removal point
+| Operation | Time Complexity | Elements Shifted |
+|-----------|----------------|-----------------|
+| Remove from end | O(1) | 0 |
+| Remove from middle | O(n) | ~n/2 on average |
+| Remove from beginning | O(n) | n-1 |
 
-This is because removing from anywhere except the end requires shifting elements to fill the gap.
-
-## 🧠 Efficiency Considerations
-
-The position from which you remove elements can significantly impact performance:
+This performance difference is visualized below:
 
 ```mermaid
 graph TD
@@ -88,6 +96,53 @@ graph TD
 > [!WARNING]
 > If you frequently need to remove elements from the beginning of a collection, consider using a data structure like a LinkedList or a Queue that can do this more efficiently.
 
+## 🔄 Memory Management Considerations
+
+Removing elements from an ArrayList involves several memory management aspects:
+
+1. **Element References**: Most implementations set the vacated position to `null` or `undefined` to help garbage collection
+2. **Capacity Shrinking**: Some implementations reduce capacity if the array becomes too empty (e.g., when size < capacity/4)
+3. **Memory Fragmentation**: Frequent removals and additions can lead to memory fragmentation in some environments
+
+```javascript
+// Example shrinking implementation
+shrinkIfNeeded() {
+  if (this.size < this.data.length / 4 && this.data.length > 10) {
+    // Shrink the array to half its current capacity
+    const newArray = new Array(Math.floor(this.data.length / 2));
+    for (let i = 0; i < this.size; i++) {
+      newArray[i] = this.data[i];
+    }
+    this.data = newArray;
+  }
+}
+```
+
+## 🌍 Language-Specific Remove Operations
+
+Different languages provide different ways to remove elements:
+
+```java
+// Java
+list.remove(1);                 // Remove by index
+list.remove("element");         // Remove by value (first occurrence)
+list.removeIf(e -> e > 10);     // Remove with predicate (Java 8+)
+```
+
+```python
+# Python
+my_list.pop(1)                  # Remove by index and return
+my_list.remove("element")       # Remove by value (first occurrence)
+my_list = [x for x in my_list if x != "element"]  # Remove all occurrences
+```
+
+```javascript
+// JavaScript
+list.splice(1, 1);              // Remove by index
+list.splice(list.indexOf("element"), 1);  // Remove by value (first occurrence)
+list = list.filter(x => x !== "element"); // Remove all occurrences
+```
+
 ## 🚀 Alternative Removal Strategies
 
 ### Removing by Value
@@ -96,7 +151,7 @@ Sometimes we want to remove an element based on its value rather than its index:
 
 ```javascript
 function removeByValue(arrayList, value) {
-  for (let i = 0; i < arrayList.size(); i++) {
+  for (let i = 0; i < arrayList.size; i++) {
     if (arrayList.get(i) === value) {
       arrayList.remove(i);
       return true; // Element found and removed
@@ -112,7 +167,7 @@ If you need to remove multiple elements that match a certain condition, it's mor
 
 ```javascript
 function removeAllMatching(arrayList, condition) {
-  for (let i = arrayList.size() - 1; i >= 0; i--) {
+  for (let i = arrayList.size - 1; i >= 0; i--) {
     if (condition(arrayList.get(i))) {
       arrayList.remove(i);
     }
@@ -122,6 +177,37 @@ function removeAllMatching(arrayList, condition) {
 
 > [!NOTE]
 > Traversing backward avoids the issue of shifting indices during removal.
+
+## ⚠️ Common Pitfalls
+
+1. **Concurrent Modification**: Modifying an ArrayList while iterating over it can cause unexpected behavior
+
+   ```javascript
+   // Problematic code
+   for (let i = 0; i < list.size(); i++) {
+     if (shouldRemove(list.get(i))) {
+       list.remove(i); // This modifies the indices of remaining elements!
+     }
+   }
+   ```
+
+2. **Inefficient Bulk Removal**: Removing multiple elements one by one
+
+   ```javascript
+   // Instead of:
+   for (const item of itemsToRemove) {
+     list.remove(list.indexOf(item));
+   }
+   
+   // Consider:
+   list.removeAll(itemsToRemove); // If available
+   ```
+
+3. **Not Checking Return Values**: Remove operations often return the removed element or a success indicator
+
+   ```java
+   boolean wasRemoved = list.remove("element"); // Always check this!
+   ```
 
 ## 🧠 Practice Exercise
 
@@ -146,7 +232,18 @@ This can cause elements to be skipped. For example, if you remove element at ind
 The solution is to either:
 1. Iterate backward: `for (let i = list.size() - 1; i >= 0; i--)`
 2. Adjust the index after removal: `list.remove(i--);`
-3. Use a while loop with a manual index increment
+3. Use a while loop with a manual index increment:
+   ```javascript
+   let i = 0;
+   while (i < list.size()) {
+     if (shouldRemove(list.get(i))) {
+       list.remove(i);
+       // Don't increment i since elements shifted
+     } else {
+       i++; // Only increment if no removal happened
+     }
+   }
+   ```
 </details>
 
 ## 🎯 Key Takeaways
@@ -155,5 +252,7 @@ The solution is to either:
 - Removal from the end is O(1), while removal from elsewhere is O(n)
 - When removing multiple elements, consider traversing the list backward
 - Be careful when removing elements during iteration to avoid skipping elements
+- Different languages offer various removal methods for different use cases
+- Memory management is an important consideration for large collections
 
 In the next lesson, we'll explore how to access and modify elements in an ArrayList. 

@@ -7,6 +7,19 @@ title: Discovery Time and Low Values - The Key Concepts
 > [!NOTE]
 > In this lesson, we'll explore the two critical concepts that make our articulation points algorithm work: discovery time and low values.
 
+## Understanding Low Values: The "Shortcut Finder" Analogy
+
+Think of low values as a "shortcut finder" in a maze. Imagine you're exploring a maze (our graph) with numbered rooms (vertices):
+
+1. Each room has a unique number based on when you discover it (discovery time)
+2. As you explore, you keep a notepad for each room showing the earliest numbered room you can reach from there without backtracking through your entry point
+3. When you find a shortcut (back edge) to an earlier room, you update your notepad
+4. When returning from a dead end, you tell the previous room about any shortcuts you found
+
+The number on each room's notepad is its "low value" - it tells you the earliest room reachable from this part of the maze.
+
+A room is a critical junction (articulation point) if there's no shortcut from one of its exits that bypasses the room itself.
+
 ## Discovery Time: When We First Visit a Vertex 🕒
 
 **Discovery time** is simply a counter that increases each time we visit a new vertex during our DFS traversal. It tells us the order in which vertices are discovered.
@@ -83,6 +96,29 @@ There exists a child v of u such that low[v] >= disc[u]
 Why does this work? If `low[v] >= disc[u]`, it means the subtree rooted at `v` cannot reach any ancestor of `u` without going through `u`. In other words, `u` is the only connection between the subtree and the rest of the graph.
 
 For the root of the DFS tree, the rule is different: it's an articulation point if and only if it has more than one child in the DFS tree.
+
+## Check Your Understanding
+
+At this point in our example:
+- Vertex 0 has disc=1, low=1
+- Vertex 1 has disc=2, low=2
+- Vertex 2 has disc=3, low=3
+
+<details>
+<summary>What happens to low[2] after discovering the back edge from 2 to 0?</summary>
+
+low[2] will be updated to min(low[2], disc[0]) = min(3, 1) = 1
+
+This is because vertex 2 can now reach vertex 0 (which has discovery time 1) directly through a back edge.
+</details>
+
+<details>
+<summary>After this update, how will low[1] be affected when we return from vertex 2?</summary>
+
+low[1] will be updated to min(low[1], low[2]) = min(2, 1) = 1
+
+This propagates the information that from vertex 1's subtree, we can reach a vertex discovered as early as 1.
+</details>
 
 ## Step-by-Step Example
 
@@ -187,6 +223,12 @@ In an undirected graph, if vertex u has vertex v as a neighbor, then v also has 
 <summary>What's the difference between how we handle the root and non-root vertices?</summary>
 
 The root of the DFS tree is a special case. It doesn't have a parent, so the condition for non-root vertices doesn't apply. Instead, the root is an articulation point if and only if it has more than one child in the DFS tree, because removing it would disconnect those children from each other.
+</details>
+
+<details>
+<summary>What happens if a vertex has multiple back edges to ancestors?</summary>
+
+If a vertex has multiple back edges to ancestors, its low value will be the minimum of all the discovery times of those ancestors. This reflects that the vertex can reach the earliest discovered ancestor through some back edge.
 </details>
 
 In the next lesson, we'll put everything together and implement the complete articulation points algorithm! 

@@ -7,9 +7,74 @@ title: Implementing the Articulation Points Algorithm
 > [!NOTE]
 > Now that we understand the key concepts, let's put everything together and implement the complete articulation points algorithm.
 
+## Building the Algorithm Step by Step
+
+Let's implement our algorithm incrementally:
+
+### Step 1: Basic DFS traversal
+```python
+def dfs_basic(graph, u, visited):
+    visited[u] = True
+    for v in graph[u]:
+        if not visited[v]:
+            dfs_basic(graph, v, visited)
+```
+
+### Step 2: Adding discovery times and low values
+```python
+def dfs_with_times(graph, u, visited, disc, low, time):
+    visited[u] = True
+    disc[u] = low[u] = time[0]
+    time[0] += 1
+    
+    for v in graph[u]:
+        if not visited[v]:
+            dfs_with_times(graph, v, visited, disc, low, time)
+```
+
+### Step 3: Tracking parent relationships and updating low values
+```python
+def dfs_with_parent(graph, u, visited, disc, low, parent, time):
+    visited[u] = True
+    disc[u] = low[u] = time[0]
+    time[0] += 1
+    
+    for v in graph[u]:
+        if not visited[v]:
+            parent[v] = u
+            dfs_with_parent(graph, v, visited, disc, low, parent, time)
+            low[u] = min(low[u], low[v])
+        elif v != parent[u]:
+            low[u] = min(low[u], disc[v])
+```
+
+### Step 4: Identifying articulation points
+```python
+def dfs_art_points(graph, u, visited, disc, low, parent, art_points, time):
+    visited[u] = True
+    disc[u] = low[u] = time[0]
+    time[0] += 1
+    children = 0
+    
+    for v in graph[u]:
+        if not visited[v]:
+            parent[v] = u
+            children += 1
+            dfs_art_points(graph, v, visited, disc, low, parent, art_points, time)
+            low[u] = min(low[u], low[v])
+            
+            # Check for articulation point
+            if parent[u] == -1 and children > 1:
+                art_points.add(u)
+            if parent[u] != -1 and low[v] >= disc[u]:
+                art_points.add(u)
+        elif v != parent[u]:
+            low[u] = min(low[u], disc[v])
+```
+
 ## The Complete Algorithm 🧩
 
-Here's the complete algorithm for finding articulation points in an undirected graph:
+Now, here's the complete algorithm for finding articulation points in an undirected graph:
 
 ```python
 def articulation_points(graph):
@@ -68,6 +133,30 @@ def articulation_points(graph):
             
     return list(art_points)
 ```
+
+## Visualizing the Algorithm Execution
+
+Let's see how our implementation would process this simple graph step by step:
+
+```mermaid
+graph TD;
+    A((0)) --- B((1));
+    B --- C((2));
+    C --- A;
+```
+
+Here's a visualization of the key variables at each step:
+
+| Step | Action | visited | disc | low | parent | art_points |
+|------|--------|---------|------|-----|--------|------------|
+| 1 | Start DFS at 0 | [T,F,F] | [0,0,0] | [0,0,0] | [-1,-1,-1] | {} |
+| 2 | Visit 1 | [T,T,F] | [0,1,0] | [0,1,0] | [-1,0,-1] | {} |
+| 3 | Visit 2 | [T,T,T] | [0,1,2] | [0,1,2] | [-1,0,1] | {} |
+| 4 | Back edge 2→0 | [T,T,T] | [0,1,2] | [0,1,0] | [-1,0,1] | {} |
+| 5 | Update low[1] | [T,T,T] | [0,1,2] | [0,0,0] | [-1,0,1] | {} |
+| 6 | Check art points | [T,T,T] | [0,1,2] | [0,0,0] | [-1,0,1] | {} |
+
+The algorithm correctly identifies that there are no articulation points in this cycle graph.
 
 ## Breaking Down the Implementation 🔍
 
@@ -272,6 +361,12 @@ To find bridges (edges whose removal would disconnect the graph), we would modif
 <summary>Can a graph have articulation points but no bridges?</summary>
 
 Yes! Consider a graph with two cycles connected by a single vertex. That vertex is an articulation point, but there are no bridges because removing any single edge doesn't disconnect the graph.
+</details>
+
+<details>
+<summary>How would you handle weighted graphs when finding articulation points?</summary>
+
+The articulation points algorithm doesn't consider edge weights, as it's focused on connectivity rather than path lengths. The same algorithm works for weighted graphs without modification, since we're only concerned with the structure of the graph, not the values associated with edges.
 </details>
 
 In the next lesson, we'll walk through a complete example to solidify our understanding of the articulation points algorithm! 

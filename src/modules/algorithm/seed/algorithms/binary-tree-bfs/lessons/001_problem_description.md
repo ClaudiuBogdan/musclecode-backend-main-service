@@ -7,11 +7,35 @@ title: Understanding the Problem - Binary Tree BFS
 > [!NOTE]
 > In this lesson, we'll understand what Binary Tree BFS is and why it's important.
 
+## Prerequisites 📚
+
+Before diving into BFS, you should be familiar with:
+- Basic tree data structures, particularly binary trees
+- Queue data structure and its operations (enqueue, dequeue)
+- Basic algorithm concepts (time and space complexity)
+
 ## What is Breadth-First Search? 🤔
 
 Breadth-First Search (BFS) is a tree/graph traversal algorithm that explores nodes **level-by-level**, starting from the root node and moving downward. Unlike depth-first search which explores as far as possible along each branch before backtracking, BFS traverses the tree horizontally, visiting all nodes at the current depth before moving to nodes at the next depth level.
 
 Think of it like exploring a family tree generation by generation, rather than following one family line all the way down.
+
+```mermaid
+graph TD;
+    A[Root Level] --> B[Level 1];
+    A --> C[Level 1];
+    B --> D[Level 2];
+    B --> E[Level 2];
+    C --> F[Level 2];
+    C --> G[Level 2];
+    
+    classDef visited fill:#9f9,stroke:#333,stroke-width:2px;
+    class A visited;
+    
+    subgraph "BFS Order: A → B → C → D → E → F → G"
+        direction LR;
+    end
+```
 
 ## The Challenge 🎯
 
@@ -47,6 +71,56 @@ Output: [1, 2, 3]
 
 _Explanation: Each level is traversed from left to right before moving to the next level._
 
+## Visualizing BFS in Action 🎬
+
+Let's see how BFS traverses the first example tree step by step:
+
+```mermaid
+graph TD;
+    1((1)) --> 2((2))
+    1 --> 3((3))
+    2 --> 4((4))
+    2 --> 5((5))
+    3 -->|""|x((""))
+    3 --> 6((6))
+    
+    classDef current fill:#f96,stroke:#333,stroke-width:4px;
+    classDef visited fill:#9f9,stroke:#333,stroke-width:2px;
+    classDef queued fill:#bbf,stroke:#333,stroke-width:2px;
+    classDef empty fill:#fff,stroke:#fff,stroke-width:0px;
+    
+    class 1 current;
+    class x empty;
+```
+
+Step 1: We start at the root node (1) and add it to our queue.
+- Queue: [1]
+- Result: []
+
+```mermaid
+graph TD;
+    1((1)) --> 2((2))
+    1 --> 3((3))
+    2 --> 4((4))
+    2 --> 5((5))
+    3 -->|""|x((""))
+    3 --> 6((6))
+    
+    classDef current fill:#f96,stroke:#333,stroke-width:4px;
+    classDef visited fill:#9f9,stroke:#333,stroke-width:2px;
+    classDef queued fill:#bbf,stroke:#333,stroke-width:2px;
+    classDef empty fill:#fff,stroke:#fff,stroke-width:0px;
+    
+    class 1 visited;
+    class 2 queued;
+    class 3 queued;
+    class x empty;
+```
+
+Step 2: We process 1, add it to our result, and enqueue its children (2, 3).
+- Queue: [2, 3]
+- Result: [1]
+
 ## Why is BFS Important? 💡
 
 BFS is a fundamental algorithm with many real-world applications:
@@ -59,6 +133,24 @@ BFS is a fundamental algorithm with many real-world applications:
 
 > [!TIP]
 > BFS is particularly useful when you need to find the shortest path between two points in an unweighted graph or when you need to process nodes level by level.
+
+## Interactive Learning Check ✅
+
+<details>
+<summary>What data structure is essential for implementing BFS?</summary>
+
+**Queue** - A queue follows the First-In-First-Out (FIFO) principle, which ensures that nodes are processed in the order they are discovered, level by level.
+</details>
+
+<details>
+<summary>Why might BFS be preferred over DFS in some situations?</summary>
+
+BFS is preferred when:
+- You need to find the shortest path in an unweighted graph
+- You need to process nodes level by level
+- The solution is likely to be closer to the starting point
+- You need to find all nodes at a certain distance from the start
+</details>
 
 ## What's Coming Next? 🚀
 

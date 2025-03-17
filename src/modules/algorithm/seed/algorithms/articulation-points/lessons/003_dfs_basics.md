@@ -91,6 +91,38 @@ In the diagram above:
 - Solid green arrows (==>) represent tree edges
 - Dashed red lines (-.>) represent back edges
 
+## Why DFS Reveals Articulation Points: A Simple Example
+
+Consider this graph:
+
+```mermaid
+graph TD;
+    A((1)) --- B((2));
+    B --- C((3));
+    C --- D((4));
+    D --- B;
+```
+
+When we run DFS starting from vertex 1, we create this DFS tree:
+
+```mermaid
+graph TD;
+    A((1)) ==> B((2));
+    B ==> C((3));
+    C ==> D((4));
+    D -.-> B;
+    
+    linkStyle 0,1,2 stroke:#0f0,stroke-width:2px;
+    linkStyle 3 stroke:#f00,stroke-width:2px,stroke-dasharray: 5 5;
+```
+
+Notice how vertex 2 has a special property: it's the gateway to the cycle formed by 2-3-4. If we remove vertex 2, we disconnect the graph. DFS helps us discover this by revealing:
+
+1. The parent-child structure (who can reach whom directly)
+2. The back edges (alternative paths that bypass certain vertices)
+
+Together, these tell us whether removing a vertex would disconnect the graph.
+
 ## Why DFS for Articulation Points? 🎯
 
 DFS is perfect for finding articulation points because:
@@ -110,6 +142,22 @@ For finding articulation points, we need to enhance our basic DFS with:
 2. **Low Value**: The earliest discovered vertex reachable from the subtree rooted at the current vertex
 3. **Parent Tracking**: To identify the parent of each vertex in the DFS tree
 
+## Checkpoint: DFS and Articulation Points So Far
+
+Let's consolidate what we've learned:
+
+1. DFS creates a **tree structure** as it explores the graph
+2. This tree has **parent-child** relationships
+3. **Back edges** create cycles and represent alternative paths
+4. A vertex is an articulation point if removing it breaks these paths
+
+In the next lesson, we'll develop a systematic way to identify these points using the concepts of discovery time and low value. But first, make sure you understand:
+- How DFS traverses a graph
+- What a DFS tree shows us
+- What back edges represent
+
+If these concepts are clear, you're ready to proceed!
+
 ## Think About It 🧠
 
 <details>
@@ -122,6 +170,12 @@ BFS doesn't naturally create the parent-child relationships and tree structure t
 <summary>What's the significance of back edges in finding articulation points?</summary>
 
 Back edges represent alternative paths in the graph. If a vertex has a back edge to an ancestor, it means there's a way to reach that ancestor without going through the vertex's parent. This is crucial for determining if the parent is an articulation point.
+</details>
+
+<details>
+<summary>How do tree edges and back edges help us identify articulation points?</summary>
+
+Tree edges form the backbone of our traversal and establish parent-child relationships. Back edges tell us about alternative paths that might exist to reach ancestors. A vertex is an articulation point if removing it would cut off these paths—specifically, if there's a subtree that cannot reach ancestors except through this vertex.
 </details>
 
 In the next lesson, we'll dive into the key concepts of discovery time and low value, which are essential for our articulation points algorithm! 

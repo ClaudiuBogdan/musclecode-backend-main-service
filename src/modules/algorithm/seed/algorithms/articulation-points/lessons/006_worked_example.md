@@ -7,6 +7,24 @@ title: A Complete Worked Example
 > [!NOTE]
 > Let's solidify our understanding by walking through a complete example step by step.
 
+## Algorithm Flow Overview
+
+Before we dive into the details, here's a high-level view of how the algorithm will process our example:
+
+```mermaid
+graph TD;
+    A[Start DFS from vertex 0] --> B[Build DFS tree with discovery times];
+    B --> C[Track back edges];
+    C --> D[Calculate low values];
+    D --> E[Identify articulation points];
+    
+    style B fill:#f9f;
+    style D fill:#f9f;
+    style E fill:#f9f;
+```
+
+The highlighted steps are where the key insights happen. Now let's walk through each step in detail.
+
 ## Our Example Graph 📊
 
 We'll work with a slightly more complex graph to illustrate all aspects of the algorithm:
@@ -38,6 +56,38 @@ graph = [
     [5, 6]      # Neighbors of vertex 7
 ]
 ```
+
+## The Critical Role of Back Edges
+
+Let's focus specifically on the back edges in our example and how they affect low values:
+
+```mermaid
+graph TD;
+    A((0<br>disc=0)) --- B((1<br>disc=1));
+    B --- C((2<br>disc=2));
+    C --- D((3<br>disc=3));
+    D --- E((4<br>disc=4));
+    E -.-> C;
+    B --- F((5<br>disc=5));
+    F --- G((6<br>disc=6));
+    G --- H((7<br>disc=7));
+    H -.-> F;
+    
+    linkStyle 4,8 stroke:#f00,stroke-width:3px,stroke-dasharray: 5 5;
+```
+
+The back edge E→C (4→2) means:
+- Vertex 4 can reach vertex 2 without going through vertex 3
+- This updates low[4] = 2
+- This propagates up to vertex 3, setting low[3] = 2
+- Since low[3] = disc[2], vertex 2 is NOT an articulation point
+
+Similarly, the back edge H→F (7→5) means:
+- Vertex 7 can reach vertex 5 without going through vertex 6
+- This updates low[7] = 5, and then low[6] = 5
+- Since low[6] = disc[5], vertex 5 IS an articulation point
+
+This shows how back edges are crucial in determining which vertices are articulation points.
 
 ## Step-by-Step Execution 🚶‍♂️
 
@@ -346,6 +396,12 @@ The DFS tree would be different, but we would still identify the same articulati
 <summary>How would the algorithm behave on a complete graph (where every vertex is connected to every other vertex)?</summary>
 
 In a complete graph, there are no articulation points. This is because removing any single vertex still leaves all other vertices connected to each other. The algorithm would correctly return an empty list.
+</details>
+
+<details>
+<summary>What's the relationship between the back edges and the cycles in the graph?</summary>
+
+Back edges create cycles in the graph. Every cycle in an undirected graph will have at least one back edge when represented as a DFS tree. These cycles are crucial for determining articulation points, as they provide alternative paths between vertices. A vertex that's part of a cycle might not be an articulation point if removing it doesn't break the cycle's connectivity.
 </details>
 
 In the next lesson, we'll explore some real-world applications of articulation points! 

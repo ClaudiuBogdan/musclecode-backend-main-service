@@ -6,6 +6,18 @@ title: Search - Finding Nodes in an AVL Tree
 
 Searching in an AVL tree is identical to searching in a regular binary search tree. The self-balancing property of AVL trees ensures that the search operation is always efficient, with a guaranteed time complexity of O(log n).
 
+## The Dictionary Analogy 📚
+
+Searching in an AVL tree is like finding a word in a dictionary using a divide-and-conquer approach:
+
+1. Open the dictionary roughly in the middle
+2. Is your word before or after this page?
+   - If before, look in the first half
+   - If after, look in the second half
+3. Repeat until you find your word
+
+This binary search approach is extremely efficient. For a dictionary with 1,000,000 words, you'll find any word in at most 20 steps!
+
 ## The Search Process 🕵️
 
 The search process in an AVL tree is straightforward:
@@ -16,6 +28,33 @@ The search process in an AVL tree is straightforward:
    - If the target value is less than the current node's value, search in the left subtree.
    - If the target value is greater than the current node's value, search in the right subtree.
 3. If we reach a null node, the target value is not in the tree.
+
+## Visualizing the Search Process
+
+```
+Step 1: Start at root (50)
+                50
+              /    \
+            30      70
+           /  \    /  \
+         20   40  60   80
+
+Step 2: Search for 60 (60 > 50, go right)
+                50
+              /    \
+            30     [70]
+           /  \    /  \
+         20   40  60   80
+
+Step 3: Search for 60 (60 < 70, go left)
+                50
+              /    \
+            30      70
+           /  \    /  \
+         20   40 [60]  80
+
+Step 4: Found 60!
+```
 
 ## Implementation 💻
 
@@ -93,6 +132,24 @@ graph TD;
     style D fill:#dfd,stroke:#333,stroke-width:2px
 ```
 
+## Search Performance Visualization 📊
+
+Let's visualize why AVL trees provide such efficient search operations:
+
+### Binary Search Performance (Node Comparisons)
+```
+Number of nodes | Max comparisons needed
+-------------------------------------
+10             | 4
+100            | 7
+1,000          | 10
+10,000         | 14
+100,000        | 17
+1,000,000      | 20
+```
+
+In a balanced tree like an AVL tree, the number of comparisons grows very slowly as the number of nodes increases!
+
 ## Search Time Complexity ⏱️
 
 - **Time Complexity**: O(log n) - In the worst case, we need to traverse the height of the tree, which is guaranteed to be logarithmic in an AVL tree.
@@ -131,7 +188,31 @@ Consider these two trees with the same elements:
 In the unbalanced BST, searching for 50 requires traversing all 5 nodes, while in the AVL tree, it only requires traversing 3 nodes.
 
 > [!NOTE]
-> This difference becomes even more significant as the number of elements increases. For a tree with 1,000 elements, an unbalanced BST might require up to 1,000 comparisons in the worst case, while an AVL tree would require at most 10 comparisons.
+> This difference becomes even more significant as the number of elements increases. For a tree with 1,000,000 elements, an unbalanced BST might require up to 1,000,000 comparisons in the worst case, while an AVL tree would require at most 20 comparisons.
+
+## Handling Search Edge Cases 🧪
+
+### Empty Tree
+
+If the tree is empty, the search operation will return null:
+
+```javascript
+// Search in an empty tree
+if (!this.root) return null;
+```
+
+### Not Found
+
+If the value is not found in the tree, the search operation will also return null:
+
+```javascript
+// Value not found
+return null;
+```
+
+### Duplicate Values
+
+If the tree allows duplicate values (stored in the right subtree, for example), the search operation will find the first occurrence of the value.
 
 ## Practice Exercise 💪
 
@@ -147,7 +228,7 @@ Consider the following AVL tree:
  10       65
 ```
 
-Trace through the search process for the following values:
+Trace through the search process for the following values, noting each comparison made:
 1. 40
 2. 65
 3. 90
@@ -160,6 +241,7 @@ Trace through the search process for the following values:
    - 40 < 50, so move to the left child (30).
    - 40 > 30, so move to the right child (40).
    - 40 === 40, so we've found the node.
+   - Total comparisons: 3
 
 2. Searching for 65:
    - Start at the root (50).
@@ -167,12 +249,50 @@ Trace through the search process for the following values:
    - 65 < 70, so move to the left child (60).
    - 65 > 60, so move to the right child (65).
    - 65 === 65, so we've found the node.
+   - Total comparisons: 4
 
 3. Searching for 90:
    - Start at the root (50).
    - 90 > 50, so move to the right child (70).
    - 90 > 70, so move to the right child (80).
    - 90 > 80, but there's no right child, so 90 is not in the tree.
+   - Total comparisons: 3
+
+</details>
+
+## Interactive Search Challenge 🎮
+
+Try to predict the path and number of comparisons needed to find these values in the tree below:
+
+```
+           100
+         /     \
+       50      150
+      /  \     /  \
+    25    75  125  175
+   / \   /    /    / \
+  15 30 60   110  160 200
+```
+
+1. Search for 75: ______
+2. Search for 160: ______
+3. Search for 110: ______
+4. Search for 120: ______
+
+<details>
+<summary>Check your answers</summary>
+
+1. Search for 75:
+   - Path: 100 → 50 → 75 (3 comparisons)
+
+2. Search for 160:
+   - Path: 100 → 150 → 175 → 160 (4 comparisons)
+
+3. Search for 110:
+   - Path: 100 → 150 → 125 → 110 (4 comparisons)
+
+4. Search for 120:
+   - Path: 100 → 150 → 125 → 110 → null (Not found, 4 comparisons)
 
 </details>
 
@@ -259,5 +379,14 @@ findSuccessor(node) {
 ```
 
 </details>
+
+## Knowledge Check ✅
+
+Before moving on, make sure you understand:
+
+1. Why is searching in an AVL tree more efficient than in an unbalanced BST?
+2. What is the maximum number of comparisons needed to find a value in an AVL tree with 1 million nodes?
+3. When would you use the recursive search implementation versus the iterative one?
+4. How would you modify the search function to find all occurrences of a value if duplicates are allowed?
 
 In the next section, we'll explore the deletion operation in AVL trees, which is more complex than insertion and search as it requires additional steps to maintain balance. 

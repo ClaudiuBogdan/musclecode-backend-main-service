@@ -22,18 +22,19 @@ The `get` and `set` methods are remarkably simple:
 
 ```javascript
 get(index) {
-  if (index >= 0 && index < this.size) {
-    return this.data[index];
+  if (index < 0 || index >= this.size) {
+    throw new Error("Index out of bounds");
   }
-  return undefined; // Or throw an error
+  return this.data[index];
 }
 
 set(index, element) {
-  if (index >= 0 && index < this.size) {
-    this.data[index] = element;
-    return true;
+  if (index < 0 || index >= this.size) {
+    throw new Error("Index out of bounds");
   }
-  return false; // Or throw an error
+  const oldValue = this.data[index]; // Optional: save for returning
+  this.data[index] = element;
+  return oldValue; // Optional: return the replaced value
 }
 ```
 
@@ -41,16 +42,29 @@ These methods:
 1. Check if the index is valid
 2. Directly access or modify the element at that index in the internal array
 
-## ⏱️ Time Complexity Analysis
+## ⏱️ Performance Comparison with Other Data Structures
 
-Both accessing and modifying elements in an ArrayList have:
+Let's compare the access time of ArrayLists with other common data structures:
 
-- **Time Complexity**: O(1) - constant time
+| Operation | ArrayList | LinkedList | HashMap | Tree |
+|-----------|-----------|------------|---------|------|
+| Access by index | O(1) ⭐ | O(n) | N/A | N/A |
+| Access first element | O(1) | O(1) | N/A | O(log n) |
+| Access last element | O(1) | O(1)* | N/A | O(log n) |
+| Find by value | O(n) | O(n) | O(1) ⭐ | O(log n) |
 
-This is because ArrayLists store elements in contiguous memory locations, allowing direct calculation of each element's address.
+*O(1) for doubly-linked lists with tail pointers, otherwise O(n)
 
-> [!NOTE]
-> This O(1) access time is a major advantage of ArrayLists over other data structures like LinkedLists, which require O(n) time to access arbitrary elements.
+```mermaid
+graph TD
+    A["Access Element at Index 500"] --> B["ArrayList"]
+    A --> C["LinkedList"]
+    
+    B --> D["Direct calculation:<br>baseAddress + (index * elementSize)<br>Time: O(1) ⭐"]
+    C --> E["Sequential traversal:<br>follow 500 pointers<br>Time: O(n) ❌"]
+```
+
+This O(1) access time is a major advantage of ArrayLists over other data structures like LinkedLists, which require O(n) time to access arbitrary elements.
 
 ## 🔄 Common Access Patterns
 
@@ -59,9 +73,18 @@ This is because ArrayLists store elements in contiguous memory locations, allowi
 Iterating through all elements in order:
 
 ```javascript
+// Standard for loop - most efficient for ArrayLists
 for (let i = 0; i < arrayList.size(); i++) {
   console.log(arrayList.get(i));
 }
+
+// For-of loop (if supported by your implementation)
+for (const element of arrayList) {
+  console.log(element);
+}
+
+// Using forEach (if available)
+arrayList.forEach(element => console.log(element));
 ```
 
 ### 2️⃣ Random Access
@@ -77,6 +100,9 @@ const last = arrayList.get(arrayList.size() - 1);
 
 // Get an element in the middle
 const middle = arrayList.get(Math.floor(arrayList.size() / 2));
+
+// Get elements at specific indices
+const important = arrayList.get(importantIndex);
 ```
 
 ### 3️⃣ Modifying Elements
@@ -87,6 +113,13 @@ Changing the value of existing elements:
 // Double all values in the list
 for (let i = 0; i < arrayList.size(); i++) {
   arrayList.set(i, arrayList.get(i) * 2);
+}
+
+// Capitalize strings
+for (let i = 0; i < arrayList.size(); i++) {
+  if (typeof arrayList.get(i) === 'string') {
+    arrayList.set(i, arrayList.get(i).toUpperCase());
+  }
 }
 ```
 
@@ -105,6 +138,16 @@ function indexOf(arrayList, value) {
   }
   return -1; // Return -1 if not found
 }
+
+// For objects or custom equality
+function findIndexOf(arrayList, predicate) {
+  for (let i = 0; i < arrayList.size(); i++) {
+    if (predicate(arrayList.get(i))) {
+      return i;
+    }
+  }
+  return -1;
+}
 ```
 
 ### Transforming Elements
@@ -121,6 +164,55 @@ function transform(arrayList, transformFn) {
 // Example usage:
 transform(numberList, x => x * x); // Square all numbers
 ```
+
+### Batch Operations
+
+For improved performance, consider batching operations:
+
+```javascript
+// Less efficient: many individual get/set operations
+for (let i = 0; i < arrayList.size(); i++) {
+  let value = arrayList.get(i);
+  value = process(value);
+  arrayList.set(i, value);
+}
+
+// More efficient: minimize method calls
+function batchProcess(arrayList, processFn) {
+  // Get direct access to underlying array if possible
+  const data = arrayList.getInternalArray();
+  const size = arrayList.size();
+  
+  for (let i = 0; i < size; i++) {
+    data[i] = processFn(data[i]);
+  }
+}
+```
+
+## 🧠 Performance Optimization Tips
+
+1. **Prefer sequential access** when processing all elements - the CPU can better optimize for predictable memory access patterns
+
+2. **Cache frequently accessed elements** rather than repeatedly calling `get()`
+
+   ```javascript
+   // Less efficient
+   for (let i = 0; i < 100; i++) {
+     doSomething(arrayList.get(mostUsedIndex));
+   }
+   
+   // More efficient
+   const mostUsedElement = arrayList.get(mostUsedIndex);
+   for (let i = 0; i < 100; i++) {
+     doSomething(mostUsedElement);
+   }
+   ```
+
+3. **Use bulk operations** when available rather than element-by-element processing
+
+4. **Consider array access patterns** for better CPU cache utilization - traversing in order is faster than random jumps
+
+5. **Be cautious with nested loops** over the same ArrayList - they can lead to O(n²) complexity
 
 ## 🧠 Boundary Conditions
 
@@ -160,6 +252,34 @@ This function:
 3. Compares each subsequent element to the current maximum
 4. Updates the maximum if a larger value is found
 
+## 🌍 Language-Specific Access Features
+
+Different languages offer various ways to access and modify elements:
+
+```java
+// Java
+String element = list.get(5);
+list.set(5, "new value");
+```
+
+```python
+# Python
+element = my_list[5]  # Pythonic indexing syntax
+my_list[5] = "new value"
+```
+
+```javascript
+// JavaScript
+element = array[5];  // Direct array access
+array[5] = "new value";
+```
+
+```csharp
+// C#
+string element = list[5];  // Indexer syntax
+list[5] = "new value";
+```
+
 ## 🧠 Practice Exercise
 
 <details>
@@ -181,6 +301,25 @@ function isSorted(arrayList) {
 ```
 
 This function checks each adjacent pair of elements to ensure they're in ascending order. If any pair is out of order, it returns false. Otherwise, it returns true.
+
+An optimized version might look like:
+
+```javascript
+function isSorted(arrayList) {
+  const size = arrayList.size();
+  if (size <= 1) return true;
+  
+  // Get direct access to array if implementation allows
+  const data = arrayList.getInternalArray();
+  
+  for (let i = 0; i < size - 1; i++) {
+    if (data[i] > data[i + 1]) return false;
+  }
+  return true;
+}
+```
+
+This optimized version reduces method calls for better performance with large lists.
 </details>
 
 ## 🎯 Key Takeaways
@@ -190,5 +329,7 @@ This function checks each adjacent pair of elements to ensure they're in ascendi
 - Always validate indices to avoid out-of-bounds errors
 - Sequential access patterns are common and efficient with ArrayLists
 - Finding elements by value requires O(n) time as you need to check each element
+- Consider performance optimization techniques for large lists
+- Different languages provide various syntactic conveniences for element access
 
 In the next lesson, we'll explore common algorithms and patterns used with ArrayLists. 

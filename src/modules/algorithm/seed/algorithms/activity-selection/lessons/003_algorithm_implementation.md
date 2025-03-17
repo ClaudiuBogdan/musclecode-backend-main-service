@@ -39,6 +39,57 @@ function ActivitySelection(activities):
     return selectedActivities
 ```
 
+## 🐞 Common Implementation Bugs
+
+When coding this algorithm, watch out for these common mistakes:
+
+### 1. Off-by-one Errors
+```javascript
+// Bug: Starting from index 0 instead of 1 when you've already selected the first activity
+for (let i = 0; i < activities.length; i++) {
+  // This will compare the first activity with itself
+}
+
+// Fixed: Start from index 1 if you've already selected activities[0]
+for (let i = 1; i < activities.length; i++) {
+  // Correct comparison
+}
+```
+
+### 2. Incorrect Sorting
+```javascript
+// Bug: Sorting by start time
+activities.sort((a, b) => a.start - b.start);
+
+// Fixed: Sort by finish time
+activities.sort((a, b) => a.end - b.end);
+```
+
+### 3. Forgetting Empty Input Check
+```javascript
+// Bug: Will crash on empty input
+const selectedActivities = [activities[0]];
+
+// Fixed: Check for empty input first
+if (activities.length === 0) {
+  return [];
+}
+const selectedActivities = [activities[0]];
+```
+
+### 4. Wrong Overlap Condition
+```javascript
+// Bug: Using strict inequality
+if (activities[i].start > lastSelected.end) {
+  // This won't select activities that start exactly when the last one ends
+}
+
+// Fixed: Use >= to include activities that start exactly when the last one ends
+if (activities[i].start >= lastSelected.end) {
+  // Correctly selects non-overlapping activities
+}
+```
+
 ## 🔄 Tracing the Algorithm
 
 Let's trace through our example step by step:
@@ -101,6 +152,37 @@ function RecursiveActivitySelection(activities, n, k):
     // Recursive call
     return result + RecursiveActivitySelection(activities, n, next)
 ```
+
+## 📊 Visualizing the Recursive Approach
+
+Let's visualize how the recursive solution works:
+
+```
+                                   RecursiveActivitySelection(A,B,C,D,E,F, k=0)
+                                                     |
+                                                     | (Select A)
+                                                     v
+                                   RecursiveActivitySelection(A,B,C,D,E,F, k=3)
+                                                     |
+                                                     | (Select D)
+                                                     v
+                                   RecursiveActivitySelection(A,B,C,D,E,F, k=5)
+                                                     |
+                                                     | (Select F)
+                                                     v
+                                   RecursiveActivitySelection(A,B,C,D,E,F, k=6)
+                                                     |
+                                                     | (Base case: k >= n)
+                                                     v
+                                                  []
+```
+
+The recursion tree shows how the algorithm:
+1. Selects activity A (index 0)
+2. Finds the next compatible activity D (index 3)
+3. Finds the next compatible activity F (index 5)
+4. Reaches the base case when there are no more activities to consider
+5. Builds the result [A, D, F] by combining selections as it unwinds the recursion
 
 📌 **Note**: Both the iterative and recursive approaches give the same result, but the iterative approach is generally more efficient in terms of space complexity.
 

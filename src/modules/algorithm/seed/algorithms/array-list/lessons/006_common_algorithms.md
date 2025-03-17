@@ -97,20 +97,47 @@ function binarySearch(sortedList, target) {
 }
 ```
 
+### Binary Search Step-by-Step Visualization
+
+Let's walk through the binary search process for finding the value 45 in a sorted ArrayList:
+
+```
+Initial Array: [10, 20, 30, 40, 50, 60, 70, 80, 90]
+Target: 45
+
+Step 1: left=0, right=8, mid=4
+        Compare: 50 > 45 ❌
+        Search left half: right = mid-1 = 3
+        
+Step 2: left=0, right=3, mid=1
+        Compare: 20 < 45 ❌
+        Search right half: left = mid+1 = 2
+        
+Step 3: left=2, right=3, mid=2
+        Compare: 30 < 45 ❌
+        Search right half: left = mid+1 = 3
+        
+Step 4: left=3, right=3, mid=3
+        Compare: 40 < 45 ❌
+        Search right half: left = mid+1 = 4
+        
+Step 5: left=4, right=3 ⛔
+        Since left > right, the target is not in the array
+        Return -1
+```
+
 ```mermaid
 graph TD
-    A["Sorted ArrayList [10, 20, 30, 40, 50, 60, 70]"] --> B["Search for 40"]
-    B --> C["Check middle: 40 == 40?"]
-    C -->|"Yes"| D["Return index 3"]
-    
-    E["Sorted ArrayList [10, 20, 30, 40, 50, 60, 70]"] --> F["Search for 45"]
-    F --> G["Check middle: 40 < 45?"]
-    G -->|"Yes"| H["Search right half: [50, 60, 70]"]
-    H --> I["Check middle: 60 > 45?"]
-    I -->|"Yes"| J["Search left half: [50]"]
-    J --> K["Check: 50 > 45?"]
-    K -->|"Yes"| L["No more elements to check"]
-    L --> M["Return -1 (not found)"]
+    A["Sorted ArrayList [10, 20, 30, 40, 50, 60, 70, 80, 90]"] --> B["Search for 45"]
+    B --> C["Check middle: array[4] = 50 > 45?"]
+    C -->|"Yes"| D["Search left half: [10, 20, 30, 40]"]
+    D --> E["Check middle: array[1] = 20 < 45?"]
+    E -->|"Yes"| F["Search right half: [30, 40]"]
+    F --> G["Check middle: array[2] = 30 < 45?"]
+    G -->|"Yes"| H["Search right half: [40]"]
+    H --> I["Check middle: array[3] = 40 < 45?"]
+    I -->|"Yes"| J["Search right half: [], but no more elements"]
+    J --> K["Return -1 (not found)"]
 ```
 
 > [!TIP]
@@ -165,7 +192,18 @@ function reduce(arrayList, reducerFn, initialValue) {
 
 ## 🔄 Sorting Algorithms
 
-While there are many sorting algorithms, here are two common ones used with ArrayLists:
+While there are many sorting algorithms, here are some common ones used with ArrayLists:
+
+### Sorting Algorithm Comparison
+
+| Algorithm | Average Time | Worst Time | Space | Stable | Adaptive | Notes |
+|-----------|--------------|------------|-------|--------|----------|-------|
+| Selection Sort | O(n²) | O(n²) | O(1) | No | No | Simple but inefficient |
+| Insertion Sort | O(n²) | O(n²) | O(1) | Yes | Yes | Good for small or nearly sorted lists |
+| Merge Sort | O(n log n) | O(n log n) | O(n) | Yes | No | Consistent performance |
+| Quick Sort | O(n log n) | O(n²) | O(log n) | No | No | Often fastest in practice |
+| Heap Sort | O(n log n) | O(n log n) | O(1) | No | No | In-place with guaranteed performance |
+| Tim Sort | O(n log n) | O(n log n) | O(n) | Yes | Yes | Used in many language libraries |
 
 ### Selection Sort
 

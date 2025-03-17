@@ -46,6 +46,32 @@ A* maintains two lists to keep track of nodes:
 - The closed list helps prevent cycles and redundant work
 - A node moves from the open list to the closed list after all its neighbors have been examined
 
+### Visualizing Open and Closed Lists
+
+Let's visualize the open and closed lists after a few steps of A* on our example grid:
+
+```
+S → . → .  #  .
+↓   #  ↑   .  .
+.   #  .   #  .
+.   .  .   #  .
+.   #  .   .  G
+```
+
+After exploring nodes (0,0), (0,1), and (1,0):
+
+```
+Open List: [(0,2), (2,0)]
+Closed List: [(0,0), (0,1), (1,0)]
+
+Grid Visualization:
+C C O # .    C = Closed List
+C # . . .    O = Open List
+O # . # .    . = Unexplored
+. . . # .
+. # . . G
+```
+
 ## 3. Node Properties 📊
 
 Each node in A* carries several important pieces of information:
@@ -65,6 +91,17 @@ The sum of g(n) and h(n), representing the estimated total path cost through thi
 ### Parent Node
 A reference to the node that led to this one, used to reconstruct the path once the goal is reached.
 
+### Node Example
+
+Let's examine the properties of node (0,2) in our grid:
+```
+Position: (0,2)
+g-value: 2 (cost to reach from start: (0,0) → (0,1) → (0,2))
+h-value: 6 (Manhattan distance to goal: |0-4| + |2-4| = 6)
+f-value: 8 (g + h = 2 + 6)
+Parent: Node (0,1)
+```
+
 ## 4. Neighbors and Successors 🔄
 
 For each node, A* needs to know which other nodes can be reached directly from it:
@@ -73,37 +110,96 @@ For each node, A* needs to know which other nodes can be reached directly from i
 - In a graph, neighbors are nodes connected by edges
 - Each connection may have a cost (e.g., moving diagonally might cost more than moving horizontally/vertically)
 
+### Example Neighbor Generation
+
+For a node at position (1,2) in our grid, the neighbors (assuming 4-directional movement) would be:
+```
+. . . . .
+. . N . .    N = Potential neighbors
+. N C N .    C = Current node (1,2)
+. . N . .    # = Obstacle (not a valid neighbor)
+. . . . .
+
+Valid neighbors: (0,2), (1,1), (1,3), (2,2)
+After filtering obstacles: (0,2), (1,3), (2,2)  (since (1,1) is an obstacle)
+```
+
 ## 5. Path Reconstruction 🗺️
 
 Once A* reaches the goal, it uses the parent references to trace back the path from the goal to the start.
 
-![Path Reconstruction](https://assets.interviewbit.com/assets/skill_interview_questions/data-structures/path-finding/path-reconstruction-animation-c3c65e39e15c1e70063f30c05ba9b0a00a77f4d5b3a6b0bbde3a73bf8c13af28.gif)
-
-## Visual Representation
-
-Here's how we might visualize these components during execution:
+### Path Reconstruction Visualization
 
 ```
-Open List:   [B (f=8), C (f=10), D (f=12)]  // Sorted by f-value
-Closed List: [A, E, F]
+Step 1: Start at the goal node G (4,4)
+Step 2: Follow parent references backward
+           ┌───┐
+G → (4,3) → (3,3) → (2,3) → (2,2) → (1,2) → (0,2) → (0,1) → (0,0) → S
+           └───┘
 
-Current State:
-A  B  C
-D  E  F
-G  H  I
-
-Where:
-- 'A' is the start node
-- 'I' is the goal node
-- Node 'E' is being explored
-- Bold nodes are in the closed list
-- Italicized nodes are in the open list
+Final path: S → (0,1) → (0,2) → (1,2) → (2,2) → (2,3) → (3,3) → (4,3) → G
 ```
 
-💡 **Tip**: When implementing A*, it's helpful to use efficient data structures:
-- A min-heap or priority queue for the open list
-- A hash set or hash map for the closed list
+## Data Structure Efficiency 🚀
 
-❓ **Think about it**: Why might a priority queue be more efficient than a regular list for the open list? What operations need to be fast for A* to work efficiently?
+The choice of data structures significantly impacts A*'s performance:
+
+### Priority Queue for the Open List
+
+A priority queue allows us to efficiently find the node with the lowest f-value in O(log n) time instead of O(n) time with a regular list. This is critical because:
+
+```
+// With regular list (inefficient)
+let bestNodeIndex = 0;
+for (let i = 1; i < openList.length; i++) {
+  if (openList[i].f < openList[bestNodeIndex].f) {
+    bestNodeIndex = i;
+  }
+}
+// Time complexity: O(n) for each node expanded
+
+// With priority queue (efficient)
+const nextNode = priorityQueue.extractMin();
+// Time complexity: O(log n) for each node expanded
+```
+
+For complex pathfinding problems with thousands of nodes, this difference is dramatic!
+
+### Hash Map for the Closed List
+
+Using a hash map for the closed list enables O(1) lookups instead of O(n) linear searches:
+
+```
+// With array (inefficient)
+function isInClosedList(node) {
+  for (let i = 0; i < closedList.length; i++) {
+    if (closedList[i].equals(node)) return true;
+  }
+  return false;
+}
+// Time complexity: O(n)
+
+// With hash map (efficient)
+function isInClosedList(node) {
+  const key = `${node.position.x},${node.position.y}`;
+  return closedMap.has(key);
+}
+// Time complexity: O(1)
+```
+
+## Connecting to Heuristics 🧩
+
+Remember our discussion of heuristics from the previous lesson? Here's how they directly feed into A*'s decision-making process:
+
+1. The **g-value** represents the actual path cost so far
+2. The **h-value** is calculated using one of our heuristic functions (Manhattan, Euclidean, etc.)
+3. The **f-value** combines these to prioritize which nodes to explore next
+
+A* always selects the node with the lowest f-value from the open list, which means:
+- Nodes with low g-values (close to the start) are favored by Dijkstra's approach
+- Nodes with low h-values (close to the goal) are favored by the greedy approach
+- A* naturally balances these priorities based on the situation
+
+❓ **Think about it**: How might the data structure choices change if we were pathfinding in an extremely large game world with millions of nodes? What if memory was very limited?
 
 In the next section, we'll walk through the actual steps of the A* algorithm and see how these components work together!

@@ -1,7 +1,6 @@
 ---
-title: Building Blocks: Binary Tree Structure
+title: "Building Blocks: Binary Tree Structure"
 ---
-
 # 🧩 Binary Tree Structure and Representation
 
 Before diving into traversal algorithms, let's understand how binary trees are represented in code and their fundamental structure.
