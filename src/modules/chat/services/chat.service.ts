@@ -148,6 +148,8 @@ export class ChatService {
         timestamp: message.timestamp,
         role: message.role,
         parentId: message.parentId,
+        context: message.context,
+        commands: message.commands,
       })),
     };
   }

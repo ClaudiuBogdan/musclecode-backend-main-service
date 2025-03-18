@@ -7,6 +7,8 @@ import {
 } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
+import { MessageContextDto } from './thread.dto';
+import { MessageCommandDto } from './thread.dto';
 
 export class CreateThreadDto {
   @ApiProperty({
@@ -14,71 +16,6 @@ export class CreateThreadDto {
   })
   @IsString()
   algorithmId: string;
-}
-
-export class ContextFileDto {
-  @ApiProperty({
-    description: 'Name of the file',
-  })
-  @IsString()
-  name: string;
-
-  @ApiProperty({
-    description: 'Description of the file',
-  })
-  @IsString()
-  description: string;
-
-  @ApiProperty({
-    description: 'Content of the file',
-  })
-  @IsString()
-  content: string;
-}
-
-export class MessageCommandDto {
-  @ApiProperty({
-    description: 'Name of the command',
-  })
-  @IsString()
-  name: string;
-
-  @ApiProperty({
-    description: 'Description of the command',
-  })
-  @IsString()
-  description: string;
-
-  @ApiProperty({
-    description: 'Command to execute',
-  })
-  @IsString()
-  command: string;
-
-  @ApiProperty({
-    description: 'Prompt to execute the command',
-  })
-  @IsString()
-  prompt: string;
-}
-
-export class MessageContextDto {
-  @ApiPropertyOptional({
-    description: 'Prompt used for the message',
-  })
-  @IsString()
-  @IsOptional()
-  prompt?: 'hint-prompt';
-
-  @ApiPropertyOptional({
-    description: 'Files used as context for the message',
-    type: [ContextFileDto],
-  })
-  @IsOptional()
-  @IsArray()
-  @ValidateNested({ each: true })
-  @Type(() => ContextFileDto)
-  files?: ContextFileDto[];
 }
 
 export class SendMessageDto {
