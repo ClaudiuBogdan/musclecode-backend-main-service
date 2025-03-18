@@ -1,117 +1,108 @@
 ---
-title: Basic Queue Operations
+title: Queue Operations and Principles
 ---
 
-# 🔄 Basic Queue Operations
+# 🔄 Core Queue Operations
 
-A queue supports several core operations that enable it to function as a First-In-First-Out (FIFO) data structure. Let's understand each operation and its purpose.
+Every queue implementation supports these fundamental operations:
 
-## 📋 Core Queue Operations
+### Enqueue 🔼
 
-### 1. **Enqueue** 🔼
-
-The enqueue operation adds an element to the rear (back) of the queue.
+Adds an element to the rear (back) of the queue.
 
 ```mermaid
 graph LR
-    A[10] --> B[20] --> C[30]
-    D[40] -. Enqueue .-> C
+    A[^10] --> B[^20] --> C[^30]
+    D[^40] -. Enqueue .-> C
 ```
 
-> [!TIP]
-> Think of enqueue as joining the end of a line at a ticket counter. You always go to the back of the line!
+### Dequeue 🔽
 
-### 2. **Dequeue** 🔽
-
-The dequeue operation removes and returns the element at the front of the queue.
+Removes and returns the element from the front of the queue.
 
 ```mermaid
 graph LR
-    A[10] --> B[20] --> C[30]
-    A -. Dequeue .-> D[Removed]
+    A[^10] --> B[^20] --> C[^30]
+    A -. Dequeue .-> D[Removed: 10]
 ```
 
-> [!TIP]
-> Dequeue is like being served at the ticket counter - once you're done, you leave the front of the line.
+### Peek 👀
 
-### 3. **Peek** 👀
-
-The peek operation returns the element at the front of the queue without removing it.
+Returns the element at the front without removing it.
 
 ```mermaid
 graph LR
-    A[10] --> B[20] --> C[30]
+    A[^10] --> B[^20] --> C[^30]
     A -. Peek .-> D[View: 10]
 ```
 
-> [!NOTE]
-> Peeking lets you see who's next in line without actually serving them.
+## 📏 Helper Operations
 
-### 4. **isEmpty** 🤔
-
-Checks if the queue has no elements.
+These additional operations help manage the queue:
 
 ```js
+// Check if queue is empty
 isEmpty() {
-  // Returns true if the queue contains no elements
   return this.count === 0;
 }
-```
 
-### 5. **isFull** 📏
-
-Checks if the queue has reached its maximum capacity (for bounded queues).
-
-```js
+// Check if queue is full (for bounded queues)
 isFull() {
-  // Returns true if the queue is at maximum capacity
   return this.count === this.capacity;
 }
-```
 
-### 6. **size** 📊
-
-Returns the current number of elements in the queue.
-
-```js
+// Get the number of elements
 size() {
-  // Returns the number of elements in the queue
   return this.count;
 }
 ```
 
-## 🚦 Queue State Transitions
+## 🚦 Queue States
 
-As we perform operations on a queue, it transitions between different states:
+A queue can exist in several states:
 
-1. **Empty Queue**: Front and rear pointers might be initialized to special values (like -1).
-2. **Single Element**: Front and rear point to the same position.
-3. **Multiple Elements**: Front points to the oldest element, rear to the newest.
-4. **Full Queue**: No more elements can be added (in bounded queues).
+1. **Empty**: No elements (front and rear pointers may be at special values)
+2. **Partially Filled**: Contains some elements
+3. **Full**: No more elements can be added (in bounded queues)
 
-<details>
-<summary>🧐 When operations fail</summary>
+> [!warning]
+> Two common errors in queue operations:
+>
+> - **Queue Overflow**: Trying to enqueue when the queue is full
+> - **Queue Underflow**: Trying to dequeue or peek when the queue is empty
 
-- **Enqueue fails** when the queue is full (Queue Overflow)
-- **Dequeue and Peek fail** when the queue is empty (Queue Underflow)
+### 🧪 Interactive Example
 
-Good implementations should handle these edge cases gracefully!
-</details>
+Let's trace through operations on a queue:
 
-## 🤔 Thinking Exercise
+Initial state: `[]` (empty queue)
 
-Consider a queue with elements [10, 20, 30]:
+1. `enqueue(10)` → ``
+2. `enqueue(20)` → ``
+3. `enqueue(30)` → ``
+4. `dequeue()` → Returns `10`, queue becomes ``
+5. `peek()` → Returns `20`, queue remains ``
+6. `enqueue(40)` → ``
+7. `dequeue()` → Returns `20`, queue becomes ``
 
-1. What would the queue look like after `enqueue(40)`?
-2. What would be returned by `dequeue()`?
-3. After the dequeue, what would `peek()` return?
+<quiz-question>
+{
+"question": "What would be the state of a queue after the operations: enqueue(5), enqueue(10), dequeue(), enqueue(15)?",
+"options": ["[5]", "[5, 15]", "[10, 15]", "[5, 10, 15]"],
+"hint": "Remember that dequeue removes from the front of the queue.",
+"explanation": "Starting with an empty queue, we add 5, then 10. Then dequeue() removes 5, leaving [10]. Finally, we add 15, resulting in [10, 15].",
+"answer": "[10, 15]"
+}
+</quiz-question>
 
-<details>
-<summary>✅ Solutions</summary>
+> [!question]- What happens if you try to dequeue from an empty queue?
+>
+> > [!example] In a well-designed implementation, you would:
+> >
+> > - Return a special value (like `undefined` or `null`)
+> > - Throw an exception
+> > - Return an error code
+> >
+> > The specific behavior depends on the implementation, but it should be handled gracefully.
 
-1. After `enqueue(40)`: [10, 20, 30, 40]
-2. `dequeue()` would return 10
-3. After dequeue, `peek()` would return 20
-</details>
-
-In the next section, we'll explore concrete implementations of these operations using different underlying data structures. 
+In the next lesson, we'll implement a queue using arrays.

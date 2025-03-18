@@ -1,20 +1,10 @@
 ---
-title: Linked List-Based Queue Implementation
+title: Implementing Queues with Linked Lists
 ---
 
-# 🔗 Linked List-Based Queue Implementation
+# 🔗 Linked List-Based Queue Structure
 
-Another common approach to implementing a queue is using a linked list as the underlying data structure. This method offers some advantages over arrays, especially when the queue size needs to be dynamic.
-
-## 🧱 Basic Structure
-
-For a linked list-based queue, we need:
-
-1. **Node class** to represent each element in the queue
-2. **Front pointer** pointing to the first node
-3. **Rear pointer** pointing to the last node
-4. **Count** to track the number of elements
-5. **Capacity** (optional) to set a maximum size limit
+A linked list implementation uses nodes that reference each other:
 
 ```js
 class Node {
@@ -26,20 +16,30 @@ class Node {
 
 class Queue {
   constructor(capacity = Infinity) {
-    this.front = null;
-    this.rear = null;
+    this.front = null; // Points to first node
+    this.rear = null; // Points to last node
     this.count = 0;
     this.capacity = capacity;
   }
 }
 ```
 
-> [!NOTE]
-> With linked lists, we can easily set the capacity to `Infinity` to create an unbounded queue that can grow as needed.
+> [!info]
+> With linked lists, we can easily create unbounded queues by setting capacity to `Infinity`.
+
+## 🖼️ Visual Representation
+
+A linked list queue with elements looks like:
+
+```mermaid
+graph LR
+    F[Front] --> A[Node: 10] --> B[Node: 20] --> C[Node: 30]
+    R[Rear] --> C
+```
 
 ## ⚙️ Implementing Core Operations
 
-### 🔼 Enqueue Operation
+### Enqueue Operation
 
 ```js
 enqueue(item) {
@@ -50,9 +50,11 @@ enqueue(item) {
   const newNode = new Node(item);
 
   if (this.isEmpty()) {
+    // If queue is empty, both front and rear point to new node
     this.front = newNode;
     this.rear = newNode;
   } else {
+    // Add to the end and update rear
     this.rear.next = newNode;
     this.rear = newNode;
   }
@@ -61,7 +63,7 @@ enqueue(item) {
 }
 ```
 
-### 🔽 Dequeue Operation
+### Dequeue Operation
 
 ```js
 dequeue() {
@@ -73,6 +75,7 @@ dequeue() {
   this.front = this.front.next;
   this.count--;
 
+  // If queue becomes empty, update rear as well
   if (this.isEmpty()) {
     this.rear = null;
   }
@@ -81,7 +84,7 @@ dequeue() {
 }
 ```
 
-### 👀 Peek Operation
+### Peek Operation
 
 ```js
 peek() {
@@ -92,95 +95,79 @@ peek() {
 }
 ```
 
-### 📏 Helper Methods
+## 🎯 Tracing Operations
 
-```js
-isEmpty() {
-  return this.count === 0 && this.front === null;
-}
+Let's trace through operations on a linked list queue:
 
-isFull() {
-  return this.count === this.capacity;
-}
-
-size() {
-  return this.count;
-}
-```
-
-## 🎯 Visual Representation
-
-A linked list queue with elements [10, 20, 30] would look like:
-
-```mermaid
-graph LR
-    F[Front] --> A[Node: 10] --> B[Node: 20] --> C[Node: 30]
-    R[Rear] --> C
-```
-
-## 🧠 Understanding the Implementation
-
-The linked list approach offers several unique characteristics:
-
-1. **Dynamic size**: The queue can grow as needed (if capacity allows)
-2. **No wasted space**: Memory is allocated only for elements that are actually in the queue
-3. **No need for circular logic**: We simply adjust pointers when adding or removing elements
-
-## 🔍 Key Edge Cases to Handle
-
-1. **Empty Queue**: When `front` and `rear` are both `null`
-2. **Single Element**: When `front` and `rear` point to the same node
-3. **Removing the Last Element**: Make sure to set `rear = null` when the queue becomes empty
-4. **Queue Overflow**: Check the count against capacity before adding new elements
-
-## 🎯 Example Walk-Through
-
-Let's trace through operations on a linked list-based queue:
-
-1. **Initial State**: `front = null, rear = null, count = 0`
-2. **enqueue(10)**: 
+1. **Initial state**: `front = null, rear = null, count = 0`
+2. **enqueue(10)**:
    - Create new node with data 10
-   - Set `front` and `rear` to this node
+   - `front` and `rear` both point to this node
    - `count = 1`
-3. **enqueue(20)**: 
+3. **enqueue(20)**:
    - Create new node with data 20
-   - Set `rear.next` to this node
-   - Update `rear` to this node
+   - Connect from rear node: `rear.next = newNode`
+   - Update `rear` to this new node
    - `count = 2`
-4. **dequeue()**: 
+4. **dequeue()**:
    - Return the data from `front` (10)
-   - Update `front` to `front.next`
+   - Update `front` to `front.next` (the node with 20)
    - `count = 1`
-5. **peek()**: 
-   - Return the data from `front` (20)
 
-## 💡 Advantages and Disadvantages
+## 🔍 Key Edge Cases
+
+1. **Empty Queue**: Both `front` and `rear` are `null`
+2. **Single Element**: `front` and `rear` point to the same node
+3. **Removing the Last Element**: Must set `rear = null` when queue becomes empty
+
+## 💡 Advantages and Challenges
 
 **Advantages:**
-- Dynamic size (can grow and shrink)
-- Efficient memory usage (only allocates what's needed)
+
+- Dynamic size (can grow as needed)
+- Memory efficient (only allocates what's needed)
 - No need for circular logic
 - Easy to implement
 
-**Disadvantages:**
+**Challenges:**
+
 - Extra memory overhead for node pointers
 - No direct access to elements in the middle
-- Potential for memory leaks if nodes aren't properly dereferenced
+- Potentially worse cache performance due to non-contiguous memory
 
-## 🤔 Thinking Exercise
+<quiz-question>
+{
+  "question": "What special case must be handled when dequeuing the last element from a linked list queue?",
+  "options": ["Incrementing the count", "Setting front to null", "Setting rear to null", "Creating a new node"],
+  "hint": "Think about what happens to both pointers when the queue becomes empty.",
+  "explanation": "When dequeuing the last element, the queue becomes empty. While front naturally becomes null, we must also explicitly set rear to null to properly represent an empty queue.",
+  "answer": "Setting rear to null"
+}
+</quiz-question>
 
-1. How would the linked list implementation handle an enqueue operation when the queue is empty?
-2. What could happen if you fail to update the `rear` pointer after a dequeue that empties the queue?
-3. How might you implement a method to view all elements in the queue without dequeuing them?
+> [!question]- How would you implement a method to display all elements in the queue without removing them?
+>
+> > [!example] A display method could:
+> >
+> > ```js
+> > display() {
+> >   if (this.isEmpty()) {
+> >     console.log("Queue is empty");
+> >     return;
+> >   }
+> >
+> >   let current = this.front;
+> >   let queueItems = [];
+> >
+> >   while (current) {
+> >     queueItems.push(current.data);
+> >     current = current.next;
+> >   }
+> >
+> >   console.log(queueItems.join(" <- "));
+> > }
+> > ```
+> >
+> > This traverses the list from front to rear without modifying the queue.
 
-<details>
-<summary>💡 Tips for Implementation</summary>
-
-- Always check if the queue is empty before dequeuing or peeking
-- Remember to handle the special case of removing the last element
-- Keep track of the count to easily check if the queue is empty or full
-- Consider using a sentinel node in some implementations to simplify edge case handling
-
-</details>
-
-In the next section, we'll compare these two implementations and discuss when to use each approach. 
+In the next lesson, we'll compare these implementations to understand their tradeoffs.
