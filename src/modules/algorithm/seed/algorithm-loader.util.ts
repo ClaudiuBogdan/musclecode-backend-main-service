@@ -153,18 +153,24 @@ const loadAlgorithmFiles = (algorithmPath: string): AlgorithmFile[] => {
       }
 
       // Determine file type and extension
-      const fileName = path.parse(file).name;
+      let fileName = path.parse(file).name;
       const extension = path.parse(file).ext.substring(1); // Remove the dot
 
       let fileType: AlgorithmFileType;
-      if (fileName.includes('exercise')) {
-        fileType = AlgorithmFileType.EXERCISE;
+      if (fileName.includes('test')) {
+        fileType = AlgorithmFileType.TEST;
       } else if (fileName.includes('solution')) {
         fileType = AlgorithmFileType.SOLUTION;
-      } else if (fileName.includes('test')) {
-        fileType = AlgorithmFileType.TEST;
       } else {
         fileType = AlgorithmFileType.EXERCISE;
+      }
+
+      // Python test files are named test.py
+      if (
+        fileType === AlgorithmFileType.TEST &&
+        language === CodeLanguage.PYTHON
+      ) {
+        fileName = 'test';
       }
 
       // Read file content
