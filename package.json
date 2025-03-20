@@ -20,6 +20,9 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
+    "@langchain/community": "^0.3.36",
+    "@langchain/core": "^0.3.42",
+    "@langchain/openai": "^0.4.5",
     "@nestjs/cache-manager": "^2.1.1",
     "@nestjs/common": "^9.0.0",
     "@nestjs/config": "^3.1.1",
@@ -39,6 +42,7 @@
     "@prisma/instrumentation": "^6.3.1",
     "@types/jsonwebtoken": "^9.0.8",
     "@types/node-fetch": "2",
+    "axios": "^1.8.4",
     "cache-manager": "^5.3.1",
     "cache-manager-redis-store": "^3.0.1",
     "class-transformer": "^0.5.1",
@@ -46,12 +50,14 @@
     "date-fns": "^4.1.0",
     "gray-matter": "^4.0.3",
     "jsonwebtoken": "^9.0.2",
+    "langchain": "^0.3.19",
     "node-fetch": "2",
     "openai": "^4.86.2",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",
     "uuid": "^11.0.3",
-    "winston": "^3.17.0"
+    "winston": "^3.17.0",
+    "zod": "^3.24.2"
   },
   "devDependencies": {
     "@nestjs/cli": "^10.0.0",
