@@ -93,11 +93,12 @@ export class EducationService {
           );
 
           // Research content for the lesson
-          const researchResult =
-            await this.contentResearchAgent.researchContent(
-              lessonOutline.title,
-              [moduleOutline.title, course.title],
-            );
+          // TODO: add research agent
+          // const researchResult =
+          //   await this.contentResearchAgent.researchContent(
+          //     lessonOutline.title,
+          //     [moduleOutline.title, course.title],
+          //   );
 
           this.logger.log(`Generating lesson for: ${lessonOutline.title}`);
 
@@ -107,7 +108,7 @@ export class EducationService {
             lessonOutline.title,
             lessonOutline.description,
             difficultyLevel,
-            researchResult.content,
+            // researchResult.content,
           );
 
           // Create the complete lesson
@@ -141,10 +142,16 @@ export class EducationService {
           );
           // Continue with other lessons even if one fails
         }
+
+        // TODO: remove this
+        break;
       }
 
       // Add the module to the course
       course.modules.push(module);
+
+      // TODO: remove this
+      break;
     }
 
     this.logger.log(`Completed course generation for: ${course.title}`);

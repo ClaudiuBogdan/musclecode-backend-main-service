@@ -11,6 +11,7 @@ import { z } from 'zod';
 import { CourseOutline } from '../interfaces/course.interface';
 import { GenerateCourseDto } from '../dto/generate-course.dto';
 import { StringOutputParser } from '@langchain/core/output_parsers';
+import { escapeCurlyBraces } from './utils';
 
 @Injectable()
 export class CourseGenerationAgent {
@@ -115,8 +116,4 @@ export class CourseGenerationAgent {
       throw error;
     }
   }
-}
-
-function escapeCurlyBraces(text: string) {
-  return text.replace(/{/g, '{{').replace(/}/g, '}}');
 }

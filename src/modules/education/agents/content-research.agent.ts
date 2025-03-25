@@ -3,7 +3,11 @@ import { ConfigService } from '@nestjs/config';
 import { ChatOpenAI } from '@langchain/openai';
 import { DynamicTool } from '@langchain/core/tools';
 import { StringOutputParser } from '@langchain/core/output_parsers';
-import { PromptTemplate } from '@langchain/core/prompts';
+import {
+  ChatPromptTemplate,
+  SystemMessagePromptTemplate,
+  HumanMessagePromptTemplate,
+} from '@langchain/core/prompts';
 import axios from 'axios';
 
 interface ResearchResult {
@@ -14,12 +18,6 @@ interface ResearchResult {
   }[];
 }
 
-interface SearchResult {
-  title: string;
-  url: string;
-  snippet: string;
-}
-
 @Injectable()
 export class ContentResearchAgent {
   private readonly logger = new Logger(ContentResearchAgent.name);
@@ -28,8 +26,12 @@ export class ContentResearchAgent {
   constructor(private readonly configService: ConfigService) {
     this.llm = new ChatOpenAI({
       openAIApiKey: this.configService.get<string>('OPENAI_API_KEY'),
-      modelName: 'gpt-4',
+      modelName:
+        this.configService.get<string>('OPENAI_MODEL') || 'gpt-4o-mini',
       temperature: 0.2,
+      configuration: {
+        baseURL: this.configService.get<string>('OPENAI_API_URL'),
+      },
     });
   }
 
@@ -93,46 +95,23 @@ export class ContentResearchAgent {
     try {
       const webSearchTool = this.createWebSearchTool();
 
-      // Create prompt for research
-      const researchPrompt = PromptTemplate.fromTemplate(`
-        You are an expert educational researcher. Your task is to gather accurate, up-to-date information 
-        about the following topic for an educational course:
-        
-        TOPIC: {topic}
-        
-        SUBTOPICS: {subtopics}
+      // First, get the search queries we need to make
+      const searchQueryPrompt = ChatPromptTemplate.fromMessages([
+        SystemMessagePromptTemplate.fromTemplate(
+          'You are an expert researcher who creates effective search queries.',
+        ),
+        HumanMessagePromptTemplate.fromTemplate(`
+          Generate 3-5 specific search queries that would help gather comprehensive information about:
+          TOPIC: {topic}
+          SUBTOPICS: {subtopics}
+          
+          Format the output as a JSON array of strings.
+        `),
+      ]);
 
-        Use the web_search tool to find relevant information. Focus on finding:
-        1. Current and accurate information from reliable sources
-        2. Comprehensive overviews of main concepts
-        3. Examples that clarify difficult concepts
-        4. Common misconceptions
-        5. Best practices and industry standards
-
-        After gathering information, compile it into a comprehensive report.
-        For each piece of information, cite the source with title and URL.
-      `);
-
-      const formattedPrompt = await researchPrompt.format({
-        topic,
-        subtopics:
-          subtopics.length > 0 ? subtopics.join(', ') : 'None specified',
-      });
-
-      // Simplified research process without full agent implementation
-      // In a real implementation, this would use a more sophisticated agent framework
       const stringOutputParser = new StringOutputParser();
 
-      // First, get the search queries we need to make
-      const searchQueryPrompt = PromptTemplate.fromTemplate(`
-        Generate 3-5 specific search queries that would help gather comprehensive information about:
-        TOPIC: {topic}
-        SUBTOPICS: {subtopics}
-        
-        Format the output as a JSON array of strings.
-      `);
-
-      const formattedQueryPrompt = await searchQueryPrompt.format({
+      const formattedQueryPrompt = await searchQueryPrompt.formatMessages({
         topic,
         subtopics:
           subtopics.length > 0 ? subtopics.join(', ') : 'None specified',
@@ -145,7 +124,7 @@ export class ContentResearchAgent {
 
       try {
         searchQueries = JSON.parse(searchQueriesJson);
-      } catch (error) {
+      } catch {
         // If parsing fails, extract queries using regex
         const matches = searchQueriesJson.match(/"([^"]*)"/g);
         if (matches) {
@@ -165,24 +144,31 @@ export class ContentResearchAgent {
       );
 
       // Compile research
-      const compilationPrompt = PromptTemplate.fromTemplate(`
-        Based on the following search results, compile comprehensive educational content 
-        about {topic} that can be used in a course. Include accurate information, examples, 
-        and practical applications.
-        
-        SEARCH RESULTS:
-        {searchResults}
-        
-        Your response should be structured as follows:
-        1. Comprehensive content about the topic (at least 1000 words)
-        2. A JSON array of sources at the end in the format: 
-           [{"title": "Source Title", "url": "https://source-url.com"}]
-      `);
+      const compilationPrompt = ChatPromptTemplate.fromMessages([
+        SystemMessagePromptTemplate.fromTemplate(
+          'You are an expert educational content creator who compiles research into comprehensive educational materials.',
+        ),
+        HumanMessagePromptTemplate.fromTemplate(`
+          Based on the following search results, compile comprehensive educational content 
+          about {topic} that can be used in a course. Include accurate information, examples, 
+          and practical applications.
+          
+          SEARCH RESULTS:
+          {searchResults}
+          
+          Your response should be structured as follows:
+          1. Comprehensive content about the topic (at least 1000 words)
+          2. A JSON array of sources at the end in the format: 
+             [{"title": "Source Title", "url": "https://source-url.com"}]
+        `),
+      ]);
 
-      const formattedCompilationPrompt = await compilationPrompt.format({
-        topic,
-        searchResults: JSON.stringify(searchResults),
-      });
+      const formattedCompilationPrompt = await compilationPrompt.formatMessages(
+        {
+          topic,
+          searchResults: JSON.stringify(searchResults),
+        },
+      );
 
       const researchOutput = await this.llm
         .pipe(stringOutputParser)

@@ -6,7 +6,7 @@ import { StringOutputParser } from '@langchain/core/output_parsers';
 import { StructuredOutputParser } from 'langchain/output_parsers';
 import { z } from 'zod';
 import { Lesson, Exercise, QuizQuestion } from '../interfaces/course.interface';
-
+import { escapeCurlyBraces } from './utils';
 @Injectable()
 export class LessonGenerationAgent {
   private readonly logger = new Logger(LessonGenerationAgent.name);
@@ -15,8 +15,12 @@ export class LessonGenerationAgent {
   constructor(private readonly configService: ConfigService) {
     this.llm = new ChatOpenAI({
       openAIApiKey: this.configService.get<string>('OPENAI_API_KEY'),
-      modelName: 'gpt-4',
-      temperature: 0.3,
+      modelName:
+        this.configService.get<string>('OPENAI_MODEL') || 'gpt-4o-mini',
+      temperature: 0.2,
+      configuration: {
+        baseURL: this.configService.get<string>('OPENAI_API_URL'),
+      },
     });
   }
 
@@ -28,7 +32,7 @@ export class LessonGenerationAgent {
     lessonTitle: string,
     lessonDescription: string,
     difficultyLevel: string,
-    researchContent: string,
+    researchContent?: string,
   ): Promise<Partial<Lesson>> {
     try {
       // Generate the main lesson content
@@ -78,7 +82,7 @@ export class LessonGenerationAgent {
     lessonTitle: string,
     lessonDescription: string,
     difficultyLevel: string,
-    researchContent: string,
+    researchContent?: string,
   ): Promise<string> {
     try {
       const contentPrompt = PromptTemplate.fromTemplate(`
@@ -106,7 +110,9 @@ export class LessonGenerationAgent {
       const stringOutputParser = new StringOutputParser();
 
       const formattedPrompt = await contentPrompt.format({
-        researchContent: researchContent.substring(0, 6000), // Limit research content size if needed
+        researchContent: researchContent
+          ? researchContent.substring(0, 6000) // Limit research content size if needed
+          : '',
       });
 
       return await this.llm.pipe(stringOutputParser).invoke(formattedPrompt);
@@ -152,7 +158,7 @@ export class LessonGenerationAgent {
       );
 
       const exercisesPrompt = PromptTemplate.fromTemplate(`
-        Create 3-5 practical exercises for a lesson on "${lessonTitle}".
+        Create 1 practical exercises for a lesson on "${lessonTitle}".
         The lesson covers: ${lessonDescription}
         Difficulty level: ${difficultyLevel}
         
@@ -164,7 +170,7 @@ export class LessonGenerationAgent {
         Exercises should vary in difficulty and type (e.g., coding exercises, conceptual questions, analysis tasks).
         For coding exercises, include expected output and solution code where applicable.
         
-        ${exercisesParser.getFormatInstructions()}
+        ${escapeCurlyBraces(exercisesParser.getFormatInstructions())}
       `);
 
       const stringOutputParser = new StringOutputParser();
@@ -207,9 +213,8 @@ export class LessonGenerationAgent {
           z.object({
             question: z.string().describe('The quiz question'),
             options: z.array(z.string()).describe('Multiple choice options'),
-            correctOptionIndex: z
-              .number()
-              .describe('The index of the correct option (0-based)'),
+            answer: z.string().describe('The correct answer'),
+            hint: z.string().describe('A hint for the answer'),
             explanation: z
               .string()
               .describe('Explanation of why the correct answer is correct'),
@@ -228,7 +233,7 @@ export class LessonGenerationAgent {
         Each question should have 4 options, with only one correct answer.
         Include an explanation for why the correct answer is right and why others are wrong.
         
-        ${quizParser.getFormatInstructions()}
+        ${escapeCurlyBraces(quizParser.getFormatInstructions())}
       `);
 
       const stringOutputParser = new StringOutputParser();

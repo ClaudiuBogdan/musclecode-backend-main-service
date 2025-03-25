@@ -32,8 +32,9 @@ export interface QuizQuestion {
   lessonId: string;
   question: string;
   options: string[];
-  correctOptionIndex: number;
-  explanation: string;
+  answer: string;
+  hint?: string;
+  explanation?: string;
 }
 
 export interface Course {
