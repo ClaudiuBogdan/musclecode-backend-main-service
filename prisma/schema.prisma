@@ -157,3 +157,79 @@ model ChatThread {
   @@index([userId])
   @@index([algorithmId])
 }
+// A generic node representing any learning content
+model ContentNode {
+  id        String      @id @default(uuid())
+  type      ContentType
+  body      Json        // Markdown, HTML, or structured JSON content
+  metadata  Json?       // Field to store additional dynamic properties
+  userId    String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  outgoingLinks ContentLink[]  @relation("OutgoingLinks")
+  incomingLinks ContentLink[]  @relation("IncomingLinks")
+  interactions  InteractionData[]
+  tags          Tag[]          @relation("ContentNodeTags")
+
+  @@index([userId])         // Optimizes queries filtering by userId
+  @@index([type])           // Useful when filtering by content type
+}
+
+model ContentLink {
+  id        String      @id @default(uuid())
+  from      ContentNode @relation("OutgoingLinks", fields: [fromId], references: [id])
+  fromId    String
+  to        ContentNode @relation("IncomingLinks", fields: [toId], references: [id])
+  toId      String
+  linkType  LinkType    // e.g., REFERENCE, DEPENDENCY, RELATES_TO, EXTENDS
+  order     Int         @default(0)  // Order of this link relative to others
+  metadata  Json?       // Extra info or weight for the link
+  userId    String?
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([fromId, toId, linkType]) // Prevents duplicate links between the same nodes by type
+  @@index([fromId, toId])
+  @@index([userId])                  // Helps when filtering links by user
+}
+
+model InteractionData {
+  id          String          @id @default(uuid())
+  type        InteractionType // e.g., QUIZ, FLASHCARD
+  userId      String
+  body        Json            // Detailed interactive element definition
+  nodeId      String
+  contentNode ContentNode     @relation(fields: [nodeId], references: [id])
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+
+  @@index([nodeId])   // Optimizes lookups for interactions related to a node
+  @@index([userId])   // Optimizes lookups for interactions by user
+}
+
+// New model to support tagging of content nodes
+model Tag {
+  id    String        @id @default(uuid())
+  name  String        @unique      // Ensures tag names are unique
+  nodes ContentNode[] @relation("ContentNodeTags")
+}
+
+enum ContentType {
+  LESSON
+  EXERCISE
+  NOTE
+  ARTICLE
+}
+
+enum LinkType {
+  REFERENCE
+  DEPENDENCY
+  RELATES_TO
+  EXTENDS
+}
+
+enum InteractionType {
+  QUIZ
+  FLASHCARD
+}
