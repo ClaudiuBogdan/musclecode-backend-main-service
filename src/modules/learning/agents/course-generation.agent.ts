@@ -8,8 +8,6 @@ import {
 } from '@langchain/core/prompts';
 import { StructuredOutputParser } from 'langchain/output_parsers';
 import { z } from 'zod';
-import { CourseOutline } from '../interfaces/course.interface';
-import { GenerateCourseDto } from '../dto/generate-course.dto';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { escapeCurlyBraces } from './utils';
 

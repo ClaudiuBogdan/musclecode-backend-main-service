@@ -160,13 +160,14 @@ model ChatThread {
 
 // A generic node representing any learning content
 model ContentNode {
-  id        String      @id @default(uuid())
+  id        String        @id @default(uuid())
   type      ContentType
+  status    ContentStatus @default(DRAFT)
   body      Json // Markdown, HTML, or structured JSON content
   metadata  Json? // Field to store additional dynamic properties
   userId    String?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
 
   outgoingLinks ContentLink[]     @relation("OutgoingLinks")
   incomingLinks ContentLink[]     @relation("IncomingLinks")
@@ -178,17 +179,19 @@ model ContentNode {
 }
 
 model ContentLink {
-  id        String      @id @default(uuid())
-  from      ContentNode @relation("OutgoingLinks", fields: [fromId], references: [id])
-  fromId    String
-  to        ContentNode @relation("IncomingLinks", fields: [toId], references: [id])
-  toId      String
-  linkType  LinkType // e.g., REFERENCE, DEPENDENCY, RELATES_TO, EXTENDS
-  order     Int         @default(0) // Order of this link relative to others
-  metadata  Json? // Extra info or weight for the link
-  userId    String?
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id       String   @id @default(uuid())
+  fromId   String
+  toId     String
+  linkType LinkType // e.g., REFERENCE, DEPENDENCY, RELATES_TO, EXTENDS
+  order    Int      @default(0) // Order of this link relative to others
+  metadata Json? // Extra info or weight for the link
+  userId   String?
+
+  from ContentNode @relation("OutgoingLinks", fields: [fromId], references: [id])
+  to   ContentNode @relation("IncomingLinks", fields: [toId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@unique([fromId, toId, linkType]) // Prevents duplicate links between the same nodes by type
   @@index([fromId, toId])
@@ -214,6 +217,12 @@ model Tag {
   id    String        @id @default(uuid())
   name  String        @unique // Ensures tag names are unique
   nodes ContentNode[] @relation("ContentNodeTags")
+}
+
+enum ContentStatus {
+  DRAFT
+  CREATED
+  ARCHIVED
 }
 
 enum ContentType {

@@ -5,7 +5,6 @@ import { PromptTemplate } from '@langchain/core/prompts';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { StructuredOutputParser } from 'langchain/output_parsers';
 import { z } from 'zod';
-import { Lesson, Exercise, QuizQuestion } from '../interfaces/course.interface';
 import { escapeCurlyBraces } from './utils';
 @Injectable()
 export class LessonGenerationAgent {

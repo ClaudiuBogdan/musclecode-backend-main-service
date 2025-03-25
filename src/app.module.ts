@@ -11,7 +11,7 @@ import { HealthModule } from './modules/health/health.module';
 import { UserIdInterceptor } from './interceptors/user-id.interceptor';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { ChatModule } from './modules/chat/chat.module';
-import { EducationModule } from './modules/education/education.module';
+import { LearningModule } from './modules/learning/learning.module';
 
 @Module({
   imports: [
@@ -24,15 +24,15 @@ import { EducationModule } from './modules/education/education.module';
     HealthModule,
     OnboardingModule,
     ChatModule,
-    EducationModule,
+    LearningModule,
   ],
   controllers: [AppController],
   providers: [
     AppService,
-    // {
-    //   provide: APP_GUARD,
-    //   useClass: AuthGuard,
-    // },
+    {
+      provide: APP_GUARD,
+      useClass: AuthGuard,
+    },
     {
       provide: APP_INTERCEPTOR,
       useClass: UserIdInterceptor,
