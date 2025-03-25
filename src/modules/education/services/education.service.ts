@@ -1,12 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { v4 as uuidv4 } from 'uuid';
 import { GenerateCourseDto } from '../dto/generate-course.dto';
-import {
-  Course,
-  CourseOutline,
-  Lesson,
-  Module,
-} from '../interfaces/course.interface';
+import { Course, CourseOutline } from '../interfaces/course.interface';
 import { CourseGenerationAgent } from '../agents/course-generation.agent';
 import { ContentResearchAgent } from '../agents/content-research.agent';
 import { LessonGenerationAgent } from '../agents/lesson-generation.agent';
@@ -59,7 +54,7 @@ export class EducationService {
       targetAudience: [],
       difficultyLevel: difficultyLevel as any,
       estimatedDuration: this.estimateCourseLength(courseOutline),
-      modules: [],
+      collection: courseOutline.collection,
       createdAt: new Date(),
       updatedAt: new Date(),
     };
@@ -163,8 +158,8 @@ export class EducationService {
    */
   private estimateCourseLength(courseOutline: CourseOutline): string {
     // Simple estimate based on the number of modules and lessons
-    const totalLessons = courseOutline.modules.reduce(
-      (count, module) => count + module.lessons.length,
+    const totalLessons = courseOutline.collection.algorithms.reduce(
+      (count, algorithm) => count + algorithm.lessons.length,
       0,
     );
 

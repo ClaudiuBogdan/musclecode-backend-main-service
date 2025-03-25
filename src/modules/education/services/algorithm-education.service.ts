@@ -156,7 +156,7 @@ export class AlgorithmEducationService {
       summary: algorithm.summary,
       lessons: algorithm.lessons,
       difficulty: algorithm.difficulty,
-      level: algorithm.level,
+      level: 0, // THIS is used to order the algorithms in the collection. Used mainly in the seed.
       tags: algorithm.tags,
       files: algorithm.files,
     }));

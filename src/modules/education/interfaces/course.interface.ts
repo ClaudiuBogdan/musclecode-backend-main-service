@@ -1,31 +1,5 @@
-export interface Module {
-  id: string;
-  title: string;
-  description: string;
-  order: number;
-  lessons: Lesson[];
-}
-
-export interface Lesson {
-  id: string;
-  moduleId: string;
-  title: string;
-  description: string;
-  order: number;
-  content: string;
-  exercises: Exercise[];
-  quizQuestions: QuizQuestion[];
-}
-
-export interface Exercise {
-  id: string;
-  lessonId: string;
-  title: string;
-  description: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced';
-  expectedOutput?: string;
-  solutionCode?: string;
-}
+import { AlgorithmCollection } from '@prisma/client';
+import { AlgorithmPreview } from 'src/modules/algorithm/interfaces/algorithm.interface';
 
 export interface QuizQuestion {
   id: string;
@@ -47,7 +21,7 @@ export interface Course {
   targetAudience: string[];
   difficultyLevel: 'beginner' | 'intermediate' | 'advanced';
   estimatedDuration: string;
-  modules: Module[];
+  collection: AlgorithmCollection;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -57,12 +31,22 @@ export interface CourseOutline {
   description: string;
   objectives: string[];
   prerequisites: string[];
-  modules: {
+  collection: {
     title: string;
     description: string;
-    lessons: {
-      title: string;
-      description: string;
-    }[];
+    algorithms: AlgorithmPreview[];
+  };
+}
+
+interface AlgorithmPreview {
+  id: string;
+  title: string;
+  summary: string;
+  difficulty: string;
+  categories: string[];
+  lessons: {
+    id: string;
+    title: string;
+    description: string;
   }[];
 }
