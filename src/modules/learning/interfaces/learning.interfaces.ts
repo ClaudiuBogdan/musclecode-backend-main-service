@@ -38,6 +38,7 @@ export interface ModuleLink extends ContentLink {
     type: 'MODULE';
     title: string;
     description: string;
+    status: ContentStatus;
   };
 }
 
@@ -61,6 +62,7 @@ export interface LessonLink extends ContentLink {
     type: 'LESSON';
     title: string;
     description: string;
+    status: ContentStatus;
   };
 }
 
@@ -76,6 +78,7 @@ export interface ExerciseContentBody {
   title: string;
   description: string;
   content: string;
+  status: ContentStatus;
 }
 
 export interface ExerciseLink extends ContentLink {
@@ -83,6 +86,7 @@ export interface ExerciseLink extends ContentLink {
     type: 'EXERCISE';
     title: string;
     description: string;
+    status: ContentStatus;
   };
 }
 

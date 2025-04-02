@@ -169,10 +169,12 @@ model ContentNode {
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
 
-  outgoingLinks ContentLink[]     @relation("OutgoingLinks")
-  incomingLinks ContentLink[]     @relation("IncomingLinks")
-  interactions  InteractionData[]
-  tags          Tag[]             @relation("ContentNodeTags")
+  outgoingLinks      ContentLink[]     @relation("OutgoingLinks")
+  incomingLinks      ContentLink[]     @relation("IncomingLinks")
+  interactions       InteractionData[]
+  tags               Tag[]             @relation("ContentNodeTags")
+  nodePermissions    NodePermission[]
+  sourceOfPermission NodePermission[]  @relation("SourceOfPermission")
 
   @@index([userId]) // Optimizes queries filtering by userId
   @@index([type]) // Useful when filtering by content type
@@ -212,6 +214,39 @@ model InteractionData {
   @@index([userId]) // Optimizes lookups for interactions by user
 }
 
+// Stores the calculated effective permission for a user on a node
+// This table is populated/updated by the propagation logic
+model NodePermission {
+  id              String          @id @default(uuid())
+  userId          String // User whose effective permission this is
+  nodeId          String // The ContentNode this permission applies to
+  permissionLevel PermissionLevel // The resulting access level after propagation/overrides
+  sourceNodeId    String // The ID of the ContentNode where the relevant ExplicitPermission originated
+  isExplicit      Boolean         @default(true) // True if this effective permission comes directly from an ExplicitPermission on this node
+  grantingUserId  String // The user who granted the permission
+
+  contentNode ContentNode @relation(fields: [nodeId], references: [id])
+  sourceNode  ContentNode @relation("SourceOfPermission", fields: [sourceNodeId], references: [id]) // Relation to the source node
+  // Consider adding relations to User models
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([userId, nodeId]) // A user has one effective permission level per node
+  @@index([userId, permissionLevel]) // Optimize permission checks
+  @@index([nodeId])
+  @@index([sourceNodeId]) // Useful for propagation updates
+}
+
+enum PermissionLevel {
+  NONE // Explicitly denies access (useful for overrides)
+  VIEW // Can see the node content
+  INTERACT // Can view and interact (e.g., answer quizzes)
+  EDIT // Can modify the node content/metadata
+  MANAGE // Can grant/revoke permissions on this node and potentially descendants
+  OWNER // Full control (Define semantics clearly)
+}
+
 // New model to support tagging of content nodes
 model Tag {
   id    String        @id @default(uuid())
@@ -231,6 +266,7 @@ enum ContentType {
   EXERCISE
   NOTE
   ARTICLE
+  CHAT_THREAD
 }
 
 enum LinkType {
