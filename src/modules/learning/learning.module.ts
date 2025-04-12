@@ -1,16 +1,25 @@
 import { Module } from '@nestjs/common';
-import { CourseGenerationAgent } from './agents/course-generation.agent';
 import { ContentResearchAgent } from './agents/content-research.agent';
-import { LessonGenerationAgent } from './agents/lesson-generation.agent';
-import { ModuleGenerationController as CreateController } from './controllers/create.controller';
+import { ModuleGenerationAgent } from './agents/module-generation.agent';
+import { ModuleGenerationController } from './controllers/create.controller';
+import { LearningRepository } from './repositories/learning.repository';
+import { ModuleGenerationService } from './services/module-generation.service';
+import { PrismaService } from '../../infrastructure/database/prisma.service';
 
 @Module({
-  controllers: [CreateController],
+  controllers: [ModuleGenerationController],
   providers: [
-    CourseGenerationAgent,
+    // Agents
     ContentResearchAgent,
-    LessonGenerationAgent,
+    ModuleGenerationAgent,
+
+    // Services
+    ModuleGenerationService,
+
+    // Repositories
+    LearningRepository,
+    PrismaService,
   ],
-  exports: [],
+  exports: [ModuleGenerationService],
 })
 export class LearningModule {}

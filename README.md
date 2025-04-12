@@ -4,6 +4,7 @@
 
 The Algorithm Gateway Service serves as the central API gateway for the algorithm platform, implementing a robust, secure, and scalable interface between clients and backend microservices.
 
+
 ### 1.1 Core Responsibilities
 - Algorithm management and discovery
 - Daily algorithm rotation and delivery

@@ -1,6 +1,7 @@
 // Base model interfaces.
 export interface ContentNode {
   id: string;
+  userId: string;
   type: ContentType;
   status: ContentStatus;
   body: ModuleContentBody | LessonContentBody; // TODO: Define the body type
@@ -55,6 +56,7 @@ export interface LessonContentBody {
   title: string;
   description: string;
   content: string;
+  version: number;
 }
 
 export interface LessonLink extends ContentLink {
@@ -63,6 +65,7 @@ export interface LessonLink extends ContentLink {
     title: string;
     description: string;
     status: ContentStatus;
+    version: number;
   };
 }
 
@@ -79,6 +82,7 @@ export interface ExerciseContentBody {
   description: string;
   content: string;
   status: ContentStatus;
+  version: number;
 }
 
 export interface ExerciseLink extends ContentLink {
@@ -87,10 +91,18 @@ export interface ExerciseLink extends ContentLink {
     title: string;
     description: string;
     status: ContentStatus;
+    version: number;
   };
 }
 
-export type ContentType = 'MODULE' | 'LESSON' | 'EXERCISE';
+export type ContentType =
+  | 'MODULE'
+  | 'LESSON'
+  | 'EXERCISE'
+  | 'CHAT_THREAD'
+  | 'ALGORITHM'
+  | 'NOTE';
+
 export type InteractionType = 'QUIZ' | 'FLASHCARD';
 export type LinkType = 'REFERENCE' | 'DEPENDENCY' | 'RELATES_TO' | 'EXTENDS';
 export type ContentStatus = 'DRAFT' | 'CREATED' | 'ARCHIVED';
