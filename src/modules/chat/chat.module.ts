@@ -5,11 +5,18 @@ import { ChatService } from './services/chat.service';
 import { OpenAIService } from './services/openai.service';
 import { ConfigModule } from '@nestjs/config';
 import { ChatRepository } from './repositories/chat.repository';
+import { AgentsService } from './services/agents.service';
 
 @Module({
   imports: [ConfigModule],
   controllers: [ChatController],
-  providers: [ChatService, OpenAIService, PrismaService, ChatRepository],
+  providers: [
+    ChatService,
+    OpenAIService,
+    PrismaService,
+    ChatRepository,
+    AgentsService,
+  ],
   exports: [ChatService],
 })
 export class ChatModule {}

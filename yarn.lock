@@ -702,10 +702,10 @@
     zod "^3.22.3"
     zod-to-json-schema "^3.22.5"
 
-"@langchain/core@^0.3.42":
-  version "0.3.42"
-  resolved "https://registry.yarnpkg.com/@langchain/core/-/core-0.3.42.tgz#f1fa38425626d8efe9fe2ee51d36c91506632363"
-  integrity sha512-pT/jC5lqWK3YGDq8dQwgKoa6anqAhMtG1x5JbnrOj9NdaLeBbCKBDQ+/Ykzk3nZ8o+0UMsaXNZo7IVL83VVjHg==
+"@langchain/core@^0.3.44":
+  version "0.3.44"
+  resolved "https://registry.yarnpkg.com/@langchain/core/-/core-0.3.44.tgz#b449646ab31d0cefd3e9fa3ec02a0fb6a78f7ef6"
+  integrity sha512-3BsSFf7STvPPZyl2kMANgtVnCUvDdyP4k+koP+nY2Tczd5V+RFkuazIn/JOj/xxy/neZjr4PxFU4BFyF1aKXOA==
   dependencies:
     "@cfworker/json-schema" "^4.0.2"
     ansi-styles "^5.0.0"
@@ -720,12 +720,13 @@
     zod "^3.22.4"
     zod-to-json-schema "^3.22.3"
 
-"@langchain/google-genai@^0.2.1":
-  version "0.2.1"
-  resolved "https://registry.yarnpkg.com/@langchain/google-genai/-/google-genai-0.2.1.tgz#d5b7189c3c299b19ed4db64286fc8ea3b5214b84"
-  integrity sha512-30utucZZmL605SSIPY3EQeXYZJS9b5Hlrn+gUuW6TS6bvrONFhl/CqpdvmJ6ho8rXJfHDjETGqr8XcolcRGDGQ==
+"@langchain/google-genai@^0.2.3":
+  version "0.2.3"
+  resolved "https://registry.yarnpkg.com/@langchain/google-genai/-/google-genai-0.2.3.tgz#4c6b3552ade9e79fc08e88435f18e419226d3fd6"
+  integrity sha512-2oWH24zPZh+HkgFcgcQClnsST3shMDuDToMolnWsRPg6wR7G6sAOkHQdqmHVxc4qAJx5wopf+vH0j+zbCk+Bag==
   dependencies:
     "@google/generative-ai" "^0.24.0"
+    uuid "^11.1.0"
     zod-to-json-schema "^3.22.4"
 
 "@langchain/openai@>=0.1.0 <0.5.0", "@langchain/openai@>=0.2.0 <0.5.0", "@langchain/openai@^0.4.5":
@@ -6654,6 +6655,11 @@ uuid@^11.0.3:
   version "11.0.4"
   resolved "https://registry.yarnpkg.com/uuid/-/uuid-11.0.4.tgz#37943977894ef806d2919a7ca3f89d6e23c60bac"
   integrity sha512-IzL6VtTTYcAhA/oghbFJ1Dkmqev+FpQWnCBaKq/gUluLxliWvO8DPFWfIviRmYbtaavtSQe4WBL++rFjdcGWEg==
+
+uuid@^11.1.0:
+  version "11.1.0"
+  resolved "https://registry.yarnpkg.com/uuid/-/uuid-11.1.0.tgz#9549028be1753bb934fc96e2bca09bb4105ae912"
+  integrity sha512-0/A9rDy9P7cJ+8w1c9WD9V//9Wj15Ce2MPz8Ri6032usz+NfePxx5AcN3bN+r6ZL6jEo066/yNYB3tn4pQEx+A==
 
 uuid@^9.0.1:
   version "9.0.1"
