@@ -9,6 +9,12 @@ import { SyncThreadsResponseDto } from '../dto';
 import { ThreadDto } from '../dto/thread.dto';
 import { Thread } from '../entities/thread';
 import { createChatPrompt } from '../prompts';
+import {
+  ChatMessageDto,
+  ChatRole,
+  MessagePayloadDto,
+} from '../dto/agent-chat.dto';
+import { ChatMessage } from '../entities/messages';
 
 @Injectable()
 export class ChatService {
@@ -18,6 +24,40 @@ export class ChatService {
     private openaiService: OpenAIService,
     private chatRepository: ChatRepository,
   ) {}
+
+  async sendMessage(
+    userId: string,
+    payload: MessagePayloadDto,
+  ): Promise<ChatMessageDto> {
+    const threadId = payload.message.threadId;
+
+    const thread = await this.chatRepository.findOrCreateThread(
+      threadId,
+      userId,
+    );
+
+    const messages = [...thread.messages, payload.message] as ChatMessage[];
+
+    await this.chatRepository.updateThreadMessages(userId, threadId, messages);
+
+    await new Promise((resolve) => setTimeout(resolve, 3000));
+
+    const responseMessage: ChatMessageDto = {
+      ...payload.message,
+      id: payload.responseMessage.id,
+      role: ChatRole.ASSISTANT,
+      content: [
+        ...payload.message.content,
+        {
+          type: 'text',
+          value: 'Hello, how can I help you today?',
+        },
+      ],
+      createdAt: new Date(),
+    };
+
+    return responseMessage;
+  }
 
   async streamMessage(
     sendMessageDto: SendMessageDto,

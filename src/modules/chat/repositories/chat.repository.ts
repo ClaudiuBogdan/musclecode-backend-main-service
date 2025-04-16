@@ -1,7 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { StructuredLogger } from '../../../logger/structured-logger.service';
 import { PrismaService } from 'src/infrastructure/database/prisma.service';
-import { ChatThread } from '@prisma/client';
+import {
+  ChatThread as ChatThreadDb,
+  ContentNode,
+  ContentType,
+} from '@prisma/client';
+import { ChatMessage, ChatThread } from '../entities/messages';
 import { Thread, Message } from '../entities/thread';
 import { InputJsonValue } from '@prisma/client/runtime/library';
 
@@ -12,6 +17,9 @@ export class ChatRepository {
     this.logger.log('ChatRepository initialized');
   }
 
+  /**
+   * @deprecated
+   */
   async getThreadById(
     threadId: string,
     userId: string,
@@ -26,6 +34,67 @@ export class ChatRepository {
     return this.mapThreadFromDb(thread);
   }
 
+  async findOrCreateThread(
+    threadId: string,
+    userId: string,
+  ): Promise<ChatThread> {
+    const thread = await this.prisma.contentNode.findUnique({
+      where: { id: threadId, userId, type: ContentType.CHAT_THREAD },
+    });
+    if (!thread) {
+      return this.createThreadContentNode(threadId, userId);
+    }
+    return this.mapThreadToChatThread(thread);
+  }
+
+  async createThreadContentNode(
+    threadId: string,
+    userId: string,
+  ): Promise<ChatThread> {
+    const thread = await this.prisma.contentNode.create({
+      data: {
+        id: threadId,
+        userId,
+        type: ContentType.CHAT_THREAD,
+        body: {
+          version: 1,
+          messages: [],
+        },
+      },
+    });
+    return this.mapThreadToChatThread(thread);
+  }
+
+  async updateThreadMessages(
+    userId: string,
+    threadId: string,
+    messages: ChatMessage[],
+  ): Promise<ChatThread> {
+    const updatedThread = await this.prisma.contentNode.update({
+      where: { id: threadId, userId, type: ContentType.CHAT_THREAD },
+      data: {
+        body: {
+          version: 1,
+          messages: messages as unknown as InputJsonValue,
+        },
+      },
+    });
+    return this.mapThreadToChatThread(updatedThread);
+  }
+
+  async mapThreadToChatThread(thread: ContentNode): Promise<ChatThread> {
+    const body = thread.body as unknown as { messages: ChatMessage[] };
+    return {
+      id: thread.id,
+      messages: body.messages,
+      createdAt: thread.createdAt.toISOString(),
+      updatedAt: thread.updatedAt.toISOString(),
+    };
+  }
+
+  /**
+   * @deprecated
+   */
   async createThread(
     threadId: string,
     userId: string,
@@ -44,6 +113,9 @@ export class ChatRepository {
     return this.mapThreadFromDb(thread);
   }
 
+  /**
+   * @deprecated
+   */
   async updateThread(userId: string, thread: Thread): Promise<Thread> {
     const updatedThread = await this.prisma.chatThread.update({
       where: { id: thread.id, userId },
@@ -67,7 +139,7 @@ export class ChatRepository {
     return threads.map(this.mapThreadFromDb.bind(this));
   }
 
-  private mapThreadFromDb(thread: ChatThread): Thread {
+  private mapThreadFromDb(thread: ChatThreadDb): Thread {
     return {
       id: thread.id,
       algorithmId: thread.algorithmId,
