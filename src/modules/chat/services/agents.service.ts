@@ -2,48 +2,35 @@ import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
-import {
-  HumanMessage,
-  BaseMessage,
-  AIMessageChunk,
-} from '@langchain/core/messages';
+import { HumanMessage, AIMessageChunk } from '@langchain/core/messages';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { Runnable } from '@langchain/core/runnables';
 
-// Import the tools
+// Tools
 import { searchTool } from '../tools/search.tool';
 
-// Import the types
+// Types
 import {
   ServerSentEvent,
   TextBlock,
   ToolResultContentBlock,
   ToolUseContentBlock,
 } from '../entities/messages';
-
-// Import the DTOs
 import { ChatMessageDto } from '../dto/agent-chat.dto';
 
 @Injectable()
 export class AgentsService implements OnModuleInit {
   private readonly logger = new Logger(AgentsService.name);
-  private readonly llm: ChatGoogleGenerativeAI;
-  private readonly agentExecutor: Runnable; // React agent executor
+  private llm: ChatGoogleGenerativeAI;
+  private agentExecutor: Runnable;
 
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
-    const model = this.configService.get<string>('GEMINI_MODEL') as string;
+    const model = this.configService.get<string>('GEMINI_MODEL')!;
     if (!apiKey) {
-      throw new Error('GEMINI_API_KEY is not defined in environment variables');
+      throw new Error('GEMINI_API_KEY is not defined');
     }
-
-    this.llm = new ChatGoogleGenerativeAI({
-      apiKey,
-      model,
-      temperature: 0.3,
-    });
-
-    // Create a React-style agent that uses the LLM and tools
+    this.llm = new ChatGoogleGenerativeAI({ apiKey, model, temperature: 0.3 });
     this.agentExecutor = createReactAgent({
       llm: this.llm,
       tools: [searchTool],
@@ -56,18 +43,14 @@ export class AgentsService implements OnModuleInit {
     );
   }
 
-  /**
-   * Streams an agent response as SSE, automatically invoking the search tool when needed.
-   */
   async *streamAgentResponse(
     message: ChatMessageDto,
     _userId: string,
-  ): AsyncGenerator<ServerSentEvent, void, undefined> {
-    const { threadId, id: userMessageId, content: messageContent } = message;
+  ): AsyncGenerator<ServerSentEvent> {
     const assistantMessageId = uuidv4();
-    const now = (): string => new Date().toISOString();
+    const now = () => new Date().toISOString();
 
-    // 1) Send the message_start event
+    // 1) Emit message_start
     yield {
       type: 'message_start',
       message: {
@@ -75,197 +58,193 @@ export class AgentsService implements OnModuleInit {
         createdAt: now(),
         role: 'assistant',
         content: [],
-        threadId,
-        parentId: userMessageId,
+        threadId: message.threadId,
+        parentId: message.id,
       },
-    } as ServerSentEvent;
+    };
 
-    // 2) Prepare the user prompt
-    const userContent = this.extractTextFromContent(messageContent);
-    const currentMessages: BaseMessage[] = [new HumanMessage(userContent)];
+    // 2) Prepare state
+    const userText = this.extractText(message.content);
+    let currentType: 'text' | 'tool_use' | 'tool_result' | null = null;
+    let currentId: string | null = null;
+    let index = 0;
+    const idMap = new Map<string, string>();
 
-    // 3) Kick off the agent stream
-    const stream = this.agentExecutor.streamEvents(
-      { messages: currentMessages },
+    // Nested generator to close the current block
+    function* closeBlock(ts: string): Generator<ServerSentEvent> {
+      if (!currentId) {
+        return;
+      }
+      yield {
+        type: 'content_block_stop',
+        index,
+        stop_timestamp: ts,
+      } as ServerSentEvent;
+      index++;
+      currentType = null;
+      currentId = null;
+    }
+
+    // Nested generator to start a new text block
+    function* startTextBlock(ts: string): Generator<ServerSentEvent> {
+      currentType = 'text';
+      currentId = uuidv4();
+      yield {
+        type: 'content_block_start',
+        index,
+        content_block: {
+          id: currentId,
+          type: 'text',
+          text: '',
+          start_timestamp: ts,
+        } as TextBlock,
+      } as ServerSentEvent;
+    }
+
+    // 3) Stream events from the agent
+    const eventStream = this.agentExecutor.streamEvents(
+      { messages: [new HumanMessage(userText)] },
       { version: 'v2' },
     );
 
-    let contentIndex = 0;
-    let currentContentBlockType: 'text' | 'tool_use' | 'tool_result' | null =
-      null;
-    let currentContentBlockId: string | null = null;
-
-    for await (const evt of stream) {
+    for await (const evt of eventStream) {
       const ts = now();
+      const runId = evt.run_id;
 
       switch (evt.event) {
-        // —————————————————————
-        // 1) Text streaming
-        // —————————————————————
-        case 'on_chain_stream':
+        // ———————————————————————
+        //  Text streaming from the chat model
+        // ———————————————————————
         case 'on_chat_model_stream': {
           const chunk = (evt.data as any).chunk as AIMessageChunk;
           const text = typeof chunk.content === 'string' ? chunk.content : '';
           if (!text) break;
 
-          // if we're not in a text block, close whatever was open and open a new text block
-          if (currentContentBlockType !== 'text') {
-            if (currentContentBlockType && currentContentBlockId) {
-              yield {
-                type: 'content_block_stop',
-                index: contentIndex,
-                stop_timestamp: ts,
-              };
-              contentIndex++;
-            }
-            currentContentBlockType = 'text';
-            currentContentBlockId = uuidv4();
-            yield {
-              type: 'content_block_start',
-              index: contentIndex,
-              content_block: {
-                id: currentContentBlockId,
-                type: 'text',
-                text: '',
-                start_timestamp: ts,
-                stop_timestamp: '',
-              } as TextBlock,
-            };
+          // If not already in a text block, close whatever was open and start one
+          if (currentType !== 'text') {
+            yield* closeBlock(ts);
+            yield* startTextBlock(ts);
+            currentType = 'text';
           }
 
-          // emit the delta
+          // Emit the text delta
           yield {
             type: 'content_block_delta',
-            index: contentIndex,
-            delta: { type: 'text_delta', text } as any,
-          };
+            index,
+            delta: { type: 'text_delta', text },
+          } as ServerSentEvent;
           break;
         }
 
-        // —————————————————————
-        // 2) Tool invocation
-        // —————————————————————
+        // ———————————————————————
+        //  Tool invocation start
+        // ———————————————————————
         case 'on_tool_start': {
-          const payload = evt.data as any;
-          const toolName: string =
-            payload.name ?? payload.tool?.name ?? '<unknown>';
-          let rawInput = payload.input ?? payload.tool?.input ?? {};
+          const data = evt.data as any;
+          const toolName = evt.name;
+          const toolId = evt.run_id;
 
-          if (typeof rawInput === 'string') {
-            try {
-              rawInput = JSON.parse(rawInput);
-            } catch {
-              // leave as string if JSON parse fails
-            }
-          }
+          // Close previous block
+          yield* closeBlock(ts);
 
-          // close any open block
-          if (currentContentBlockType && currentContentBlockId) {
-            yield {
-              type: 'content_block_stop',
-              index: contentIndex,
-              stop_timestamp: ts,
-            };
-            contentIndex++;
-          }
+          // Open a tool_use block
+          currentType = 'tool_use';
+          currentId = uuidv4();
+          if (runId) idMap.set(runId, currentId);
 
-          // start & immediately stop the tool_use block
-          const toolUseId = uuidv4();
           yield {
             type: 'content_block_start',
-            index: contentIndex,
+            index,
             content_block: {
-              id: toolUseId,
+              id: toolId,
               type: 'tool_use',
               name: toolName,
-              input: rawInput,
+              input: data.input ?? {},
               start_timestamp: ts,
               stop_timestamp: ts,
             } as ToolUseContentBlock,
-          };
-          yield {
-            type: 'content_block_stop',
-            index: contentIndex,
-            stop_timestamp: ts,
-          };
-          contentIndex++;
+          } as ServerSentEvent;
 
-          // reset state
-          currentContentBlockType = null;
-          currentContentBlockId = null;
+          // Immediately close the tool_use block
+          yield* closeBlock(ts);
           break;
         }
 
+        // ———————————————————————
+        //  Tool invocation end (result)
+        // ———————————————————————
         case 'on_tool_end': {
-          const payload = evt.data as any;
-          const toolName: string =
-            payload.name ?? payload.tool?.name ?? '<unknown>';
-          let result = payload.output ?? payload.tool?.output ?? '';
-          if (result && typeof result === 'object' && 'text' in result) {
-            result = (result as any).text;
+          const data = evt.data as any;
+          // Close any open block
+          yield* closeBlock(ts);
+
+          // Start tool_result
+          currentType = 'tool_result';
+          currentId = uuidv4();
+          const toolUseId = runId ? idMap.get(runId) : undefined;
+
+          let result: any = data.output ?? '';
+          if (typeof result === 'object') {
+            result = result.content ?? result.text ?? JSON.stringify(result);
           }
 
-          // start & immediately stop the tool_result block
-          const toolResultId = uuidv4();
           yield {
             type: 'content_block_start',
-            index: contentIndex,
+            index,
             content_block: {
-              id: toolResultId,
+              id: currentId,
               type: 'tool_result',
-              tool_use_id: currentContentBlockId ?? toolResultId,
-              name: toolName,
+              tool_use_id: toolUseId ?? 'unknown_tool_use_id',
+              name: data.name,
               content: [{ type: 'text', text: String(result) }],
-              is_error: false,
               start_timestamp: ts,
               stop_timestamp: ts,
             } as ToolResultContentBlock,
-          };
-          yield {
-            type: 'content_block_stop',
-            index: contentIndex,
-            stop_timestamp: ts,
-          };
-          contentIndex++;
+          } as ServerSentEvent;
 
-          currentContentBlockType = null;
-          currentContentBlockId = null;
+          // Close it immediately
+          yield* closeBlock(ts);
           break;
         }
 
-        // —————————————————————
-        // 3) End‐of‐chain/model
-        // —————————————————————
-        case 'on_chain_end':
+        // ———————————————————————
+        //  Custom events (if you dispatch any)
+        // ———————————————————————
+        case 'on_custom_event': {
+          // handle or ignore
+          break;
+        }
+
+        // ———————————————————————
+        //  Chat model end — final cleanup
+        // ———————————————————————
         case 'on_chat_model_end': {
-          if (currentContentBlockType === 'text' && currentContentBlockId) {
-            yield {
-              type: 'content_block_stop',
-              index: contentIndex,
-              stop_timestamp: ts,
-            };
-            contentIndex++;
-            currentContentBlockType = null;
-            currentContentBlockId = null;
-          }
+          yield* closeBlock(ts);
           break;
         }
+
+        default:
+          // ignore retriever, prompt, chain events, etc.
+          break;
       }
     }
 
-    // 4) Finally close out the assistant message
+    // 4) Final force-close and stop
+    const finalTs = now();
+    yield* closeBlock(finalTs);
     yield {
       type: 'message_stop',
       messageId: assistantMessageId,
-      stop_reason: 'stop',
-      stop_timestamp: now(),
+      stop_timestamp: finalTs,
     } as ServerSentEvent;
   }
 
-  private extractTextFromContent(content: any[]): string {
+  private extractText(content: any[] | string): string {
+    if (typeof content === 'string') return content;
     if (!Array.isArray(content)) return String(content || '');
     return content
-      .map((b) => (typeof b === 'string' ? b : b.text || ''))
+      .filter((b) => b.type === 'text' || typeof b === 'string')
+      .map((b) => (typeof b === 'string' ? b : b.text))
       .join('\n');
   }
 }
