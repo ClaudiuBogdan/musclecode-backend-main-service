@@ -17,8 +17,8 @@ import { searchTool } from '../tools/search.tool';
 import {
   ServerSentEvent,
   TextBlock,
-  ToolUseContentBlock,
   ToolResultContentBlock,
+  ToolUseContentBlock,
 } from '../entities/messages';
 
 // Import the DTOs
@@ -67,11 +67,7 @@ export class AgentsService implements OnModuleInit {
     const assistantMessageId = uuidv4();
     const now = (): string => new Date().toISOString();
 
-    // Extract user text
-    const userContent = this.extractTextFromContent(messageContent);
-    const currentMessages: BaseMessage[] = [new HumanMessage(userContent)];
-
-    // Emit message_start
+    // 1) Send the message_start event
     yield {
       type: 'message_start',
       message: {
@@ -84,90 +80,87 @@ export class AgentsService implements OnModuleInit {
       },
     } as ServerSentEvent;
 
-    // Stream events from the React agent
+    // 2) Prepare the user prompt
+    const userContent = this.extractTextFromContent(messageContent);
+    const currentMessages: BaseMessage[] = [new HumanMessage(userContent)];
+
+    // 3) Kick off the agent stream
     const stream = this.agentExecutor.streamEvents(
       { messages: currentMessages },
       { version: 'v2' },
     );
 
     let contentIndex = 0;
-    let currentContentBlockId: string | null = null;
     let currentContentBlockType: 'text' | 'tool_use' | 'tool_result' | null =
       null;
+    let currentContentBlockId: string | null = null;
 
     for await (const evt of stream) {
       const ts = now();
 
       switch (evt.event) {
-        // ———————————————————————
-        // 1) Text streams (chain‐ or model‐level)
-        // ———————————————————————
+        // —————————————————————
+        // 1) Text streaming
+        // —————————————————————
         case 'on_chain_stream':
         case 'on_chat_model_stream': {
           const chunk = (evt.data as any).chunk as AIMessageChunk;
           const text = typeof chunk.content === 'string' ? chunk.content : '';
+          if (!text) break;
 
-          if (text) {
-            // if we're not already in a text block, start one
-            if (currentContentBlockType !== 'text') {
-              // close any previous block
-              if (currentContentBlockId) {
-                yield {
-                  type: 'content_block_stop',
-                  index: contentIndex,
-                  stop_timestamp: ts,
-                };
-                contentIndex++;
-              }
-
-              currentContentBlockType = 'text';
-              currentContentBlockId = uuidv4();
+          // if we're not in a text block, close whatever was open and open a new text block
+          if (currentContentBlockType !== 'text') {
+            if (currentContentBlockType && currentContentBlockId) {
               yield {
-                type: 'content_block_start',
+                type: 'content_block_stop',
                 index: contentIndex,
-                content_block: {
-                  id: currentContentBlockId,
-                  type: 'text',
-                  text: '',
-                  start_timestamp: ts,
-                  stop_timestamp: '',
-                } as TextBlock,
-              } as ServerSentEvent;
+                stop_timestamp: ts,
+              };
+              contentIndex++;
             }
-
-            // emit the delta
+            currentContentBlockType = 'text';
+            currentContentBlockId = uuidv4();
             yield {
-              type: 'content_block_delta',
+              type: 'content_block_start',
               index: contentIndex,
-              delta: { type: 'text_delta', text } as any,
-            } as ServerSentEvent;
+              content_block: {
+                id: currentContentBlockId,
+                type: 'text',
+                text: '',
+                start_timestamp: ts,
+                stop_timestamp: '',
+              } as TextBlock,
+            };
           }
+
+          // emit the delta
+          yield {
+            type: 'content_block_delta',
+            index: contentIndex,
+            delta: { type: 'text_delta', text } as any,
+          };
           break;
         }
 
-        // ———————————————————————
+        // —————————————————————
         // 2) Tool invocation
-        // ———————————————————————
+        // —————————————————————
         case 'on_tool_start': {
-          // 1) Grab the raw payload
           const payload = evt.data as any;
-
-          // 2) Pull out name + input (LangGraph sometimes nests these)
           const toolName: string =
             payload.name ?? payload.tool?.name ?? '<unknown>';
           let rawInput = payload.input ?? payload.tool?.input ?? {};
 
-          // 3) If it's a JSON‐string, parse it
           if (typeof rawInput === 'string') {
             try {
               rawInput = JSON.parse(rawInput);
             } catch {
-              // leave it as a string fallback
+              // leave as string if JSON parse fails
             }
           }
 
-          // 4) Close any open text block
-          if (currentContentBlockType === 'text' && currentContentBlockId) {
+          // close any open block
+          if (currentContentBlockType && currentContentBlockId) {
             yield {
               type: 'content_block_stop',
               index: contentIndex,
@@ -176,94 +169,91 @@ export class AgentsService implements OnModuleInit {
             contentIndex++;
           }
 
-          // 5) Emit the tool use
-          currentContentBlockType = 'tool_use';
-          currentContentBlockId = uuidv4();
+          // start & immediately stop the tool_use block
+          const toolUseId = uuidv4();
           yield {
             type: 'content_block_start',
             index: contentIndex,
             content_block: {
-              id: currentContentBlockId,
+              id: toolUseId,
               type: 'tool_use',
               name: toolName,
               input: rawInput,
               start_timestamp: ts,
               stop_timestamp: ts,
             } as ToolUseContentBlock,
-          } as ServerSentEvent;
-
+          };
           yield {
             type: 'content_block_stop',
             index: contentIndex,
             stop_timestamp: ts,
-          } as ServerSentEvent;
-
+          };
           contentIndex++;
+
+          // reset state
           currentContentBlockType = null;
+          currentContentBlockId = null;
           break;
         }
 
         case 'on_tool_end': {
           const payload = evt.data as any;
-
           const toolName: string =
             payload.name ?? payload.tool?.name ?? '<unknown>';
-
-          // LangGraph often gives you a ToolMessage object; extract its `.text`
           let result = payload.output ?? payload.tool?.output ?? '';
           if (result && typeof result === 'object' && 'text' in result) {
             result = (result as any).text;
           }
 
-          // Emit the tool result
+          // start & immediately stop the tool_result block
+          const toolResultId = uuidv4();
           yield {
             type: 'content_block_start',
             index: contentIndex,
             content_block: {
-              id: uuidv4(),
+              id: toolResultId,
               type: 'tool_result',
-              tool_use_id: currentContentBlockId!,
+              tool_use_id: currentContentBlockId ?? toolResultId,
               name: toolName,
               content: [{ type: 'text', text: String(result) }],
               is_error: false,
               start_timestamp: ts,
               stop_timestamp: ts,
             } as ToolResultContentBlock,
-          } as ServerSentEvent;
-
+          };
           yield {
             type: 'content_block_stop',
             index: contentIndex,
             stop_timestamp: ts,
-          } as ServerSentEvent;
-
-          // reset so you don't accidentally re-close this block
-          currentContentBlockType = null;
+          };
           contentIndex++;
+
+          currentContentBlockType = null;
+          currentContentBlockId = null;
           break;
         }
 
-        // ———————————————————————
-        // 3) Finalize at end of model/chain
-        // ———————————————————————
-        case 'on_chat_model_end':
-        case 'on_chain_end': {
-          // close any open text block
+        // —————————————————————
+        // 3) End‐of‐chain/model
+        // —————————————————————
+        case 'on_chain_end':
+        case 'on_chat_model_end': {
           if (currentContentBlockType === 'text' && currentContentBlockId) {
             yield {
               type: 'content_block_stop',
               index: contentIndex,
               stop_timestamp: ts,
             };
-            // no more stops for this block
+            contentIndex++;
             currentContentBlockType = null;
+            currentContentBlockId = null;
           }
           break;
         }
       }
     }
 
-    // Emit message_stop
+    // 4) Finally close out the assistant message
     yield {
       type: 'message_stop',
       messageId: assistantMessageId,
