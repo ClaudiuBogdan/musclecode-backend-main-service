@@ -2,7 +2,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
   IsBoolean,
-  IsDate,
   IsEnum,
   IsNumber,
   IsObject,
@@ -28,367 +27,140 @@ export enum MessageStatus {
   CANCELLED = 'cancelled',
 }
 
-export enum ActionStatus {
-  PENDING = 'pending',
-  RUNNING = 'running',
-  SUCCESS = 'success',
-  ERROR = 'error',
-  SKIPPED = 'skipped',
-}
-
-// Base content element DTO
-export class BaseContentElementDto {
+// Base content block DTO
+export class BaseContentBlockDto {
   @ApiProperty({
-    description: 'The discriminator field to identify the element type',
-  })
-  @IsString()
-  type: string;
-
-  @ApiPropertyOptional({
-    description:
-      'Optional unique ID for this specific content element instance',
-  })
-  @IsString()
-  @IsOptional()
-  @IsUUID()
-  id?: string;
-}
-
-// Text element DTO
-export class TextElementDto extends BaseContentElementDto {
-  @ApiProperty({ description: 'The text content' })
-  @IsString()
-  value: string;
-}
-
-// Code element DTO
-export class CodeElementDto extends BaseContentElementDto {
-  @ApiProperty({ description: 'The code content' })
-  @IsString()
-  value: string;
-
-  @ApiPropertyOptional({
-    description: 'Optional language identifier for syntax highlighting',
-  })
-  @IsString()
-  @IsOptional()
-  language?: string;
-}
-
-// Image element DTO
-export class ImageElementDto extends BaseContentElementDto {
-  @ApiProperty({ description: 'URL of the image file' })
-  @IsString()
-  url: string;
-
-  @ApiPropertyOptional({
-    description: 'Alt text for accessibility and description',
-  })
-  @IsString()
-  @IsOptional()
-  alt?: string;
-}
-
-// File element DTO
-export class FileElementDto extends BaseContentElementDto {
-  @ApiProperty({ description: 'Display name of the file' })
-  @IsString()
-  name: string;
-
-  @ApiPropertyOptional({ description: 'URL to download/view the file' })
-  @IsString()
-  @IsOptional()
-  url?: string;
-
-  @ApiPropertyOptional({ description: 'MIME type' })
-  @IsString()
-  @IsOptional()
-  mimeType?: string;
-
-  @ApiPropertyOptional({ description: 'Size in bytes' })
-  @IsNumber()
-  @IsOptional()
-  size?: number;
-
-  @ApiPropertyOptional({
-    description: 'Internal reference ID if needed for backend correlation',
-  })
-  @IsString()
-  @IsOptional()
-  refId?: string;
-}
-
-// Action request element DTO
-export class ActionRequestElementDto extends BaseContentElementDto {
-  @ApiProperty({ description: 'Name of the tool/action being called' })
-  @IsString()
-  toolName: string;
-
-  @ApiProperty({ description: 'Arguments passed to the tool' })
-  @IsObject()
-  args: Record<string, unknown>;
-
-  @ApiProperty({
-    description: 'Unique ID for this specific tool call instance',
-  })
-  @IsString()
-  @IsUUID()
-  callId: string;
-}
-
-// Action status element DTO
-export class ActionStatusElementDto extends BaseContentElementDto {
-  @ApiProperty({
-    description:
-      'Links this status update to the corresponding ActionRequestElement',
-  })
-  @IsString()
-  @IsUUID()
-  callId: string;
-
-  @ApiProperty({
-    description: 'The current status of the action execution',
-    enum: ActionStatus,
-  })
-  @IsEnum(ActionStatus)
-  status: ActionStatus;
-
-  @ApiPropertyOptional({ description: 'Optional status message' })
-  @IsString()
-  @IsOptional()
-  message?: string;
-
-  @ApiPropertyOptional({ description: 'Optional progress indicator' })
-  @IsNumber()
-  @IsOptional()
-  progress?: number;
-}
-
-// Action result element DTO
-export class ActionResultElementDto extends BaseContentElementDto {
-  @ApiProperty({
-    description: 'Links this result to the corresponding ActionRequestElement',
-  })
-  @IsString()
-  @IsUUID()
-  callId: string;
-
-  @ApiProperty({ description: 'The raw result data returned by the tool' })
-  result: unknown;
-
-  @ApiPropertyOptional({
-    description:
-      'Pre-rendered representation of the result using other ContentElements for direct display',
-  })
-  @IsArray()
-  @IsOptional()
-  @ValidateNested({ each: true })
-  @Type(() => BaseContentElementDto)
-  renderedResult?: BaseContentElementDto[];
-
-  @ApiProperty({
-    description:
-      'Indicates if the action execution that produced this result was successful or failed',
-  })
-  @IsString()
-  status: 'success' | 'error';
-
-  @ApiPropertyOptional({
-    description: 'Optional error message if status is error',
-  })
-  @IsString()
-  @IsOptional()
-  errorMessage?: string;
-}
-
-// Reference element DTO
-export class ReferenceElementDto extends BaseContentElementDto {
-  @ApiProperty({ description: 'Name or identifier of the source' })
-  @IsString()
-  source: string;
-
-  @ApiPropertyOptional({
-    description: 'Relevant snippet/quote from the source content',
-  })
-  @IsString()
-  @IsOptional()
-  snippet?: string;
-
-  @ApiPropertyOptional({
-    description: 'Direct link to the source if available',
-  })
-  @IsString()
-  @IsOptional()
-  url?: string;
-
-  @ApiPropertyOptional({ description: 'Internal reference ID if needed' })
-  @IsString()
-  @IsOptional()
-  refId?: string;
-}
-
-// UI control element DTO
-export class UIControlElementDto extends BaseContentElementDto {
-  @ApiProperty({ description: 'The type of UI control to render' })
-  @IsString()
-  controlType: 'button' | 'input' | 'select' | 'checkbox' | 'textarea';
-
-  @ApiProperty({ description: 'Display label' })
-  @IsString()
-  label: string;
-
-  @ApiProperty({
-    description:
-      'Identifier for the action this control triggers when interacted with',
-  })
-  @IsString()
-  actionId: string;
-
-  @ApiPropertyOptional({
-    description: 'Optional data associated with the control or action',
-  })
-  @IsOptional()
-  payload?: unknown;
-
-  @ApiPropertyOptional({
-    description: 'Default value for inputs/selects/textareas',
-  })
-  @IsOptional()
-  defaultValue?: unknown;
-
-  @ApiPropertyOptional({ description: 'Options for select controlType' })
-  @IsArray()
-  @IsOptional()
-  options?: { label: string; value: string }[];
-
-  @ApiPropertyOptional({
-    description: 'Whether the control is currently interactive',
-  })
-  @IsBoolean()
-  @IsOptional()
-  disabled?: boolean;
-}
-
-// Status update element DTO
-export class StatusUpdateElementDto extends BaseContentElementDto {
-  @ApiProperty({ description: 'Status message' })
-  @IsString()
-  message: string;
-
-  @ApiProperty({ description: 'Severity level' })
-  @IsString()
-  level: 'info' | 'warning' | 'error' | 'debug';
-}
-
-// Error element DTO
-export class ErrorElementDto extends BaseContentElementDto {
-  @ApiProperty({ description: 'User-friendly error message' })
-  @IsString()
-  message: string;
-
-  @ApiPropertyOptional({ description: 'Optional error code' })
-  @IsOptional()
-  code?: string | number;
-
-  @ApiPropertyOptional({
-    description: 'Optional technical details, stack trace, etc.',
-  })
-  @IsString()
-  @IsOptional()
-  details?: string;
-
-  @ApiPropertyOptional({
-    description: 'Indicates if this error likely halted the intended operation',
-  })
-  @IsBoolean()
-  @IsOptional()
-  fatal?: boolean;
-}
-
-// Interaction response element DTO
-export class InteractionResponseElementDto extends BaseContentElementDto {
-  @ApiPropertyOptional({
-    description:
-      'ID of the specific UIControlElement instance that was interacted with',
-  })
-  @IsString()
-  @IsOptional()
-  @IsUUID()
-  controlId?: string;
-
-  @ApiProperty({
-    description:
-      'The action identifier from the UIControlElement that was triggered',
-  })
-  @IsString()
-  actionId: string;
-
-  @ApiPropertyOptional({
-    description:
-      'Payload from the UIControlElement or data entered/selected by the user',
-  })
-  @IsOptional()
-  payload?: unknown;
-
-  @ApiPropertyOptional({
-    description: 'User-facing label of the control interacted with',
-  })
-  @IsString()
-  @IsOptional()
-  label?: string;
-}
-
-// Custom element DTO
-export class CustomElementDto extends BaseContentElementDto {
-  @ApiProperty({
-    description: 'Specific identifier for your custom element type',
-  })
-  @IsString()
-  customType: string;
-
-  @ApiProperty({
-    description: 'Custom data structure needed to render this element',
-  })
-  @IsObject()
-  data: Record<string, unknown>;
-}
-
-// Token usage DTO
-export class TokenUsageDto {
-  @ApiPropertyOptional({ description: 'Number of prompt tokens used' })
-  @IsNumber()
-  @IsOptional()
-  promptTokens?: number;
-
-  @ApiPropertyOptional({ description: 'Number of completion tokens used' })
-  @IsNumber()
-  @IsOptional()
-  completionTokens?: number;
-
-  @ApiPropertyOptional({ description: 'Total number of tokens used' })
-  @IsNumber()
-  @IsOptional()
-  totalTokens?: number;
-}
-
-// Context reference DTOs
-export class BaseContextElementDto {
-  @ApiProperty({
-    description: 'Unique ID for this specific context element instance',
+    description: 'Unique ID for this specific content block instance',
   })
   @IsString()
   @IsUUID()
   id: string;
 
   @ApiProperty({
-    description: 'The discriminator field to identify the context element type',
+    description: 'The discriminator field to identify the block type',
+  })
+  @IsString()
+  type: string;
+
+  @ApiProperty({
+    description: 'The timestamp of when the block was created',
+  })
+  @IsString()
+  start_timestamp: string;
+
+  @ApiProperty({
+    description: 'The timestamp of when the block was completed',
+  })
+  @IsString()
+  stop_timestamp: string;
+}
+
+// Text block DTO
+export class TextBlockDto extends BaseContentBlockDto {
+  @ApiProperty({ description: 'The text content' })
+  @IsString()
+  text: string;
+}
+
+// Tool use content block DTO
+export class ToolUseContentBlockDto extends BaseContentBlockDto {
+  @ApiProperty({ description: 'Name of the tool being used' })
+  @IsString()
+  name: string;
+
+  @ApiProperty({ description: 'The complete input object once assembled' })
+  @IsObject()
+  input: Record<string, unknown>;
+
+  @ApiPropertyOptional({ description: 'Optional descriptive message' })
+  @IsString()
+  @IsOptional()
+  message?: string;
+
+  @ApiPropertyOptional({ description: 'Optional integration name' })
+  @IsString()
+  @IsOptional()
+  integration_name?: string;
+
+  @ApiPropertyOptional({ description: 'Optional integration icon URL' })
+  @IsString()
+  @IsOptional()
+  integration_icon_url?: string;
+
+  @ApiPropertyOptional({ description: 'Optional display content' })
+  @IsString()
+  @IsOptional()
+  display_content?: string;
+}
+
+// Tool result text part DTO
+export class ToolResultTextPartDto {
+  @ApiPropertyOptional({ description: 'Optional unique ID' })
+  @IsString()
+  @IsUUID()
+  @IsOptional()
+  id?: string;
+
+  @ApiProperty({ description: 'Type is always text for text parts' })
+  @IsString()
+  type: 'text';
+
+  @ApiProperty({ description: 'The text content' })
+  @IsString()
+  text: string;
+}
+
+// Tool result content block DTO
+export class ToolResultContentBlockDto extends BaseContentBlockDto {
+  @ApiProperty({ description: 'ID of the corresponding tool_use block' })
+  @IsString()
+  @IsUUID()
+  tool_use_id: string;
+
+  @ApiProperty({ description: 'Name of the tool that was used' })
+  @IsString()
+  name: string;
+
+  @ApiProperty({ description: 'The result content' })
+  content: unknown;
+
+  @ApiProperty({
+    description: 'Indicates if the tool execution resulted in an error',
+  })
+  @IsBoolean()
+  is_error: boolean;
+
+  @ApiPropertyOptional({
+    description: 'Optional descriptive message from the tool execution',
+  })
+  @IsString()
+  @IsOptional()
+  message?: string;
+
+  @ApiPropertyOptional({ description: 'Optional display content' })
+  @IsString()
+  @IsOptional()
+  display_content?: string;
+}
+
+// Context reference DTOs
+export class BaseContextBlockDto {
+  @ApiProperty({
+    description: 'Unique ID for this specific context block instance',
+  })
+  @IsString()
+  @IsUUID()
+  id: string;
+
+  @ApiProperty({
+    description: 'The discriminator field to identify the context block type',
   })
   @IsString()
   type: string;
 
   @ApiPropertyOptional({
     description:
-      'Whether this context element can be used multiple times in the same message',
+      'Whether this context block can be used multiple times in the same message',
   })
   @IsBoolean()
   @IsOptional()
@@ -410,7 +182,7 @@ export class PromptDto {
   description: string;
 }
 
-export class PromptReferenceContextDto extends BaseContextElementDto {
+export class PromptReferenceContextDto extends BaseContextBlockDto {
   @ApiProperty({ description: 'Prompt reference information' })
   @ValidateNested()
   @Type(() => PromptDto)
@@ -424,26 +196,18 @@ export class PromptReferenceContextDto extends BaseContextElementDto {
   unique: true;
 }
 
-export class CanvasDto {
-  @ApiProperty({ description: 'Canvas ID' })
+export class GraphNodeDto {
+  @ApiProperty({ description: 'Graph node ID' })
   @IsString()
   @IsUUID()
   id: string;
-
-  @ApiProperty({ description: 'Canvas name' })
-  @IsString()
-  name: string;
-
-  @ApiProperty({ description: 'Canvas description' })
-  @IsString()
-  description: string;
 }
 
-export class CanvasContextDto extends BaseContextElementDto {
-  @ApiProperty({ description: 'Canvas information' })
+export class GraphNodeContextDto extends BaseContextBlockDto {
+  @ApiProperty({ description: 'Graph node information' })
   @ValidateNested()
-  @Type(() => CanvasDto)
-  canvas: CanvasDto;
+  @Type(() => GraphNodeDto)
+  graph_node: GraphNodeDto;
 }
 
 export class KeyValueDto {
@@ -479,7 +243,7 @@ export class KeyValueDto {
   unique?: boolean;
 }
 
-export class KeyValueContextElementDto extends BaseContextElementDto {
+export class KeyValueContextBlockDto extends BaseContextBlockDto {
   @ApiProperty({ description: 'Title of the key-value context' })
   @IsString()
   title: string;
@@ -490,57 +254,42 @@ export class KeyValueContextElementDto extends BaseContextElementDto {
   key_value: KeyValueDto;
 }
 
+// Token usage DTO
+export class TokenUsageDto {
+  @ApiPropertyOptional({ description: 'Number of prompt tokens used' })
+  @IsNumber()
+  @IsOptional()
+  promptTokens?: number;
+
+  @ApiPropertyOptional({ description: 'Number of completion tokens used' })
+  @IsNumber()
+  @IsOptional()
+  completionTokens?: number;
+
+  @ApiPropertyOptional({ description: 'Total number of tokens used' })
+  @IsNumber()
+  @IsOptional()
+  totalTokens?: number;
+}
+
 // Main Chat Message DTO
-export class ContentElementUnion {
+export class ContentBlockUnion {
   static create(
-    element: any,
-  ):
-    | TextElementDto
-    | CodeElementDto
-    | ImageElementDto
-    | FileElementDto
-    | ActionRequestElementDto
-    | ActionStatusElementDto
-    | ActionResultElementDto
-    | ReferenceElementDto
-    | UIControlElementDto
-    | StatusUpdateElementDto
-    | ErrorElementDto
-    | InteractionResponseElementDto
-    | CustomElementDto {
-    if (!element || !element.type) {
-      throw new Error('Invalid content element: type is required');
+    block: any,
+  ): TextBlockDto | ToolUseContentBlockDto | ToolResultContentBlockDto {
+    if (!block || !block.type) {
+      throw new Error('Invalid content block: type is required');
     }
 
-    switch (element.type) {
+    switch (block.type) {
       case 'text':
-        return Object.assign(new TextElementDto(), element);
-      case 'code':
-        return Object.assign(new CodeElementDto(), element);
-      case 'image':
-        return Object.assign(new ImageElementDto(), element);
-      case 'file':
-        return Object.assign(new FileElementDto(), element);
-      case 'action_request':
-        return Object.assign(new ActionRequestElementDto(), element);
-      case 'action_status':
-        return Object.assign(new ActionStatusElementDto(), element);
-      case 'action_result':
-        return Object.assign(new ActionResultElementDto(), element);
-      case 'reference':
-        return Object.assign(new ReferenceElementDto(), element);
-      case 'ui_control':
-        return Object.assign(new UIControlElementDto(), element);
-      case 'status_update':
-        return Object.assign(new StatusUpdateElementDto(), element);
-      case 'error':
-        return Object.assign(new ErrorElementDto(), element);
-      case 'interaction_response':
-        return Object.assign(new InteractionResponseElementDto(), element);
-      case 'custom':
-        return Object.assign(new CustomElementDto(), element);
+        return Object.assign(new TextBlockDto(), block);
+      case 'tool_use':
+        return Object.assign(new ToolUseContentBlockDto(), block);
+      case 'tool_result':
+        return Object.assign(new ToolResultContentBlockDto(), block);
       default:
-        throw new Error(`Unknown content element type: ${element.type}`);
+        throw new Error(`Unknown content block type: ${block.type}`);
     }
   }
 }
@@ -552,75 +301,55 @@ export class ChatMessageDto {
   id: string;
 
   @ApiProperty({ description: 'Timestamp of message creation' })
-  @IsDate()
-  @Type(() => Date)
-  createdAt: Date;
+  @IsString()
+  createdAt: string;
 
   @ApiProperty({ description: 'Who sent the message', enum: ChatRole })
   @IsEnum(ChatRole)
   role: ChatRole;
 
-  @ApiPropertyOptional({
-    description: 'The user ID associated with the message',
-  })
-  @IsString()
-  @IsOptional()
-  userId?: string;
-
   @ApiProperty({
     description: 'The structured content of the message',
-    type: [BaseContentElementDto],
+    type: [BaseContentBlockDto],
   })
   @IsArray()
   @ValidateNested({ each: true })
-  @Type(() => BaseContentElementDto, {
+  @Type(() => BaseContentBlockDto, {
     discriminator: {
       property: 'type',
       subTypes: [
-        { value: TextElementDto, name: 'text' },
-        { value: CodeElementDto, name: 'code' },
-        { value: ImageElementDto, name: 'image' },
-        { value: FileElementDto, name: 'file' },
-        { value: ActionRequestElementDto, name: 'action_request' },
-        { value: ActionStatusElementDto, name: 'action_status' },
-        { value: ActionResultElementDto, name: 'action_result' },
-        { value: ReferenceElementDto, name: 'reference' },
-        { value: UIControlElementDto, name: 'ui_control' },
-        { value: StatusUpdateElementDto, name: 'status_update' },
-        { value: ErrorElementDto, name: 'error' },
-        { value: InteractionResponseElementDto, name: 'interaction_response' },
-        { value: CustomElementDto, name: 'custom' },
+        { value: TextBlockDto, name: 'text' },
+        { value: ToolUseContentBlockDto, name: 'tool_use' },
+        { value: ToolResultContentBlockDto, name: 'tool_result' },
       ],
     },
   })
   content: (
-    | TextElementDto
-    | CodeElementDto
-    | ImageElementDto
-    | FileElementDto
-    | ActionRequestElementDto
-    | ActionStatusElementDto
-    | ActionResultElementDto
-    | ReferenceElementDto
-    | UIControlElementDto
-    | StatusUpdateElementDto
-    | ErrorElementDto
-    | InteractionResponseElementDto
-    | CustomElementDto
+    | TextBlockDto
+    | ToolUseContentBlockDto
+    | ToolResultContentBlockDto
   )[];
 
   @ApiPropertyOptional({
     description: 'References to external context items',
-    type: [BaseContextElementDto],
+    type: [BaseContextBlockDto],
   })
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => BaseContextElementDto)
-  attachedContext?: BaseContextElementDto[];
+  @Type(() => BaseContextBlockDto)
+  attachedContext?: BaseContextBlockDto[];
 
   @ApiPropertyOptional({
-    description: 'Id of the message this one is related to. UUID v4',
+    description: 'Overall status of the message processing',
+    enum: MessageStatus,
+  })
+  @IsEnum(MessageStatus)
+  @IsOptional()
+  status?: MessageStatus;
+
+  @ApiPropertyOptional({
+    description: 'Id of the message this one is related to',
   })
   @IsUUID()
   @IsOptional()
@@ -628,17 +357,53 @@ export class ChatMessageDto {
 
   @ApiProperty({
     description:
-      'Id for grouping related messages in a logical sub-thread or step. UUID v4',
+      'Id for grouping related messages in a logical sub-thread or step',
   })
   @IsUUID()
   threadId: string;
+
+  @ApiPropertyOptional({
+    description: 'End-to-end latency in milliseconds',
+  })
+  @IsNumber()
+  @IsOptional()
+  latencyMs?: number;
+
+  @ApiPropertyOptional({
+    description: 'Token usage information',
+  })
+  @ValidateNested()
+  @Type(() => TokenUsageDto)
+  @IsOptional()
+  tokenUsage?: TokenUsageDto;
+
+  @ApiPropertyOptional({
+    description: 'Reason the message generation finished',
+  })
+  @IsString()
+  @IsOptional()
+  finishReason?:
+    | 'stop'
+    | 'length'
+    | 'tool_calls'
+    | 'content_filter'
+    | 'error'
+    | null;
+
+  @ApiPropertyOptional({
+    description: 'Generic property bag for additional custom data',
+  })
+  @IsObject()
+  @IsOptional()
+  metadata?: Record<string, unknown>;
 }
 
-export class ReponseMessageDto {
+export class ResponseMessageDto {
   @ApiProperty({ description: 'The id of the response message' })
   @IsUUID()
   id: string;
 }
+
 export class MessagePayloadDto {
   @ApiProperty({ description: 'The message to send' })
   @ValidateNested()
@@ -647,8 +412,8 @@ export class MessagePayloadDto {
 
   @ApiProperty({ description: 'The response message' })
   @ValidateNested()
-  @Type(() => ReponseMessageDto)
-  responseMessage: ReponseMessageDto;
+  @Type(() => ResponseMessageDto)
+  responseMessage: ResponseMessageDto;
 }
 
 // Chat Thread DTO
@@ -664,14 +429,12 @@ export class ChatThreadDto {
   title?: string;
 
   @ApiProperty({ description: 'Timestamp of session creation' })
-  @IsDate()
-  @Type(() => Date)
-  createdAt: Date;
+  @IsString()
+  createdAt: string;
 
   @ApiProperty({ description: 'Timestamp of the last session update' })
-  @IsDate()
-  @Type(() => Date)
-  updatedAt: Date;
+  @IsString()
+  updatedAt: string;
 
   @ApiProperty({
     description: 'Ordered list of messages constituting the conversation',
@@ -683,19 +446,143 @@ export class ChatThreadDto {
   messages: ChatMessageDto[];
 
   @ApiPropertyOptional({
-    description: 'Metadata associated with the entire session',
-  })
-  @IsObject()
-  @IsOptional()
-  metadata?: Record<string, unknown>;
-
-  @ApiPropertyOptional({
     description: 'Context references attached to the session',
-    type: [BaseContextElementDto],
+    type: [BaseContextBlockDto],
   })
   @IsArray()
   @IsOptional()
   @ValidateNested({ each: true })
-  @Type(() => BaseContextElementDto)
-  attachedContext?: BaseContextElementDto[];
+  @Type(() => BaseContextBlockDto)
+  attachedContext?: BaseContextBlockDto[];
+
+  @ApiPropertyOptional({
+    description: 'Timestamp of the last message sync with the backend',
+  })
+  @IsString()
+  @IsOptional()
+  lastMessagesSyncAt?: string;
 }
+
+// Delta level structures for streaming
+export class TextDeltaDto {
+  @ApiProperty({ description: 'Type is always text_delta for text deltas' })
+  @IsString()
+  type: 'text_delta';
+
+  @ApiProperty({ description: 'The text content being added' })
+  @IsString()
+  text: string;
+}
+
+export class InputJsonDeltaDto {
+  @ApiProperty({
+    description: 'Type is always input_json_delta for JSON deltas',
+  })
+  @IsString()
+  type: 'input_json_delta';
+
+  @ApiProperty({ description: 'A string fragment of the JSON object' })
+  @IsString()
+  partial_json: string;
+}
+
+export class MessageDeltaDto {
+  @ApiPropertyOptional({ description: 'Reason why message generation stopped' })
+  @IsString()
+  @IsOptional()
+  stop_reason?: string | null;
+
+  @ApiPropertyOptional({ description: 'Stop sequence that triggered the stop' })
+  @IsString()
+  @IsOptional()
+  stop_sequence?: string | null;
+}
+
+// Event level DTOs for server-sent events
+export class MessageStartEventDto {
+  @ApiProperty({ description: 'Event type is always message_start' })
+  @IsString()
+  type: 'message_start';
+
+  @ApiProperty({ description: 'The initial message metadata' })
+  @ValidateNested()
+  @Type(() => ChatMessageDto)
+  message: ChatMessageDto;
+}
+
+export class ContentBlockStartEventDto {
+  @ApiProperty({ description: 'Event type is always content_block_start' })
+  @IsString()
+  type: 'content_block_start';
+
+  @ApiProperty({
+    description: 'The index of the content block in the message content array',
+  })
+  @IsNumber()
+  index: number;
+
+  @ApiProperty({ description: 'The initial state of the content block' })
+  content_block:
+    | TextBlockDto
+    | ToolUseContentBlockDto
+    | ToolResultContentBlockDto;
+}
+
+export class ContentBlockDeltaEventDto {
+  @ApiProperty({ description: 'Event type is always content_block_delta' })
+  @IsString()
+  type: 'content_block_delta';
+
+  @ApiProperty({ description: 'The index of the content block being updated' })
+  @IsNumber()
+  index: number;
+
+  @ApiProperty({ description: 'The actual change' })
+  delta: TextDeltaDto | InputJsonDeltaDto;
+}
+
+export class ContentBlockStopEventDto {
+  @ApiProperty({ description: 'Event type is always content_block_stop' })
+  @IsString()
+  type: 'content_block_stop';
+
+  @ApiProperty({ description: 'The index of the content block that stopped' })
+  @IsNumber()
+  index: number;
+
+  @ApiProperty({ description: 'When the block stopped generating' })
+  @IsString()
+  stop_timestamp: string;
+}
+
+export class MessageDeltaEventDto {
+  @ApiProperty({ description: 'Event type is always message_delta' })
+  @IsString()
+  type: 'message_delta';
+
+  @ApiProperty({ description: 'The delta information' })
+  @ValidateNested()
+  @Type(() => MessageDeltaDto)
+  delta: MessageDeltaDto;
+}
+
+export class PingEventDto {
+  @ApiProperty({ description: 'Event type is always ping' })
+  @IsString()
+  type: 'ping';
+}
+
+export class MessageStopEventDto {
+  @ApiProperty({ description: 'Event type is always message_stop' })
+  @IsString()
+  type: 'message_stop';
+}
+
+export type ServerSentEventDto =
+  | MessageStartEventDto
+  | ContentBlockStartEventDto
+  | ContentBlockDeltaEventDto
+  | ContentBlockStopEventDto
+  | MessageDeltaEventDto
+  | PingEventDto
+  | MessageStopEventDto;

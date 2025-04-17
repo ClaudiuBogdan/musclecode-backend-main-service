@@ -37,33 +37,6 @@ export class ChatController {
     private readonly agentsService: AgentsService,
   ) {}
 
-  @Post('messages')
-  @ApiOperation({ summary: 'Send a message' })
-  @ApiResponse({
-    status: 200,
-    description: 'Returns the message.',
-  })
-  async sendMessage(
-    @Req() req: AuthenticatedRequest,
-    @Body() payload: MessagePayloadDto,
-  ) {
-    try {
-      const userId = req.user.id;
-
-      payload.message.userId = userId;
-
-      this.logger.log('messageDto', {
-        userId,
-        message: payload.message,
-      });
-      console.log('messageDto', payload);
-      return await this.chatService.sendMessage(userId, payload);
-    } catch (error) {
-      this.logger.error('Error sending message', error);
-      throw error;
-    }
-  }
-
   // @Get('threads')
   // @ApiOperation({ summary: 'Get all threads for the current user' })
   // @ApiResponse({ status: 200, description: 'Return all threads.' })
