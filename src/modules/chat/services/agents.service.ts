@@ -21,25 +21,44 @@ import {
 } from '../entities/messages';
 import { ChatMessageDto } from '../dto/agent-chat.dto';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
+import { zodToJsonSchema } from 'zod-to-json-schema';
+
+import {
+  ChatPromptTemplate,
+  HumanMessagePromptTemplate,
+  SystemMessagePromptTemplate,
+} from '@langchain/core/prompts';
 
 const courseSchema = z.object({
   title: z.string().describe('The title of the course'),
   description: z.string().describe('The description of the course'),
+  lessons: z.array(
+    z.object({
+      title: z.string().describe('The title of the lesson'),
+      description: z.string().describe('The description of the lesson'),
+    }),
+  ),
 });
 
-type CourseSchemaType = z.infer<typeof courseSchema>;
+const createCourseSchema = z.object({
+  coursePrompt: z
+    .string()
+    .describe(
+      `The prompt for the course. Write details instructions about what the course should contain.`,
+    ),
+});
+
+type CreateCourseSchemaType = z.infer<typeof createCourseSchema>;
 
 // 2) Create the tool, accepting the Runner’s config so we can dispatch events
 const createCourseTool = (apiKey: string, model: string) =>
   tool(
     async (
-      input: CourseSchemaType,
+      input: CreateCourseSchemaType,
       config?: RunnableConfig,
     ): Promise<string> => {
-      console.log('input', input);
-
       const draftId = uuidv4();
-      const course = input;
+      const userId = config?.metadata?.userId;
 
       const teacherAgent = new ChatGoogleGenerativeAI({
         apiKey,
@@ -48,13 +67,24 @@ const createCourseTool = (apiKey: string, model: string) =>
         json: true,
       });
 
-      const stream = await teacherAgent.stream(
-        'Write a course description for the following course: ' + course.title,
-        {
-          tags: ['skip_client_stream'],
-        },
-      );
-      let finalMessage = '';
+      const createCoursePromptTemplate = ChatPromptTemplate.fromMessages([
+        SystemMessagePromptTemplate.fromTemplate(`
+          You are a teacher. You are given a course prompt and you need to generate a course. This is the schema for the course: {courseSchema}`),
+        HumanMessagePromptTemplate.fromTemplate(`
+          Here is the course prompt: {coursePrompt}
+        `),
+      ]);
+
+      const createCoursePrompt = await createCoursePromptTemplate.invoke({
+        coursePrompt: input.coursePrompt,
+        courseSchema: JSON.stringify(zodToJsonSchema(courseSchema)),
+      });
+
+      const stream = await teacherAgent.stream(createCoursePrompt, {
+        ...config,
+        tags: ['skip_client_stream'],
+      });
+
       for await (const chunk of stream) {
         await dispatchCustomEvent(
           'input_json_delta',
@@ -64,15 +94,14 @@ const createCourseTool = (apiKey: string, model: string) =>
           },
           config,
         );
-        finalMessage += chunk.content;
       }
 
-      return JSON.stringify({ draftId, course, finalMessage });
+      return JSON.stringify({ draftId, userId });
     },
     {
       name: 'create-course',
       description: 'Save the course to the database',
-      schema: courseSchema,
+      schema: createCourseSchema,
     },
   );
 
@@ -153,7 +182,12 @@ export class AgentsService implements OnModuleInit {
       { messages: [new HumanMessage(userText)] },
       {
         version: 'v2',
-        configurable: { thread_id: `${userId}_${message.threadId}` },
+        configurable: {
+          thread_id: `${userId}_${message.threadId}`,
+        },
+        metadata: {
+          userId,
+        },
       },
     );
 
