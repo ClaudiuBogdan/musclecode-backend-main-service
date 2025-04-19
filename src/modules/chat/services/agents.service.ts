@@ -1,10 +1,13 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { HumanMessage, AIMessageChunk } from '@langchain/core/messages';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
-import { Runnable } from '@langchain/core/runnables';
+import { Runnable, RunnableConfig } from '@langchain/core/runnables';
+import { tool } from '@langchain/core/tools';
+import { z } from 'zod';
 
 // Tools
 import { searchTool } from '../tools/search.tool';
@@ -18,6 +21,54 @@ import {
 } from '../entities/messages';
 import { ChatMessageDto } from '../dto/agent-chat.dto';
 
+const courseSchema = z.object({
+  title: z.string().describe('The title of the course'),
+  description: z.string().describe('The description of the course'),
+});
+
+type CourseSchemaType = z.infer<typeof courseSchema>;
+
+// 2) Create the tool, accepting the Runner’s config so we can dispatch events
+const createCourseTool = (apiKey: string, model: string) =>
+  tool(
+    async (
+      input: CourseSchemaType,
+      config?: RunnableConfig,
+    ): Promise<string> => {
+      console.log('input', input);
+
+      const draftId = uuidv4();
+      const course = input;
+
+      const teacherAgent = new ChatGoogleGenerativeAI({
+        apiKey,
+        model,
+        temperature: 0.3,
+        json: true,
+      });
+
+      const stream = await teacherAgent.stream(
+        'Write a course description for the following course: ' + course.title,
+      );
+      let finalMessage = '';
+      for await (const chunk of stream) {
+        await dispatchCustomEvent(
+          'course:draftCreated',
+          { type: 'course:draftCreated', data: { content: chunk.content } },
+          config,
+        );
+        finalMessage += chunk.content;
+      }
+
+      return JSON.stringify({ draftId, course, finalMessage });
+    },
+    {
+      name: 'create-course',
+      description: 'Save the course to the database',
+      schema: courseSchema,
+    },
+  );
+
 @Injectable()
 export class AgentsService implements OnModuleInit {
   private readonly logger = new Logger(AgentsService.name);
@@ -30,10 +81,15 @@ export class AgentsService implements OnModuleInit {
     if (!apiKey) {
       throw new Error('GEMINI_API_KEY is not defined');
     }
-    this.llm = new ChatGoogleGenerativeAI({ apiKey, model, temperature: 0.3 });
+    this.llm = new ChatGoogleGenerativeAI({
+      apiKey,
+      model,
+      temperature: 0.3,
+      streaming: true,
+    });
     this.agentExecutor = createReactAgent({
       llm: this.llm,
-      tools: [searchTool],
+      tools: [searchTool, createCourseTool(apiKey, model)],
     });
   }
 
@@ -45,8 +101,10 @@ export class AgentsService implements OnModuleInit {
 
   async *streamAgentResponse(
     message: ChatMessageDto,
-    _userId: string,
+    userId: string,
   ): AsyncGenerator<ServerSentEvent> {
+    // log userId to avoid unused variable warning
+    this.logger.log(`streamAgentResponse called for user ${userId}`);
     const assistantMessageId = uuidv4();
     const now = () => new Date().toISOString();
 
@@ -108,6 +166,7 @@ export class AgentsService implements OnModuleInit {
     );
 
     for await (const evt of eventStream) {
+      // keepalive ping to prevent SSE connection from closing
       const ts = now();
       const runId = evt.run_id;
 
@@ -211,7 +270,8 @@ export class AgentsService implements OnModuleInit {
         //  Custom events (if you dispatch any)
         // ———————————————————————
         case 'on_custom_event': {
-          // handle or ignore
+          const { type, data } = evt.data as { type: string; data: any };
+          console.log('on_custom_event', type, data);
           break;
         }
 
@@ -224,7 +284,6 @@ export class AgentsService implements OnModuleInit {
         }
 
         default:
-          // ignore retriever, prompt, chain events, etc.
           break;
       }
     }
