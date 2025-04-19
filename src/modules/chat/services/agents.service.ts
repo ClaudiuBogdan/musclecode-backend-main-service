@@ -20,6 +20,7 @@ import {
   ToolUseContentBlock,
 } from '../entities/messages';
 import { ChatMessageDto } from '../dto/agent-chat.dto';
+import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 
 const courseSchema = z.object({
   title: z.string().describe('The title of the course'),
@@ -80,6 +81,7 @@ export class AgentsService implements OnModuleInit {
   private readonly logger = new Logger(AgentsService.name);
   private llm: ChatGoogleGenerativeAI;
   private agentExecutor: Runnable;
+  private checkpointer: PostgresSaver;
 
   constructor(private configService: ConfigService) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
@@ -87,6 +89,14 @@ export class AgentsService implements OnModuleInit {
     if (!apiKey) {
       throw new Error('GEMINI_API_KEY is not defined');
     }
+    const databaseUrl = this.configService.get('DATABASE_URL')!;
+    if (!databaseUrl) {
+      throw new Error('DATABASE_URL is not defined');
+    }
+    this.checkpointer = PostgresSaver.fromConnString(databaseUrl, {
+      schema: 'langchain_chat_histories',
+    });
+
     this.llm = new ChatGoogleGenerativeAI({
       apiKey,
       model,
@@ -96,10 +106,13 @@ export class AgentsService implements OnModuleInit {
     this.agentExecutor = createReactAgent({
       llm: this.llm,
       tools: [searchTool, createCourseTool(apiKey, model)],
+      checkpointSaver: this.checkpointer,
     });
   }
 
-  onModuleInit() {
+  async onModuleInit() {
+    await this.checkpointer.setup();
+
     this.logger.log(
       'AgentsService initialized with Gemini LLM and LangGraph agent',
     );
@@ -138,7 +151,10 @@ export class AgentsService implements OnModuleInit {
     // 3) Stream events from the agent
     const eventStream = this.agentExecutor.streamEvents(
       { messages: [new HumanMessage(userText)] },
-      { version: 'v2' },
+      {
+        version: 'v2',
+        configurable: { thread_id: `${userId}_${message.threadId}` },
+      },
     );
 
     // Nested generator to close the current block
@@ -179,7 +195,6 @@ export class AgentsService implements OnModuleInit {
       runId: string,
       ts: string,
     ): Generator<ServerSentEvent> {
-      const data = evt.data as any;
       const toolName = evt.name;
       const toolId = evt.run_id;
 
@@ -195,7 +210,7 @@ export class AgentsService implements OnModuleInit {
           id: toolId,
           type: 'tool_use',
           name: toolName,
-          input: data.input ?? {},
+          input: {},
           start_timestamp: ts,
           stop_timestamp: ts,
         } as ToolUseContentBlock,
