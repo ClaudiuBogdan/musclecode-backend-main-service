@@ -49,12 +49,18 @@ const createCourseTool = (apiKey: string, model: string) =>
 
       const stream = await teacherAgent.stream(
         'Write a course description for the following course: ' + course.title,
+        {
+          tags: ['skip_client_stream'],
+        },
       );
       let finalMessage = '';
       for await (const chunk of stream) {
         await dispatchCustomEvent(
-          'course:draftCreated',
-          { type: 'course:draftCreated', data: { content: chunk.content } },
+          'input_json_delta',
+          {
+            type: 'input_json_delta',
+            partial_json: chunk.content,
+          },
           config,
         );
         finalMessage += chunk.content;
@@ -126,11 +132,18 @@ export class AgentsService implements OnModuleInit {
     let currentType: 'text' | 'tool_use' | 'tool_result' | null = null;
     let currentId: string | null = null;
     let index = 0;
+    let isBlockOpen = false;
     const idMap = new Map<string, string>();
+
+    // 3) Stream events from the agent
+    const eventStream = this.agentExecutor.streamEvents(
+      { messages: [new HumanMessage(userText)] },
+      { version: 'v2' },
+    );
 
     // Nested generator to close the current block
     function* closeBlock(ts: string): Generator<ServerSentEvent> {
-      if (!currentId) {
+      if (!currentId || !isBlockOpen) {
         return;
       }
       yield {
@@ -141,12 +154,14 @@ export class AgentsService implements OnModuleInit {
       index++;
       currentType = null;
       currentId = null;
+      isBlockOpen = false;
     }
 
     // Nested generator to start a new text block
     function* startTextBlock(ts: string): Generator<ServerSentEvent> {
       currentType = 'text';
       currentId = uuidv4();
+      isBlockOpen = true;
       yield {
         type: 'content_block_start',
         index,
@@ -159,11 +174,64 @@ export class AgentsService implements OnModuleInit {
       } as ServerSentEvent;
     }
 
-    // 3) Stream events from the agent
-    const eventStream = this.agentExecutor.streamEvents(
-      { messages: [new HumanMessage(userText)] },
-      { version: 'v2' },
-    );
+    function* startToolUseBlock(
+      evt: any,
+      runId: string,
+      ts: string,
+    ): Generator<ServerSentEvent> {
+      const data = evt.data as any;
+      const toolName = evt.name;
+      const toolId = evt.run_id;
+
+      currentType = 'tool_use';
+      currentId = uuidv4();
+      isBlockOpen = true;
+      if (runId) idMap.set(runId, currentId);
+
+      yield {
+        type: 'content_block_start',
+        index,
+        content_block: {
+          id: toolId,
+          type: 'tool_use',
+          name: toolName,
+          input: data.input ?? {},
+          start_timestamp: ts,
+          stop_timestamp: ts,
+        } as ToolUseContentBlock,
+      } as ServerSentEvent;
+    }
+
+    function* startToolResultBlock(
+      evt: any,
+      runId: string,
+      ts: string,
+    ): Generator<ServerSentEvent> {
+      currentType = 'tool_result';
+      currentId = uuidv4();
+      isBlockOpen = true;
+      const toolUseId = runId ? idMap.get(runId) : undefined;
+
+      const data = evt.data as any;
+      let result: any = data.output ?? '';
+      if (typeof result === 'object') {
+        result = result.content ?? result.text ?? JSON.stringify(result);
+      }
+
+      yield {
+        type: 'content_block_start',
+        index,
+        content_block: {
+          id: currentId,
+          type: 'tool_result',
+          tool_use_id: toolUseId ?? 'unknown_tool_use_id',
+          name: data.name,
+          content: [{ type: 'text', text: String(result) }], // TODO: make sure you also include the json type or other data types.
+          start_timestamp: ts,
+          stop_timestamp: ts,
+        } as ToolResultContentBlock,
+      } as ServerSentEvent;
+    }
 
     for await (const evt of eventStream) {
       // keepalive ping to prevent SSE connection from closing
@@ -175,15 +243,16 @@ export class AgentsService implements OnModuleInit {
         //  Text streaming from the chat model
         // ———————————————————————
         case 'on_chat_model_stream': {
+          const skip = evt.tags?.includes('skip_client_stream');
+          if (skip) {
+            break;
+          }
           const chunk = (evt.data as any).chunk as AIMessageChunk;
           const text = typeof chunk.content === 'string' ? chunk.content : '';
           if (!text) break;
 
-          // If not already in a text block, close whatever was open and start one
           if (currentType !== 'text') {
-            yield* closeBlock(ts);
             yield* startTextBlock(ts);
-            currentType = 'text';
           }
 
           // Emit the text delta
@@ -196,36 +265,27 @@ export class AgentsService implements OnModuleInit {
         }
 
         // ———————————————————————
+        //  Chat model end — final cleanup
+        // ———————————————————————
+        case 'on_chat_model_end': {
+          const skip = evt.tags?.includes('skip_client_stream');
+          if (skip) {
+            break;
+          }
+          yield* closeBlock(ts);
+          break;
+        }
+
+        // ———————————————————————
         //  Tool invocation start
         // ———————————————————————
         case 'on_tool_start': {
-          const data = evt.data as any;
-          const toolName = evt.name;
-          const toolId = evt.run_id;
-
-          // Close previous block
           yield* closeBlock(ts);
 
-          // Open a tool_use block
-          currentType = 'tool_use';
-          currentId = uuidv4();
-          if (runId) idMap.set(runId, currentId);
-
-          yield {
-            type: 'content_block_start',
-            index,
-            content_block: {
-              id: toolId,
-              type: 'tool_use',
-              name: toolName,
-              input: data.input ?? {},
-              start_timestamp: ts,
-              stop_timestamp: ts,
-            } as ToolUseContentBlock,
-          } as ServerSentEvent;
+          yield* startToolUseBlock(evt, runId, ts);
 
           // Immediately close the tool_use block
-          yield* closeBlock(ts);
+          // yield* closeBlock(ts);
           break;
         }
 
@@ -233,35 +293,13 @@ export class AgentsService implements OnModuleInit {
         //  Tool invocation end (result)
         // ———————————————————————
         case 'on_tool_end': {
-          const data = evt.data as any;
-          // Close any open block
+          // Close tool use block
           yield* closeBlock(ts);
 
-          // Start tool_result
-          currentType = 'tool_result';
-          currentId = uuidv4();
-          const toolUseId = runId ? idMap.get(runId) : undefined;
+          // Start tool result block
+          yield* startToolResultBlock(evt, runId, ts);
 
-          let result: any = data.output ?? '';
-          if (typeof result === 'object') {
-            result = result.content ?? result.text ?? JSON.stringify(result);
-          }
-
-          yield {
-            type: 'content_block_start',
-            index,
-            content_block: {
-              id: currentId,
-              type: 'tool_result',
-              tool_use_id: toolUseId ?? 'unknown_tool_use_id',
-              name: data.name,
-              content: [{ type: 'text', text: String(result) }],
-              start_timestamp: ts,
-              stop_timestamp: ts,
-            } as ToolResultContentBlock,
-          } as ServerSentEvent;
-
-          // Close it immediately
+          // Close it immediately, as there is not other content to stream from the tool result
           yield* closeBlock(ts);
           break;
         }
@@ -270,16 +308,14 @@ export class AgentsService implements OnModuleInit {
         //  Custom events (if you dispatch any)
         // ———————————————————————
         case 'on_custom_event': {
-          const { type, data } = evt.data as { type: string; data: any };
-          console.log('on_custom_event', type, data);
-          break;
-        }
-
-        // ———————————————————————
-        //  Chat model end — final cleanup
-        // ———————————————————————
-        case 'on_chat_model_end': {
-          yield* closeBlock(ts);
+          // TODO: fix this. we need a better index handling and better event interface
+          if (evt.name === 'input_json_delta') {
+            yield {
+              type: 'content_block_delta',
+              index,
+              delta: evt.data,
+            } as ServerSentEvent;
+          }
           break;
         }
 
