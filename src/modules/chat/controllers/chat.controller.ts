@@ -184,12 +184,20 @@ export class ChatController {
       // (AsyncGenerators automatically handle this via `return()` when the loop breaks)
     });
 
+    let pingInterval: NodeJS.Timeout | undefined = undefined;
+
     try {
       // --- Call the AgentsService ---
       const agentStream = this.agentsService.streamAgentResponse(
         payload.message,
         userId,
       );
+      // start keep-alive pings every 15 seconds
+      pingInterval = setInterval(() => {
+        if (isClientConnected) {
+          sendEvent({ type: 'ping' });
+        }
+      }, 500);
 
       // --- Pipe the generator to the response ---
       for await (const event of agentStream) {
@@ -203,8 +211,10 @@ export class ChatController {
         }
         sendEvent(event);
       }
+      clearInterval(pingInterval);
       this.logger.log(`[${threadId}] Agent stream finished successfully.`);
     } catch (error) {
+      clearInterval(pingInterval);
       // Log the error originating from the controller or initial service call setup
       this.logger.error(
         `[${threadId}] Error setting up or piping complex stream: ${error.message}`,
@@ -218,6 +228,7 @@ export class ChatController {
         sendEvent(errorEvent);
       }
     } finally {
+      clearInterval(pingInterval);
       // Ensure the response is always ended
       if (!response.writableEnded) {
         response.end();
