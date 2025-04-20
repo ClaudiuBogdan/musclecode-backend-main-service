@@ -29,17 +29,12 @@ export class ContentService {
     dto: CreateModuleDto,
     userId: string,
   ): Promise<ModuleEntity> {
-    const { description, status, body, metadata } = dto;
-
-    const contentBody = {
-      ...body,
-      description: description || '',
-    };
+    const { status, body, metadata } = dto;
 
     const node = await this.contentRepository.createNode({
       type: ContentType.MODULE,
       status: status || ContentStatus.DRAFT,
-      body: contentBody,
+      body,
       metadata: metadata || {},
       userId,
     });
@@ -53,7 +48,7 @@ export class ContentService {
     dto: CreateLessonDto,
     userId: string,
   ): Promise<LessonEntity> {
-    const { moduleId, description, status, body, metadata } = dto;
+    const { moduleId, status, body, metadata } = dto;
 
     // Check if module exists and belongs to user
     const module = await this.contentRepository.findNodeById(moduleId);
@@ -67,16 +62,10 @@ export class ContentService {
       );
     }
 
-    // Create the lesson
-    const contentBody = {
-      ...body,
-      description: description || '',
-    };
-
     const lesson = await this.contentRepository.createNode({
       type: ContentType.LESSON,
       status: status || ContentStatus.DRAFT,
-      body: contentBody,
+      body,
       metadata: metadata || {},
       userId,
     });
@@ -299,6 +288,11 @@ export class ContentService {
    * Get a module with its lessons and exercises
    */
   async getModule(id: string, userId: string): Promise<any> {
+    // TODO: add proper userId check. Don't rely on type safety as the userId may be undefined
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
     const module = await this.contentRepository.findNodeById(id);
     if (!module || module.type !== ContentType.MODULE) {
       throw new NotFoundException(`Module with ID ${id} not found`);
@@ -343,49 +337,6 @@ export class ContentService {
       lessons: lessonsWithExercises,
       exercises: moduleExercises,
     };
-  }
-
-  /**
-   * Create a course draft from JSON data (for use with agents)
-   * This method creates a module with lessons from the provided data
-   */
-  async createCourseDraft(
-    courseData: string,
-    userId: string,
-  ): Promise<ModuleEntity> {
-    let courseJson;
-    try {
-      courseJson =
-        typeof courseData === 'string' ? JSON.parse(courseData) : courseData;
-    } catch {
-      throw new Error('Invalid course data format');
-    }
-
-    // Create the module
-    const module = await this.createModule(
-      {
-        description: courseJson.description,
-        status: ContentStatus.DRAFT,
-        body: { content: courseJson.description },
-      },
-      userId,
-    );
-
-    // Create lessons if they exist
-    if (Array.isArray(courseJson.lessons)) {
-      for (const lessonData of courseJson.lessons) {
-        await this.createLesson(
-          {
-            moduleId: module.id,
-            description: lessonData.description,
-            body: { content: lessonData.description },
-          },
-          userId,
-        );
-      }
-    }
-
-    return module;
   }
 
   /**

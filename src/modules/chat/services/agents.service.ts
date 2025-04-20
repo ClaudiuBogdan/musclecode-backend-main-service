@@ -1,18 +1,10 @@
 import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
-import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { HumanMessage, AIMessageChunk } from '@langchain/core/messages';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
-import { Runnable, RunnableConfig } from '@langchain/core/runnables';
-import { tool } from '@langchain/core/tools';
-import { z } from 'zod';
-
-// Tools
-import { searchTool } from '../tools/search.tool';
-
-// Types
+import { Runnable } from '@langchain/core/runnables';
 import {
   ServerSentEvent,
   TextBlock,
@@ -21,103 +13,11 @@ import {
 } from '../entities/messages';
 import { ChatMessageDto } from '../dto/agent-chat.dto';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
-import { zodToJsonSchema } from 'zod-to-json-schema';
 
-import {
-  ChatPromptTemplate,
-  HumanMessagePromptTemplate,
-  SystemMessagePromptTemplate,
-} from '@langchain/core/prompts';
-
-// Import ContentService
 import { ContentService } from '../../content/content.service';
-
-const courseSchema = z.object({
-  title: z.string().describe('The title of the course'),
-  description: z.string().describe('The description of the course'),
-  lessons: z.array(
-    z.object({
-      title: z.string().describe('The title of the lesson'),
-      description: z.string().describe('The description of the lesson'),
-    }),
-  ),
-});
-
-const createCourseSchema = z.object({
-  coursePrompt: z
-    .string()
-    .describe(
-      `The prompt for the course. Write details instructions about what the course should contain.`,
-    ),
-});
-
-type CreateCourseSchemaType = z.infer<typeof createCourseSchema>;
-
-// 2) Create the tool, accepting the Runner's config so we can dispatch events
-const createCourseTool = (
-  apiKey: string,
-  model: string,
-  createCourseDraft: ContentService['createCourseDraft'],
-) =>
-  tool(
-    async (
-      input: CreateCourseSchemaType,
-      config?: RunnableConfig,
-    ): Promise<string> => {
-      const userId = config?.metadata?.userId;
-
-      const teacherAgent = new ChatGoogleGenerativeAI({
-        apiKey,
-        model,
-        temperature: 0.3,
-        json: true,
-        streaming: true,
-      });
-
-      const createCoursePromptTemplate = ChatPromptTemplate.fromMessages([
-        SystemMessagePromptTemplate.fromTemplate(`
-          You are a teacher. You are given a course prompt and you need to generate a course. This is the schema for the course: {courseSchema}`),
-        HumanMessagePromptTemplate.fromTemplate(`
-          Here is the course prompt: {coursePrompt}
-        `),
-      ]);
-
-      const createCoursePrompt = await createCoursePromptTemplate.invoke({
-        coursePrompt: input.coursePrompt,
-        courseSchema: JSON.stringify(zodToJsonSchema(courseSchema)),
-      });
-
-      const stream = await teacherAgent.stream(createCoursePrompt, {
-        ...config,
-        tags: ['skip_client_stream'],
-      });
-
-      let streamOutput = '';
-      for await (const chunk of stream) {
-        streamOutput += chunk.content;
-        await dispatchCustomEvent(
-          'input_json_delta',
-          {
-            type: 'input_json_delta',
-            partial_json: chunk.content,
-          },
-          config,
-        );
-      }
-      const courseOutput = JSON.parse(streamOutput);
-      const course = await createCourseDraft(
-        streamOutput,
-        userId ? String(userId) : '',
-      );
-
-      return JSON.stringify({ courseId: course.id, courseOutput });
-    },
-    {
-      name: 'create-course',
-      description: 'Save the course to the database',
-      schema: createCourseSchema,
-    },
-  );
+import { createModuleTool, editModuleTool } from '../tools/modules.tool';
+import { createLessonsTool } from '../tools/lessons.tool';
+import { createSearchTool } from '../tools/search.tool';
 
 @Injectable()
 export class AgentsService implements OnModuleInit {
@@ -152,11 +52,23 @@ export class AgentsService implements OnModuleInit {
     this.agentExecutor = createReactAgent({
       llm: this.llm,
       tools: [
-        searchTool,
-        createCourseTool(
+        createSearchTool(this.configService.get<string>('TRAVILY_API_KEY')!),
+        createModuleTool(
           apiKey,
           model,
-          this.contentService.createCourseDraft.bind(this.contentService),
+          this.contentService.createModule.bind(this.contentService),
+        ),
+        editModuleTool(
+          apiKey,
+          model,
+          this.contentService.getModule.bind(this.contentService),
+          this.contentService.editModule.bind(this.contentService),
+        ),
+        createLessonsTool(
+          apiKey,
+          model,
+          this.contentService.getModule.bind(this.contentService),
+          this.contentService.createLesson.bind(this.contentService),
         ),
       ],
       checkpointSaver: this.checkpointer,

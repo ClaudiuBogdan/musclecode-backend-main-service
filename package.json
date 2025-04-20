@@ -43,6 +43,7 @@
     "@opentelemetry/semantic-conventions": "^1.29.0",
     "@prisma/client": "6.3.1",
     "@prisma/instrumentation": "^6.3.1",
+    "@tavily/core": "^0.3.7",
     "@types/jsonwebtoken": "^9.0.8",
     "@types/node-fetch": "2",
     "axios": "^1.8.4",

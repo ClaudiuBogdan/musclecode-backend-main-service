@@ -4,9 +4,9 @@ import { ContentRepository } from './content.repository';
 import { PrismaService } from 'src/infrastructure/database/prisma.service';
 
 @Module({
-  imports: [PrismaService],
+  imports: [],
   controllers: [],
-  providers: [ContentService, ContentRepository],
+  providers: [ContentService, ContentRepository, PrismaService],
   exports: [ContentService],
 })
 export class ContentModule {}
