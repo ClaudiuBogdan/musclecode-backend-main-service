@@ -17,7 +17,7 @@ import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { ContentService } from '../../content/content.service';
 import { createModuleTool, editModuleTool } from '../tools/modules.tool';
 import { createLessonsTool } from '../tools/lessons.tool';
-import { createSearchTool } from '../tools/search.tool';
+import { createSearchTool } from '../tools/search/search.tool';
 
 @Injectable()
 export class AgentsService implements OnModuleInit {
@@ -52,7 +52,13 @@ export class AgentsService implements OnModuleInit {
     this.agentExecutor = createReactAgent({
       llm: this.llm,
       tools: [
-        createSearchTool(this.configService.get<string>('TRAVILY_API_KEY')!),
+        createSearchTool({
+          tavilyApiKey: this.configService.get<string>('TRAVILY_API_KEY'),
+          braveApiKey: this.configService.get<string>('BRAVE_API_KEY'),
+          perplexityApiKey:
+            this.configService.get<string>('PERPLEXITY_API_KEY'),
+          jinaApiKey: this.configService.get<string>('JINA_API_KEY'),
+        }),
         createModuleTool(
           apiKey,
           model,
