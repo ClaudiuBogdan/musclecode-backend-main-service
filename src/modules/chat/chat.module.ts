@@ -6,9 +6,10 @@ import { OpenAIService } from './services/openai.service';
 import { ConfigModule } from '@nestjs/config';
 import { ChatRepository } from './repositories/chat.repository';
 import { AgentsService } from './services/agents.service';
+import { ContentModule } from '../content/content.module';
 
 @Module({
-  imports: [ConfigModule],
+  imports: [ConfigModule, ContentModule],
   controllers: [ChatController],
   providers: [
     ChatService,

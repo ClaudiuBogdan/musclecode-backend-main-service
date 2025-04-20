@@ -12,6 +12,7 @@ import { UserIdInterceptor } from './interceptors/user-id.interceptor';
 import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { LearningModule } from './modules/learning/learning.module';
+import { ContentModule } from './modules/content/content.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { LearningModule } from './modules/learning/learning.module';
     OnboardingModule,
     ChatModule,
     LearningModule,
+    ContentModule,
   ],
   controllers: [AppController],
   providers: [

@@ -29,6 +29,9 @@ import {
   SystemMessagePromptTemplate,
 } from '@langchain/core/prompts';
 
+// Import ContentService
+import { ContentService } from '../../content/content.service';
+
 const courseSchema = z.object({
   title: z.string().describe('The title of the course'),
   description: z.string().describe('The description of the course'),
@@ -50,14 +53,17 @@ const createCourseSchema = z.object({
 
 type CreateCourseSchemaType = z.infer<typeof createCourseSchema>;
 
-// 2) Create the tool, accepting the Runner’s config so we can dispatch events
-const createCourseTool = (apiKey: string, model: string) =>
+// 2) Create the tool, accepting the Runner's config so we can dispatch events
+const createCourseTool = (
+  apiKey: string,
+  model: string,
+  createCourseDraft: ContentService['createCourseDraft'],
+) =>
   tool(
     async (
       input: CreateCourseSchemaType,
       config?: RunnableConfig,
     ): Promise<string> => {
-      const draftId = uuidv4();
       const userId = config?.metadata?.userId;
 
       const teacherAgent = new ChatGoogleGenerativeAI({
@@ -65,6 +71,7 @@ const createCourseTool = (apiKey: string, model: string) =>
         model,
         temperature: 0.3,
         json: true,
+        streaming: true,
       });
 
       const createCoursePromptTemplate = ChatPromptTemplate.fromMessages([
@@ -85,7 +92,9 @@ const createCourseTool = (apiKey: string, model: string) =>
         tags: ['skip_client_stream'],
       });
 
+      let streamOutput = '';
       for await (const chunk of stream) {
+        streamOutput += chunk.content;
         await dispatchCustomEvent(
           'input_json_delta',
           {
@@ -95,8 +104,13 @@ const createCourseTool = (apiKey: string, model: string) =>
           config,
         );
       }
+      const courseOutput = JSON.parse(streamOutput);
+      const course = await createCourseDraft(
+        streamOutput,
+        userId ? String(userId) : '',
+      );
 
-      return JSON.stringify({ draftId, userId });
+      return JSON.stringify({ courseId: course.id, courseOutput });
     },
     {
       name: 'create-course',
@@ -112,7 +126,10 @@ export class AgentsService implements OnModuleInit {
   private agentExecutor: Runnable;
   private checkpointer: PostgresSaver;
 
-  constructor(private configService: ConfigService) {
+  constructor(
+    private configService: ConfigService,
+    private contentService: ContentService,
+  ) {
     const apiKey = this.configService.get<string>('GEMINI_API_KEY');
     const model = this.configService.get<string>('GEMINI_MODEL')!;
     if (!apiKey) {
@@ -134,7 +151,14 @@ export class AgentsService implements OnModuleInit {
     });
     this.agentExecutor = createReactAgent({
       llm: this.llm,
-      tools: [searchTool, createCourseTool(apiKey, model)],
+      tools: [
+        searchTool,
+        createCourseTool(
+          apiKey,
+          model,
+          this.contentService.createCourseDraft.bind(this.contentService),
+        ),
+      ],
       checkpointSaver: this.checkpointer,
     });
   }

@@ -1,0 +1,25 @@
+import { ContentNode, ContentStatus } from '@prisma/client';
+
+export class ExerciseEntity {
+  id: string;
+  moduleId: string;
+  lessonId?: string;
+  status: ContentStatus;
+  body: Record<string, any>;
+  metadata: Record<string, any>;
+  userId: string;
+  createdAt: Date;
+  updatedAt: Date;
+
+  constructor(node: ContentNode & { moduleId: string; lessonId?: string }) {
+    this.id = node.id;
+    this.moduleId = node.moduleId;
+    this.lessonId = node.lessonId;
+    this.status = node.status;
+    this.body = node.body as Record<string, any>;
+    this.metadata = node.metadata as Record<string, any>;
+    this.userId = node.userId!;
+    this.createdAt = node.createdAt;
+    this.updatedAt = node.updatedAt;
+  }
+}

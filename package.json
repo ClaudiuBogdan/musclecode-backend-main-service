@@ -88,6 +88,12 @@
     "tsconfig-paths": "^4.2.0",
     "typescript": "^5.1.3"
   },
+  "resolutions": {
+    "@langchain/core": "^0.3.45"
+  },
+  "overrides": {
+    "@langchain/core": "^0.3.45"
+  },
   "jest": {
     "moduleFileExtensions": [
       "js",
