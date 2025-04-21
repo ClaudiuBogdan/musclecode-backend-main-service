@@ -14,9 +14,10 @@ export class JinaSearchProvider implements SearchProvider {
       Accept: 'application/json', // enable JSON mode :contentReference[oaicite:8]{index=8}
       Authorization: `Bearer ${apiKey}`,
       'X-Token-Budget': '50000',
+      // 'X-Respond-With': 'no-content',
     };
     this.client = axios.create({
-      baseURL: 'https://s.jina.ai', // Jina Reader Search base URL :contentReference[oaicite:10]{index=10}
+      baseURL: 'https://eu.s.jina.ai', // Jina Reader Search base URL :contentReference[oaicite:10]{index=10}
       headers,
     });
     this.logger.log('JinaSearchProvider initialized.');

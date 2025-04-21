@@ -2,7 +2,7 @@ import { ContentNode, ContentStatus } from '@prisma/client';
 
 export class LessonEntity {
   id: string;
-  moduleId: string;
+  moduleId?: string;
   status: ContentStatus;
   body: Record<string, any>;
   metadata: Record<string, any>;
@@ -10,7 +10,7 @@ export class LessonEntity {
   createdAt: Date;
   updatedAt: Date;
 
-  constructor(node: ContentNode & { moduleId: string }) {
+  constructor(node: ContentNode & { moduleId?: string }) {
     this.id = node.id;
     this.moduleId = node.moduleId;
     this.status = node.status;

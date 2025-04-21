@@ -339,6 +339,21 @@ export class ContentService {
     };
   }
 
+  async getLesson(id: string, userId: string): Promise<LessonEntity> {
+    const node = await this.contentRepository.findNodeById(id);
+    if (!node || node.type !== ContentType.LESSON) {
+      throw new NotFoundException(`Lesson with ID ${id} not found`);
+    }
+
+    if (node.userId !== userId) {
+      throw new ForbiddenException(
+        'You do not have permission to view this lesson',
+      );
+    }
+
+    return new LessonEntity({ ...node });
+  }
+
   /**
    * Publish a module and all its children
    */
