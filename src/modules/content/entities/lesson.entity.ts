@@ -21,3 +21,60 @@ export class LessonEntity {
     this.updatedAt = node.updatedAt;
   }
 }
+
+export interface LessonBody {
+  title: string;
+  description: string;
+  chunks: LessonChunk[];
+}
+
+export interface LessonChunk {
+  id: string;
+  type: 'note' | 'question' | 'flashcard';
+  content: LessonContent[];
+}
+
+export type LessonContent = LessonText | LessonQuiz | QuoteContent;
+
+export interface BaseLessonContent {
+  id: string;
+  type: string;
+}
+
+export interface LessonText extends BaseLessonContent {
+  type: 'text';
+  text: string;
+}
+
+export interface QuoteContent extends BaseLessonContent {
+  type: 'quote';
+  quoteType: 'analogy' | 'note' | 'example' | 'tip' | 'warning' | 'question';
+  title: string;
+  quote: string;
+}
+
+export interface LessonQuiz extends BaseLessonContent {
+  type: 'quiz';
+  question: string;
+  options: {
+    question: string;
+    isAnswer: boolean;
+    hint?: string;
+  }[];
+}
+
+export interface LessonQuestion extends BaseLessonContent {
+  type: 'question';
+  question: string;
+  correctionCriteria: {
+    answer: string;
+    points: number;
+    explanation: string;
+  }[];
+}
+
+export interface LessonFlashcard extends BaseLessonContent {
+  type: 'flashcard';
+  front: string;
+  back: string;
+}

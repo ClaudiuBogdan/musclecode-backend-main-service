@@ -23,6 +23,21 @@ export class ContentService {
   constructor(private contentRepository: ContentRepository) {}
 
   /**
+   * Get all modules for a user
+   */
+  async getAllModules(userId: string): Promise<ModuleEntity[]> {
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+
+    const modules = await this.contentRepository.findNodesByUserIdAndType(
+      userId,
+      ContentType.MODULE,
+    );
+    return modules.map((module: ContentNode) => new ModuleEntity(module));
+  }
+
+  /**
    * Create a new module
    */
   async createModule(
@@ -78,6 +93,56 @@ export class ContentService {
     );
 
     return new LessonEntity({ ...lesson, moduleId });
+  }
+
+  async upsertLessons(
+    moduleId: string,
+    userId: string,
+    lessons: Pick<LessonEntity, 'body' | 'status' | 'metadata'>[],
+  ): Promise<LessonEntity[]> {
+    // Check if module exists and belongs to user
+    const module = await this.contentRepository.findNodeById(moduleId);
+    if (!module || module.type !== ContentType.MODULE) {
+      throw new NotFoundException(`Module with ID ${moduleId} not found`);
+    }
+    if (module.userId !== userId) {
+      throw new ForbiddenException(
+        'You do not have permission to upsert lessons for this module',
+      );
+    }
+
+    // Archive existing lessons
+    const oldLessons = await this.contentRepository.findChildNodes(
+      moduleId,
+      ContentType.LESSON,
+    );
+    for (const old of oldLessons) {
+      if (old.status !== ContentStatus.ARCHIVED) {
+        await this.contentRepository.updateNode(old.id, {
+          status: ContentStatus.ARCHIVED,
+        });
+      }
+    }
+
+    // Create and link new lessons
+    const createdLessons: LessonEntity[] = [];
+    for (const lesson of lessons) {
+      const newLesson = await this.contentRepository.createNode({
+        type: ContentType.LESSON,
+        status: lesson.status || ContentStatus.DRAFT,
+        body: lesson.body,
+        metadata: lesson.metadata || {},
+        userId,
+      });
+      await this.contentRepository.linkNodes(
+        moduleId,
+        newLesson.id,
+        LinkType.DEPENDENCY,
+      );
+      createdLessons.push(new LessonEntity({ ...newLesson, moduleId }));
+    }
+
+    return createdLessons;
   }
 
   /**

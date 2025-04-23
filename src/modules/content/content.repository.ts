@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from 'src/infrastructure/database/prisma.service';
-import { ContentNode, ContentLink, LinkType, Prisma } from '@prisma/client';
+import {
+  ContentNode,
+  ContentLink,
+  LinkType,
+  Prisma,
+  ContentType,
+} from '@prisma/client';
 
 @Injectable()
 export class ContentRepository {
@@ -30,6 +36,21 @@ export class ContentRepository {
   async findNodesByUserId(userId: string): Promise<ContentNode[]> {
     return this.prisma.contentNode.findMany({
       where: { userId },
+    });
+  }
+
+  /**
+   * Find content nodes by user ID and type
+   */
+  async findNodesByUserIdAndType(
+    userId: string,
+    type: ContentType,
+  ): Promise<ContentNode[]> {
+    return this.prisma.contentNode.findMany({
+      where: {
+        userId,
+        type,
+      },
     });
   }
 

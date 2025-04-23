@@ -38,6 +38,29 @@ export class ContentController {
   constructor(private readonly contentService: ContentService) {}
 
   // Module endpoints
+  @Get('modules')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({
+    summary: 'Get all modules preview for the authenticated user',
+  })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Returns all modules for the user',
+    type: [ModuleEntity],
+  })
+  async getAllModules(@User('id') userId: string): Promise<ModuleEntity[]> {
+    this.logger.debug('Fetching All Modules for User', { userId });
+    try {
+      const modules = await this.contentService.getAllModules(userId);
+      this.logger.log('All Modules Fetched', { userId, count: modules.length });
+      return modules;
+    } catch (error) {
+      this.logger.error('All Modules Fetch Failed', error, { userId });
+      throw error;
+    }
+  }
+
   @Post('modules')
   @UseGuards(AuthGuard)
   @ApiBearerAuth()

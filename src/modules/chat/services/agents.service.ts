@@ -74,7 +74,7 @@ export class AgentsService implements OnModuleInit {
           apiKey,
           model,
           this.contentService.getModule.bind(this.contentService),
-          this.contentService.createLesson.bind(this.contentService),
+          this.contentService.upsertLessons.bind(this.contentService),
         ),
       ],
       checkpointSaver: this.checkpointer,
