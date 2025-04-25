@@ -123,7 +123,7 @@ Below is the *lesson_input* (title & description) you must flesh out into a full
         // ───────────── Streaming JSON array bracket ─────────────
         await dispatchCustomEvent(
           'input_json_delta',
-          { type: 'input_json_delta', partial_json: '{"started":true,' },
+          { type: 'input_json_delta', partial_json: '[' },
           config,
         );
 
@@ -153,21 +153,20 @@ Below is the *lesson_input* (title & description) you must flesh out into a full
           let streamOutput = '';
           for await (const chunk of stream) {
             streamOutput += chunk.content;
-            // TODO: this is not working. Ignore for now. The input stream format should be reliable.
-            //   await dispatchCustomEvent(
-            //     'input_json_delta',
-            //     { type: 'input_json_delta', partial_json: chunk.content },
-            //     config,
-            //   );
+            await dispatchCustomEvent(
+              'input_json_delta',
+              { type: 'input_json_delta', partial_json: chunk.content },
+              config,
+            );
           }
 
-          // if (i < module.lessons.length - 1) {
-          //   await dispatchCustomEvent(
-          //     'input_json_delta',
-          //     { type: 'input_json_delta', partial_json: ',' },
-          //     config,
-          //   );
-          // }
+          if (i < module.lessons.length - 1) {
+            await dispatchCustomEvent(
+              'input_json_delta',
+              { type: 'input_json_delta', partial_json: ',' },
+              config,
+            );
+          }
 
           const lessonOutput = JSON.parse(streamOutput);
           lessonsPayload.push({
@@ -179,7 +178,7 @@ Below is the *lesson_input* (title & description) you must flesh out into a full
 
         await dispatchCustomEvent(
           'input_json_delta',
-          { type: 'input_json_delta', partial_json: 'finished: true}' },
+          { type: 'input_json_delta', partial_json: ']' },
           config,
         );
 
