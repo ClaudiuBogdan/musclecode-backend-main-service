@@ -41,6 +41,12 @@ export interface BaseLessonContent {
   type: string;
 }
 
+export interface LessonTitle extends BaseLessonContent {
+  type: 'title';
+  title: string;
+  titleType: 'h1' | 'h2';
+}
+
 export interface LessonText extends BaseLessonContent {
   type: 'text';
   text: string;
@@ -57,7 +63,7 @@ export interface LessonQuiz extends BaseLessonContent {
   type: 'quiz';
   question: string;
   options: {
-    question: string;
+    option: string;
     isAnswer: boolean;
     hint?: string;
   }[];

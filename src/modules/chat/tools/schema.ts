@@ -1,147 +1,232 @@
+/*
+ * Enhanced Lesson‑Authoring Schema & Prompt
+ * --------------------------------------------------
+ * Goal: Produce lessons that balance clear explanatory text with interactive elements, maximising engagement and retention.
+ * The API surface (field names & types) is preserved for backward compatibility; only descriptions and authoring guidance are refined.
+ */
+
 import { z } from 'zod';
+
+/*
+ * ──────────────────────────────────────────────────────────────
+ *  MODULE‑LEVEL SCHEMA
+ * ──────────────────────────────────────────────────────────────
+ */
 export const moduleSchema = z
   .object({
-    type: z.literal('module').describe('The type of the module'),
-    title: z.string().describe('The title of the module'),
-    description: z.string().describe('The description of the module'),
+    type: z
+      .literal('module')
+      .describe('Constant string identifying the object as a module'),
+    title: z
+      .string()
+      .describe(
+        'Concise, descriptive name for the module (5–10 words). Should convey the overarching theme',
+      ),
+    description: z
+      .string()
+      .describe(
+        'Brief summary (1–3 sentences) outlining what the learner will achieve by completing this module',
+      ),
     lessons: z
       .array(
         z.object({
-          title: z.string().describe('The title of the lesson'),
-          description: z.string().describe('The description of the lesson'),
+          title: z
+            .string()
+            .describe(
+              'Lesson title (max 10 words). Build a logical learning path across lessons',
+            ),
+          description: z
+            .string()
+            .describe(
+              'One‑sentence overview of the lesson’s focus and expected takeaway',
+            ),
         }),
       )
       .describe(
-        'The lessons of the module. Between 1 and 3 lessons are recommended.',
+        'Ordered list of lessons (recommended 1–5). Sequence from fundamentals to advanced topics to support scaffolding',
       ),
   })
-  .describe('The module object. It contains a title, description and lessons.');
+  .describe(
+    'Complete module definition. Use self‑contained titles/descriptions so the module can be understood without external context',
+  );
 
 export type ModuleSchemaType = z.infer<typeof moduleSchema>;
 
+/*
+ * ──────────────────────────────────────────────────────────────
+ *  PROMPT SCHEMAS
+ * ──────────────────────────────────────────────────────────────
+ */
 export const createModuleSchema = z.object({
   modulePrompt: z
     .string()
     .describe(
-      `The prompt for the module (it's like a course). Write details instructions about what the module should contain.`,
+      'Detailed second‑person instructions describing the desired module. Include learning objectives, target audience, prior knowledge, tone, and any constraints',
     ),
 });
-
 export type CreateModuleSchemaType = z.infer<typeof createModuleSchema>;
 
 export const editModuleSchema = z.object({
   moduleId: z
     .string()
     .describe(
-      'The id of the module. The id should be available in the history of the conversation. If is not available, ask the user to provide the id.',
+      'Unique identifier of the module to edit (obtainable from prior conversation or database)',
     ),
   modulePrompt: z
     .string()
     .describe(
-      `The prompt for the module. Write details instructions about what the module should be edited.`,
+      'Instructions detailing what and why to modify (add lesson, tweak difficulty, change tone, etc.)',
     ),
 });
-
 export type EditModuleSchemaType = z.infer<typeof editModuleSchema>;
 
 export const createLessonsSchema = z.object({
-  moduleId: z.string().describe('The id of the module'),
+  moduleId: z.string().describe('Identifier of the parent module'),
   lessonRequirements: z
     .string()
     .optional()
     .describe(
-      'The lesson requirements from the user prompt, only if provided and are relevant to generate the lesson with specific requirements.',
+      'Optional user‑supplied constraints for the lesson (e.g., focus on real‑world examples, include extra quizzes). Omit if none',
     ),
 });
+export type CreateLessonsSchemaType = z.infer<typeof createLessonsSchema>;
 
+/*
+ * ──────────────────────────────────────────────────────────────
+ *  LESSON CONTENT TYPES
+ * ──────────────────────────────────────────────────────────────
+ */
 export const lessonContentSchema = z.discriminatedUnion('type', [
+  /* ───────────── TITLE ───────────── */
   z.object({
-    id: z.string().describe('Unique ID of the content item'),
-    type: z.literal('text').describe('The content type as text'),
-    text: z.string().describe('The text content'),
+    id: z.string().describe('Stable unique ID (ULID or UUID)'),
+    type: z.literal('title').describe('Title of the chunk for note type'),
+    title: z.string().describe('Title of the chunk for note type'),
+    titleType: z
+      .enum(['h1', 'h2'])
+      .describe(
+        'Type of the title. The first chunk in a note should be h1, the rest should be h2',
+      ),
   }),
+
+  /* ───────────── TEXT (explanatory) ───────────── */
   z.object({
-    id: z.string().describe('Unique ID of the content item'),
-    type: z.literal('quote').describe('The content type as a quote'),
+    id: z.string().describe('Stable unique ID (ULID or UUID)'),
+    type: z.literal('text').describe('Explanatory paragraph'),
+    text: z
+      .string()
+      .describe(
+        '150–300 word chunk introducing a single concept in clear, conversational language. Include analogies/examples when helpful',
+      ),
+  }),
+
+  /* ───────────── QUOTE / CALLOUT ───────────── */
+  z.object({
+    id: z.string().describe('Stable unique ID'),
+    type: z.literal('quote').describe('Highlighted call‑out'),
     quoteType: z
       .enum(['analogy', 'note', 'example', 'tip', 'warning', 'question'])
-      .describe('Specifies the type of quote'),
-    title: z.string().describe('Title of the quote'),
-    quote: z.string().describe('The quote text'),
+      .describe('Purpose of the call‑out'),
+    title: z
+      .string()
+      .describe('Short label (≤6 words) describing the call‑out purpose'),
+    quote: z
+      .string()
+      .describe('40–100 word text displayed in a stylised box to aid memory'),
   }),
+
+  /* ───────────── MULTIPLE‑CHOICE QUIZ ───────────── */
   z.object({
-    id: z.string().describe('Unique ID of the content item'),
-    type: z.literal('quiz').describe('The content type as a quiz'),
-    question: z.string().describe('The quiz question.'),
+    id: z.string().describe('Stable unique ID'),
+    type: z.literal('quiz').describe('Multiple‑choice question'),
+    question: z
+      .string()
+      .describe('Direct question testing the immediately preceding concept'),
     options: z
       .array(
         z.object({
-          option: z.string().describe('The quiz option'),
-          isAnswer: z
-            .boolean()
-            .describe(
-              'Whether this option is correct. Only one option should be correct.',
-            ),
+          option: z.string().describe('Answer choice text'),
+          isAnswer: z.boolean().describe('Exactly **one** option must be true'),
           hint: z
             .string()
             .optional()
-            .describe(
-              'Optional hint for this option. Should help the user understand why is correct or not related to the question and the option selected.',
-            ),
+            .describe('Short explanation (max 50 words) revealed after answer'),
         }),
       )
-      .describe('Array of quiz options. Only one option should be correct.'),
+      .min(3)
+      .max(5)
+      .describe('List of 3–5 answer choices'),
   }),
+
+  /* ───────────── OPEN QUESTION ───────────── */
   z.object({
-    id: z.string().describe('Unique ID of the content item'),
-    type: z.literal('question').describe('The content type as a question'),
-    question: z.string().describe('The question prompt'),
+    id: z.string().describe('Stable unique ID'),
+    type: z.literal('question').describe('Open‑ended prompt'),
+    question: z
+      .string()
+      .describe('Requires typed answer or short discussion from learner'),
     correctionCriteria: z
       .array(
         z.object({
-          answer: z.string().describe('The answer text'),
-          points: z.number().describe('Points for this answer'),
+          answer: z.string().describe('Canonical answer or rubric bullet'),
+          points: z
+            .number()
+            .describe('Score awarded if learner meets this criterion'),
           explanation: z
             .string()
-            .describe(
-              'Explanation for the answer. Should help the user understand why is correct or not related to the question and the option selected.',
-            ),
+            .describe('Reference explanation shown after grading'),
         }),
       )
-      .describe('Array of correction criteria for the question'),
+      .min(1)
+      .describe('Rubric items to enable automated or self‑grading'),
   }),
+
+  /* ───────────── FLASHCARD ───────────── */
   z.object({
-    id: z.string().describe('Unique ID of the content item'),
-    type: z.literal('flashcard').describe('The content type as a flashcard'),
-    front: z.string().describe('The front text of the flashcard'),
-    back: z.string().describe('The back text of the flashcard'),
+    id: z.string().describe('Stable unique ID'),
+    type: z.literal('flashcard').describe('Front/back recall card'),
+    front: z
+      .string()
+      .describe('Prompt (≤120 characters). Phrase as a question when possible'),
+    back: z
+      .string()
+      .describe(
+        'Answer (≤250 characters). Keep terse; link back to lesson text',
+      ),
   }),
 ]);
 
+/*
+ * ──────────────────────────────────────────────────────────────
+ *  LESSON STRUCTURE
+ * ──────────────────────────────────────────────────────────────
+ */
 export const lessonChunkSchema = z
   .object({
-    id: z.string().describe('Unique ID of the lesson chunk'),
+    id: z.string().describe('Stable unique ID for the chunk'),
     type: z
       .enum(['note', 'question', 'flashcard'])
-      .describe('The type of the lesson chunk'),
+      .describe(
+        'Chunk categories: "note" (explanatory) must contain ≥3 text item and should use ≥2 quote items, such as "analogy", "example", etc.; "question" or "flashcard" must contain exactly 1 corresponding content item',
+      ),
     content: z
       .array(lessonContentSchema)
       .describe(
-        'Array of content items for this chunk. When creating note chunck, you can use text, quotes, etc, to make the content clear. When using question or flashcard, add only one test per chunk.',
+        'Items within the chunk. Maintain logical cohesion: each chunk addresses a single micro‑topic',
       ),
   })
-  .describe('A chunk of the lesson containing related content items');
+  .describe('Logical slice of the lesson used to track learner progress');
 
 export const lessonSchema = z
   .object({
-    title: z.string().describe('The title of the lesson'),
-    description: z.string().describe('The description of the lesson'),
+    title: z.string().describe('Lesson title'),
+    description: z.string().describe('Lesson abstract (1–2 sentences)'),
     chunks: z
       .array(lessonChunkSchema)
-      .describe('Chunks of the lesson, each grouping content items'),
+      .min(8)
+      .max(12)
+      .describe(
+        'Sequence of 8–12 chunks. Strive for ≈60 % "note" chunks and ≈40 % practice (quiz, question, flashcard). Start with a note; end with a reflective question',
+      ),
   })
-  .describe(
-    'A complete lesson object. The lesson should have 10 chunks approximately, based on the lesson complexity. You should use notes for learning new concepts, then other test elements like flashcards or questions to evaluate the user grasp of the lesson. The info and test chunks should be mixed together. Focus on creating engaging content.',
-  );
-
-export type CreateLessonsSchemaType = z.infer<typeof createLessonsSchema>;
+  .describe('Complete lesson blueprint delivered to the client application');
