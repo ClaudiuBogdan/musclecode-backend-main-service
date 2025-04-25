@@ -27,6 +27,32 @@ export enum MessageStatus {
   CANCELLED = 'cancelled',
 }
 
+export enum ModelProvider {
+  GEMINI = 'gemini',
+}
+
+export class ModelDto {
+  @ApiProperty({ description: 'Model ID' })
+  @IsString()
+  @IsUUID()
+  id: string;
+
+  @ApiProperty({ description: 'Model name defined by the user' })
+  @IsString()
+  name: string;
+
+  @ApiProperty({ description: 'Model provider' })
+  @IsString()
+  provider: ModelProvider;
+
+  @ApiProperty({ description: 'Model key from the provider' })
+  @IsString()
+  model: string;
+
+  @ApiProperty({ description: 'Model API key' })
+  @IsString()
+  apiKey: string;
+}
 // Base content block DTO
 export class BaseContentBlockDto {
   @ApiProperty({
@@ -194,6 +220,13 @@ export class PromptReferenceContextDto extends BaseContextBlockDto {
   })
   @IsBoolean()
   unique: true;
+}
+
+export class ModelReferenceContextDto extends BaseContextBlockDto {
+  @ApiProperty({ description: 'Model reference information' })
+  @ValidateNested()
+  @Type(() => ModelDto)
+  model: ModelDto;
 }
 
 export class GraphNodeDto {
@@ -409,6 +442,12 @@ export class MessagePayloadDto {
   @ValidateNested()
   @Type(() => ChatMessageDto)
   message: ChatMessageDto;
+
+  @ApiProperty({ description: 'The context array for the message' })
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => BaseContextBlockDto)
+  context: BaseContextBlockDto[];
 
   @ApiProperty({ description: 'The response message' })
   @ValidateNested()

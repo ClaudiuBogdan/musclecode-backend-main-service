@@ -190,6 +190,7 @@ export class ChatController {
       // --- Call the AgentsService ---
       const agentStream = this.agentsService.streamAgentResponse(
         payload.message,
+        payload.context || [],
         userId,
       );
       // start keep-alive pings every 15 seconds

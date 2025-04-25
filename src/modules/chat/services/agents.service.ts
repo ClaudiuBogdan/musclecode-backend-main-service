@@ -2,7 +2,11 @@ import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
-import { HumanMessage, AIMessageChunk } from '@langchain/core/messages';
+import {
+  HumanMessage,
+  AIMessageChunk,
+  SystemMessage,
+} from '@langchain/core/messages';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { Runnable } from '@langchain/core/runnables';
 import {
@@ -11,7 +15,12 @@ import {
   ToolResultContentBlock,
   ToolUseContentBlock,
 } from '../entities/messages';
-import { ChatMessageDto } from '../dto/agent-chat.dto';
+import {
+  BaseContextBlockDto,
+  ChatMessageDto,
+  ModelDto,
+  ModelReferenceContextDto,
+} from '../dto/agent-chat.dto';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 
 import { ContentService } from '../../content/content.service';
@@ -22,62 +31,18 @@ import { createSearchTool } from '../tools/search/search.tool';
 @Injectable()
 export class AgentsService implements OnModuleInit {
   private readonly logger = new Logger(AgentsService.name);
-  private llm: ChatGoogleGenerativeAI;
-  private agentExecutor: Runnable;
   private checkpointer: PostgresSaver;
 
   constructor(
     private configService: ConfigService,
     private contentService: ContentService,
   ) {
-    const apiKey = this.configService.get<string>('GEMINI_API_KEY');
-    const model = this.configService.get<string>('GEMINI_MODEL')!;
-    if (!apiKey) {
-      throw new Error('GEMINI_API_KEY is not defined');
-    }
     const databaseUrl = this.configService.get('DATABASE_URL')!;
     if (!databaseUrl) {
       throw new Error('DATABASE_URL is not defined');
     }
     this.checkpointer = PostgresSaver.fromConnString(databaseUrl, {
       schema: 'langchain_chat_histories',
-    });
-
-    this.llm = new ChatGoogleGenerativeAI({
-      apiKey,
-      model,
-      temperature: 0.3,
-      streaming: true,
-    });
-    this.agentExecutor = createReactAgent({
-      llm: this.llm,
-      tools: [
-        createSearchTool({
-          tavilyApiKey: this.configService.get<string>('TRAVILY_API_KEY'),
-          braveApiKey: this.configService.get<string>('BRAVE_API_KEY'),
-          perplexityApiKey:
-            this.configService.get<string>('PERPLEXITY_API_KEY'),
-          jinaApiKey: this.configService.get<string>('JINA_API_KEY'),
-        }),
-        createModuleTool(
-          apiKey,
-          model,
-          this.contentService.createModule.bind(this.contentService),
-        ),
-        editModuleTool(
-          apiKey,
-          model,
-          this.contentService.getModule.bind(this.contentService),
-          this.contentService.editModule.bind(this.contentService),
-        ),
-        createLessonsTool(
-          apiKey,
-          model,
-          this.contentService.getModule.bind(this.contentService),
-          this.contentService.upsertLessons.bind(this.contentService),
-        ),
-      ],
-      checkpointSaver: this.checkpointer,
     });
   }
 
@@ -91,10 +56,16 @@ export class AgentsService implements OnModuleInit {
 
   async *streamAgentResponse(
     message: ChatMessageDto,
+    context: BaseContextBlockDto[],
     userId: string,
   ): AsyncGenerator<ServerSentEvent> {
     // log userId to avoid unused variable warning
     this.logger.log(`streamAgentResponse called for user ${userId}`);
+    const modelContext = context.find(
+      (c) => c.type === 'model',
+    ) as ModelReferenceContextDto;
+
+    const agentExecutor = this.createAgent(modelContext.model);
     const assistantMessageId = uuidv4();
     const now = () => new Date().toISOString();
 
@@ -120,8 +91,10 @@ export class AgentsService implements OnModuleInit {
     const idMap = new Map<string, string>();
 
     // 3) Stream events from the agent
-    const eventStream = this.agentExecutor.streamEvents(
-      { messages: [new HumanMessage(userText)] },
+    const eventStream = agentExecutor.streamEvents(
+      {
+        messages: [new HumanMessage(userText)],
+      },
       {
         version: 'v2',
         configurable: {
@@ -332,5 +305,60 @@ export class AgentsService implements OnModuleInit {
       .filter((b) => b.type === 'text' || typeof b === 'string')
       .map((b) => (typeof b === 'string' ? b : b.text))
       .join('\n');
+  }
+
+  private createAgent(model?: ModelDto): Runnable {
+    const apiKey =
+      model?.apiKey || this.configService.get<string>('GEMINI_API_KEY');
+    const modelName =
+      model?.model || this.configService.get<string>('GEMINI_MODEL');
+
+    if (!modelName) {
+      throw new Error('GEMINI_MODEL is not defined');
+    }
+
+    if (!apiKey) {
+      throw new Error('GEMINI_API_KEY is not defined');
+    }
+
+    const llm = new ChatGoogleGenerativeAI({
+      apiKey,
+      model: modelName,
+      temperature: 0.3,
+      streaming: true,
+    });
+
+    const agentExecutor = createReactAgent({
+      llm,
+      tools: [
+        createSearchTool({
+          tavilyApiKey: this.configService.get<string>('TRAVILY_API_KEY'),
+          braveApiKey: this.configService.get<string>('BRAVE_API_KEY'),
+          perplexityApiKey:
+            this.configService.get<string>('PERPLEXITY_API_KEY'),
+          jinaApiKey: this.configService.get<string>('JINA_API_KEY'),
+        }),
+        createModuleTool(
+          apiKey,
+          modelName,
+          this.contentService.createModule.bind(this.contentService),
+        ),
+        editModuleTool(
+          apiKey,
+          modelName,
+          this.contentService.getModule.bind(this.contentService),
+          this.contentService.editModule.bind(this.contentService),
+        ),
+        createLessonsTool(
+          apiKey,
+          modelName,
+          this.contentService.getModule.bind(this.contentService),
+          this.contentService.upsertLessons.bind(this.contentService),
+        ),
+      ],
+      checkpointSaver: this.checkpointer,
+    });
+
+    return agentExecutor;
   }
 }
