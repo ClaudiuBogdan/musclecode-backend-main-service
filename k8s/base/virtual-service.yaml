@@ -5,44 +5,19 @@ metadata:
   namespace: musclecode
 spec:
   hosts:
-    - "api.musclecode.devostack.com"
+  - "api.musclecode.devostack.com"
   gateways:
-    - istio-system/istio-https-gateway
-
+  - istio-system/istio-https-gateway
   http:
-    - name: sse-stream
-      match:
-        - uri:
-            prefix: "/"
-          headers:
-            accept:
-              regex: "text/event-stream.*"
-      route:
-        - destination:
-            host: musclecode-backend-main-service
-            port:
-              number: 80
-      retries:
-        retryOn: "5xx,connect-failure,refused-stream"
-        attempts: 3
-        perTryTimeout: 5s
-      headers:
-        request:
-          set:
-            Connection: "keep-alive"
-            Accept: "text/event-stream"
-
-    - name: default-route
-      match:
-        - uri:
-            prefix: "/"
-      route:
-        - destination:
-            host: musclecode-backend-main-service
-            port:
-              number: 80
-      timeout: 300s                      
-      retries:
-        retryOn: "5xx,connect-failure"
-        attempts: 3
-        perTryTimeout: 2s
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        port:
+          number: 80
+        host: musclecode-backend-main-service
+    retries:
+      attempts: 3
+      perTryTimeout: 2s
+    timeout: 3600s
