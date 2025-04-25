@@ -20,4 +20,5 @@ spec:
     retries:
       attempts: 3
       perTryTimeout: 2s
-    timeout: 10s
+    timeout: 0s
+    idleTimeout: 300s
