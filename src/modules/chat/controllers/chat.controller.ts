@@ -198,7 +198,7 @@ export class ChatController {
         if (isClientConnected) {
           sendEvent({ type: 'ping' });
         }
-      }, 500);
+      }, 200);
 
       // --- Pipe the generator to the response ---
       for await (const event of agentStream) {
