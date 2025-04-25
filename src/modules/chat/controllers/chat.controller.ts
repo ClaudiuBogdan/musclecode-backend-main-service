@@ -193,12 +193,12 @@ export class ChatController {
         payload.context || [],
         userId,
       );
-      // start keep-alive pings every 15 seconds
+      // start keep-alive pings
       pingInterval = setInterval(() => {
         if (isClientConnected) {
           sendEvent({ type: 'ping' });
         }
-      }, 200);
+      }, 500);
 
       // --- Pipe the generator to the response ---
       for await (const event of agentStream) {
