@@ -3,11 +3,12 @@ import { ContentService } from './content.service';
 import { ContentRepository } from './content.repository';
 import { PrismaService } from 'src/infrastructure/database/prisma.service';
 import { ContentController } from './content.controller';
+import { AgentsService } from '../chat/services/agents.service';
 
 @Module({
   imports: [],
   controllers: [ContentController],
-  providers: [ContentService, ContentRepository, PrismaService],
+  providers: [ContentService, ContentRepository, PrismaService, AgentsService],
   exports: [ContentService],
 })
 export class ContentModule {}

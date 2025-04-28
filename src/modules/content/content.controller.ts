@@ -29,13 +29,18 @@ import { ModuleEntity } from './entities/module.entity';
 import { LessonEntity } from './entities/lesson.entity';
 import { ExerciseEntity } from './entities/exercise.entity';
 import { ContentNode } from '@prisma/client';
+import { CheckQuestionDto, QuestionResponseDto } from './dto/questions.dto';
+import { AgentsService } from '../chat/services/agents.service';
 
 @ApiTags('Content')
 @Controller('api/v1/content')
 export class ContentController {
   private readonly logger = new StructuredLogger('ContentController');
 
-  constructor(private readonly contentService: ContentService) {}
+  constructor(
+    private readonly contentService: ContentService,
+    private readonly agentsService: AgentsService,
+  ) {}
 
   // Module endpoints
   @Get('modules')
@@ -365,6 +370,51 @@ export class ContentController {
       return exercise;
     } catch (error) {
       this.logger.error('Exercise Update Failed', error, { exerciseId: id });
+      throw error;
+    }
+  }
+
+  @Post('questions/:questionId/check')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Check an exercise' })
+  @ApiParam({
+    name: 'questionId',
+    type: 'string',
+    description: 'Question ID',
+  })
+  @ApiBody({ type: CheckQuestionDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Question checked successfully',
+    type: QuestionResponseDto,
+  })
+  async checkQuestion(
+    @User('id') userId: string,
+    @Param('questionId') questionId: string,
+    @Body(new ValidationPipe()) checkQuestionDto: CheckQuestionDto,
+  ): Promise<QuestionResponseDto> {
+    this.logger.debug('Checking Question', {
+      questionId: questionId,
+      userId: userId,
+    });
+    try {
+      const response = await this.agentsService.checkQuestion(
+        checkQuestionDto,
+        userId,
+      );
+      this.logger.log('Question Check Completed', {
+        questionId,
+        userId,
+        score: response.score,
+        isCorrect: response.isCorrect,
+      });
+      return response;
+    } catch (error) {
+      this.logger.error('Question Check Failed', error, {
+        questionId,
+        userId,
+      });
       throw error;
     }
   }

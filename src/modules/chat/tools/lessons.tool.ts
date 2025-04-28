@@ -1,4 +1,5 @@
 import { zodToJsonSchema } from 'zod-to-json-schema';
+import { parse as parsePartialJson, ALL } from 'partial-json';
 
 import {
   ChatPromptTemplate,
@@ -36,7 +37,7 @@ Produce engaging, bite-sized lessons that alternate **explanation** with **pract
 
 ## Structure
 1. **Chunks** — Generate **8-12** per lesson.
-2. **Ratio** — Target **≈60 % explanatory “note” chunks** & **≈40% practice** (quiz · flashcard · open question).
+2. **Ratio** — Target **≈60 % explanatory “note” chunks** & **≈40% practice** (quiz · flashcard · question).
 3. **Flow** — Alternate chunk types to sustain attention (e.g. note → quiz → note → flashcard …). Always **begin with a note** and **finish with an open question** encouraging personal reflection.
 4. **Explanatory text** — 150-300 words, second-person, everyday language, include at least one concrete example or analogy. Avoid jargon unless previously defined.
 5. **Assessment rules**
@@ -168,7 +169,7 @@ Below is the *lesson_input* (title & description) you must flesh out into a full
             );
           }
 
-          const lessonOutput = JSON.parse(streamOutput);
+          const lessonOutput = parsePartialJson(streamOutput, ALL);
           lessonsPayload.push({
             body: lessonOutput,
             status: ContentStatus.DRAFT,

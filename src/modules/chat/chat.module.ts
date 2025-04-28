@@ -18,6 +18,6 @@ import { ContentModule } from '../content/content.module';
     ChatRepository,
     AgentsService,
   ],
-  exports: [ChatService],
+  exports: [ChatService, AgentsService],
 })
 export class ChatModule {}

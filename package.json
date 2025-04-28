@@ -57,6 +57,7 @@
     "langchain": "^0.3.19",
     "node-fetch": "2",
     "openai": "^4.86.2",
+    "partial-json": "^0.1.7",
     "pg": "^8.14.1",
     "reflect-metadata": "^0.2.0",
     "rxjs": "^7.8.1",

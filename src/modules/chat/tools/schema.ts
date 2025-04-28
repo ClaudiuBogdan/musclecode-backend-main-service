@@ -161,7 +161,11 @@ export const lessonContentSchema = z.discriminatedUnion('type', [
   /* ───────────── OPEN QUESTION ───────────── */
   z.object({
     id: z.string().describe('Stable unique ID'),
-    type: z.literal('question').describe('Open‑ended prompt'),
+    type: z
+      .literal('question')
+      .describe(
+        'A question that evaluate the user knowledge of the previous content. Make sure the question can only be answered based on the criteria provided, allowing little room for interpretation.',
+      ),
     question: z
       .string()
       .describe('Requires typed answer or short discussion from learner'),
@@ -178,7 +182,7 @@ export const lessonContentSchema = z.discriminatedUnion('type', [
         }),
       )
       .min(1)
-      .describe('Rubric items to enable automated or self‑grading'),
+      .describe('Rubric items to enable automated or self-grading'),
   }),
 
   /* ───────────── FLASHCARD ───────────── */
@@ -226,7 +230,7 @@ export const lessonSchema = z
       .min(8)
       .max(12)
       .describe(
-        'Sequence of 8–12 chunks. Strive for ≈60 % "note" chunks and ≈40 % practice (quiz, question, flashcard). Start with a note; end with a reflective question',
+        'Sequence of 8–12 chunks. Strive for ≈60 % "note" chunks and ≈40 % practice (quiz, question, flashcard). Start with a note; end with a verifiable question from the learning content where the user write the answer, and there a fixed criteria for the answer',
       ),
   })
   .describe('Complete lesson blueprint delivered to the client application');

@@ -2,13 +2,11 @@ import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
-import {
-  HumanMessage,
-  AIMessageChunk,
-  SystemMessage,
-} from '@langchain/core/messages';
+import { HumanMessage, AIMessageChunk } from '@langchain/core/messages';
 import { createReactAgent } from '@langchain/langgraph/prebuilt';
 import { Runnable } from '@langchain/core/runnables';
+import { PromptTemplate } from '@langchain/core/prompts';
+import { z } from 'zod';
 import {
   ServerSentEvent,
   TextBlock,
@@ -27,6 +25,11 @@ import { ContentService } from '../../content/content.service';
 import { createModuleTool, editModuleTool } from '../tools/modules.tool';
 import { createLessonsTool } from '../tools/lessons.tool';
 import { createSearchTool } from '../tools/search/search.tool';
+import {
+  CheckQuestionDto,
+  QuestionResponseDto,
+} from 'src/modules/content/dto/questions.dto';
+import zodToJsonSchema from 'zod-to-json-schema';
 
 @Injectable()
 export class AgentsService implements OnModuleInit {
@@ -296,6 +299,136 @@ export class AgentsService implements OnModuleInit {
       messageId: assistantMessageId,
       stop_timestamp: finalTs,
     } as ServerSentEvent;
+  }
+
+  async checkQuestion(
+    checkDto: CheckQuestionDto,
+    userId: string,
+  ): Promise<QuestionResponseDto> {
+    this.logger.log(`Checking question for user ${userId}`, {
+      question: checkDto.lessonQuestion.question,
+    });
+
+    // Zod schema for the expected response structure
+    const questionResponseSchema = z
+      .object({
+        feedbackItems: z
+          .array(
+            z.object({
+              isCorrect: z
+                .boolean()
+                .describe(
+                  'Whether this specific part of the answer/criterion is correct.',
+                ),
+              explanation: z
+                .string()
+                .describe(
+                  'Explanation for why this part is correct or incorrect.',
+                ),
+              points: z
+                .number()
+                .describe('Points awarded for this specific criterion.'),
+            }),
+          )
+          .describe(
+            'An array of feedback items, one for each correction criterion.',
+          ),
+      })
+      .describe(
+        'The review of the user answer against the correction criteria. Make sure you review correctly the user answer using the criteria.',
+      );
+
+    const { userAnswer, lessonQuestion, model } = checkDto;
+
+    const apiKey =
+      model?.apiKey || this.configService.get<string>('GEMINI_API_KEY');
+    const modelName =
+      model?.model || this.configService.get<string>('GEMINI_MODEL');
+
+    if (!modelName) {
+      throw new Error('GEMINI_MODEL is not defined');
+    }
+    if (!apiKey) {
+      throw new Error('GEMINI_API_KEY is not defined');
+    }
+
+    const llm = new ChatGoogleGenerativeAI({
+      apiKey,
+      model: modelName,
+      temperature: 0.3, // Low temperature for factual evaluation
+    });
+
+    const promptTemplate = PromptTemplate.fromTemplate(
+      `Evaluate the user's answer to the following question based on the provided correction criteria.
+
+      Question: {question}
+
+      Correction Criteria:
+      {correctionCriteria}
+
+      User's Answer: {userAnswer}
+
+      Instructions:
+      1. Analyze the User's Answer against each item in the Correction Criteria.
+      2. For each criterion, determine if the user's answer meets it (isCorrect: true/false).
+      3. Assign points for each criterion met, as specified in the criteria.
+      4. Provide a concise explanation for each criterion's evaluation.
+      5. Return ONLY the JSON object as specified. Do not include any other text or explanations outside the JSON structure.
+
+      Your response MUST be a JSON object adhering EXACTLY to the following format instructions:
+      {responseSchema}
+      `,
+    );
+
+    const prompt = await promptTemplate.format({
+      responseSchema: JSON.stringify(zodToJsonSchema(questionResponseSchema)),
+      question: lessonQuestion.question,
+      correctionCriteria: JSON.stringify(
+        lessonQuestion.correctionCriteria,
+        null,
+        2,
+      ),
+      userAnswer: userAnswer,
+    });
+
+    try {
+      const response = await llm
+        .withStructuredOutput(questionResponseSchema)
+        .invoke(prompt);
+      const feedbackItems = response.feedbackItems as z.infer<
+        typeof questionResponseSchema.shape.feedbackItems
+      >;
+
+      const score = feedbackItems
+        .filter((item) => item.isCorrect)
+        .reduce((acc, item) => acc + item.points, 0);
+
+      const maxScore = lessonQuestion.correctionCriteria.reduce(
+        (acc, item) => acc + item.points,
+        0,
+      );
+
+      const isCorrect = score === maxScore;
+
+      this.logger.log(`Question check completed for user ${userId}`, {
+        score: score,
+        maxScore: maxScore,
+      });
+      return {
+        score,
+        maxScore,
+        isCorrect,
+        feedbackItems: response.feedbackItems,
+      };
+    } catch (error) {
+      this.logger.error(
+        `Error checking question for user ${userId}: ${error.message}`,
+        error.stack,
+        { question: lessonQuestion.question },
+      );
+      // Consider returning a default error response DTO or re-throwing
+      throw new Error(`Failed to evaluate answer: ${error.message}`);
+    }
   }
 
   private extractText(content: any[] | string): string {
