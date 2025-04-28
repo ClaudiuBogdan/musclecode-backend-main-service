@@ -19,5 +19,5 @@ spec:
         host: musclecode-backend-main-service
     retries:
       attempts: 3
-      perTryTimeout: 2s
+      perTryTimeout: 3600s
     timeout: 3600s
