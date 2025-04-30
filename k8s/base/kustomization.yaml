@@ -32,11 +32,11 @@ patches:
       template:
         metadata:
           annotations:
-            image-sha: 067b3ffb24d21940efb279e24a471bfa060fa8ee
+            image-sha: 1e72828567a302db6adb7a7fa712fcde2ae18113
   target:
     kind: Deployment
     name: musclecode-backend-main-service
 images:
 - name: harbor.devostack.com/musclecode/musclecode-backend-main-service
   newName: harbor.devostack.com/musclecode/musclecode-backend-main-service
-  newTag: 067b3ffb24d21940efb279e24a471bfa060fa8ee
+  newTag: 1e72828567a302db6adb7a7fa712fcde2ae18113
