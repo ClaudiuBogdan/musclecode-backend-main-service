@@ -329,7 +329,8 @@ ${lessonContext}
     },
     {
       name: 'edit-lesson',
-      description: 'Edit an existing lesson based on user instructions.',
+      description:
+        'Edit an existing lesson based on user instructions. Returns the updated lesson.',
       schema: editLessonSchema,
     },
   );
