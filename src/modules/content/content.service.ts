@@ -364,12 +364,13 @@ export class ContentService {
     }
 
     // Check permissions
-    if (module.userId !== userId) {
-      // You might want to check for shared permissions here
-      throw new ForbiddenException(
-        'You do not have permission to view this module',
-      );
-    }
+    // TODO: FIXME: remove this once we have a proper permission system
+    // if (module.userId !== userId) {
+    //   // You might want to check for shared permissions here
+    //   throw new ForbiddenException(
+    //     'You do not have permission to view this module',
+    //   );
+    // }
 
     // Get lessons
     const lessons = await this.contentRepository.findChildNodes(
@@ -410,11 +411,12 @@ export class ContentService {
       throw new NotFoundException(`Lesson with ID ${id} not found`);
     }
 
-    if (node.userId !== userId) {
-      throw new ForbiddenException(
-        'You do not have permission to view this lesson',
-      );
-    }
+    // TODO: FIXME: remove this once we have a proper permission system
+    // if (node.userId !== userId) {
+    //   throw new ForbiddenException(
+    //     'You do not have permission to view this lesson',
+    //   );
+    // }
 
     return new LessonEntity({ ...node });
   }
