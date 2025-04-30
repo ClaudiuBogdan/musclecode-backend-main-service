@@ -86,6 +86,7 @@ export class ContentService {
     });
 
     // Link the lesson to the module
+    // TODO: FIXME: add lesson order
     await this.contentRepository.linkNodes(
       moduleId,
       lesson.id,
@@ -378,30 +379,17 @@ export class ContentService {
       ContentType.LESSON,
     );
 
-    // Get exercises directly linked to the module
-    const moduleExercises = await this.contentRepository.findChildNodes(
-      id,
-      ContentType.EXERCISE,
-    );
-
-    // For each lesson, get its exercises
-    const lessonsWithExercises = await Promise.all(
-      lessons.map(async (lesson) => {
-        const exercises = await this.contentRepository.findChildNodes(
-          lesson.id,
-          ContentType.EXERCISE,
-        );
-        return {
-          ...lesson,
-          exercises,
-        };
-      }),
-    );
+    // TODO: FIXME: add lesson order. For now, order the lessons by creation date, from oldest to newest
+    const orderedLessons = lessons.sort((a, b) => {
+      const lessonA = new Date(a.createdAt).getTime();
+      const lessonB = new Date(b.createdAt).getTime();
+      return lessonA - lessonB;
+    });
 
     return {
       ...module,
-      lessons: lessonsWithExercises,
-      exercises: moduleExercises,
+      lessons: orderedLessons,
+      exercises: [],
     };
   }
 

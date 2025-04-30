@@ -23,7 +23,7 @@ import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 
 import { ContentService } from '../../content/content.service';
 import { createModuleTool, editModuleTool } from '../tools/modules.tool';
-import { createLessonsTool } from '../tools/lessons.tool';
+import { createLessonsTool, editLessonTool } from '../tools/lessons.tool';
 import { createSearchTool } from '../tools/search/search.tool';
 import {
   CheckQuestionDto,
@@ -487,6 +487,12 @@ export class AgentsService implements OnModuleInit {
           modelName,
           this.contentService.getModule.bind(this.contentService),
           this.contentService.upsertLessons.bind(this.contentService),
+        ),
+        editLessonTool(
+          apiKey,
+          modelName,
+          this.contentService.getLesson.bind(this.contentService),
+          this.contentService.editLesson.bind(this.contentService),
         ),
       ],
       checkpointSaver: this.checkpointer,

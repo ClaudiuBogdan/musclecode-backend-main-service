@@ -1,10 +1,3 @@
-/*
- * Enhanced Lesson-Authoring Schema & Prompt
- * --------------------------------------------------
- * Goal: Produce lessons that balance clear explanatory text with interactive elements, maximising engagement and retention.
- * The API surface (field names & types) is preserved for backward compatibility; only descriptions and authoring guidance are refined.
- */
-
 import { z } from 'zod';
 
 /*
@@ -102,6 +95,18 @@ export const createLessonsSchema = z.object({
     ),
 });
 export type CreateLessonsSchemaType = z.infer<typeof createLessonsSchema>;
+
+export const editLessonSchema = z.object({
+  lessonId: z.string().describe('The ID of the lesson to edit.'),
+  lessonPrompt: z
+    .string()
+    .describe('The prompt detailing the desired changes to the lesson.'),
+  lessonContext: z
+    .string()
+    .optional()
+    .describe('Optional additional context for editing the lesson.'),
+});
+export type EditLessonSchemaType = z.infer<typeof editLessonSchema>;
 
 /*
  * ──────────────────────────────────────────────────────────────
