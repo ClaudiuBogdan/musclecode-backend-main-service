@@ -63,6 +63,12 @@ export const createModuleSchema = z.object({
     .describe(
       'Detailed second-person instructions describing the desired module. Include learning objectives, target audience, prior knowledge, tone, and any constraints',
     ),
+  moduleContext: z
+    .string()
+    .optional()
+    .describe(
+      'User provided context for creating the module. Make sure you include all the relevant context for the module, specially if provided by the user. The context can be as large as necessary.',
+    ),
 });
 export type CreateModuleSchemaType = z.infer<typeof createModuleSchema>;
 
@@ -77,16 +83,22 @@ export const editModuleSchema = z.object({
     .describe(
       'Instructions detailing what and why to modify (add lesson, tweak difficulty, change tone, etc.)',
     ),
+  moduleContext: z
+    .string()
+    .optional()
+    .describe(
+      'User provided context for editing the module. Make sure you include all the relevant context for the module, specially if provided by the user. The context can be as large as necessary.',
+    ),
 });
 export type EditModuleSchemaType = z.infer<typeof editModuleSchema>;
 
 export const createLessonsSchema = z.object({
   moduleId: z.string().describe('Identifier of the parent module'),
-  lessonRequirements: z
+  lessonsContext: z
     .string()
     .optional()
     .describe(
-      'Optional user-supplied constraints for the lesson (e.g., focus on real-world examples, include extra quizzes). Omit if none',
+      'User provided context for creating the lessons. Make sure you include all the relevant context for the lessons, specially if provided by the user. The context can be as large as necessary.',
     ),
 });
 export type CreateLessonsSchemaType = z.infer<typeof createLessonsSchema>;

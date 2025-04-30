@@ -49,12 +49,19 @@ export const createModuleTool = (
             You should consider how many lessons the module should have based on the complexity of the module. If the user asks for a specific number of lessons, you should generate that number of lessons.
             This is the schema for the module: {moduleSchema}`),
         HumanMessagePromptTemplate.fromTemplate(`
-            Here is the module prompt: {modulePrompt}
+            {moduleContext}
+            
+            {modulePrompt}
           `),
       ]);
 
       const createModulePrompt = await createModulePromptTemplate.invoke({
         modulePrompt: input.modulePrompt,
+        moduleContext: input.moduleContext?.trim()
+          ? `<module_context>
+${input.moduleContext}
+</module_context>`
+          : '',
         moduleSchema: JSON.stringify(zodToJsonSchema(moduleSchema)),
       });
 
@@ -130,11 +137,18 @@ export const editModuleTool = (
             You should generate a new module object with the edited content.
             This is the schema for the module: {moduleSchema}`),
         HumanMessagePromptTemplate.fromTemplate(`
-            Here is the module prompt: {modulePrompt}
+            {moduleContext}
+            
+            {modulePrompt}
           `),
       ]);
 
       const editModulePrompt = await editModulePromptTemplate.invoke({
+        moduleContext: input.moduleContext?.trim()
+          ? `<module_context>
+${input.moduleContext}
+</module_context>`
+          : '',
         modulePrompt: input.modulePrompt,
         moduleSchema: JSON.stringify(zodToJsonSchema(moduleSchema)),
         module: JSON.stringify(module),
@@ -167,9 +181,13 @@ export const editModuleTool = (
       }
 
       const moduleOutput = JSON.parse(streamOutput);
-      const editModulePayload = Array.isArray(moduleOutput)
+      const moduleBody = Array.isArray(moduleOutput)
         ? moduleOutput[0]
         : moduleOutput;
+
+      const editModulePayload = {
+        body: moduleBody,
+      };
 
       await editModule(input.moduleId, editModulePayload, userId);
 

@@ -76,7 +76,7 @@ export const createLessonsTool = (
     ): Promise<string> => {
       try {
         const userId = config?.metadata?.userId as string;
-        const { moduleId, lessonRequirements } = input;
+        const { moduleId, lessonsContext } = input;
 
         if (!userId) throw new Error('User ID is required');
 
@@ -112,7 +112,7 @@ Return the lesson exactly in this format:
 </response_format>
 `),
           HumanMessagePromptTemplate.fromTemplate(`
-{lesson_requirements}
+{lessons_context}
 
 Below is the *lesson_input* (title & description) you must flesh out into a full lesson:
 <lesson_input>
@@ -142,7 +142,11 @@ Below is the *lesson_input* (title & description) you must flesh out into a full
             module,
             lesson_input: lessonInput,
             lesson_schema: JSON.stringify(zodToJsonSchema(lessonSchema)),
-            lesson_requirements: lessonRequirements || '',
+            lessons_context: lessonsContext?.trim()
+              ? `<lessons_context>
+${lessonsContext}
+</lessons_context>`
+              : '',
           });
 
           // ───────────── Stream generation ─────────────
