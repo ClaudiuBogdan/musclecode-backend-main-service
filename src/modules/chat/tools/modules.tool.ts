@@ -46,7 +46,7 @@ export const createModuleTool = (
       const createModulePromptTemplate = ChatPromptTemplate.fromMessages([
         SystemMessagePromptTemplate.fromTemplate(`
             You are a teacher. You are given a module prompt and you need to generate a module.
-            You should generate a module with 1 to 3 lessons.
+            You should consider how many lessons the module should have based on the complexity of the module. If the user asks for a specific number of lessons, you should generate that number of lessons.
             This is the schema for the module: {moduleSchema}`),
         HumanMessagePromptTemplate.fromTemplate(`
             Here is the module prompt: {modulePrompt}

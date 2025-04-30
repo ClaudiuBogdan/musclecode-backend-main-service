@@ -48,7 +48,7 @@ Produce engaging, bite-sized lessons that alternate **explanation** with **pract
 7. **Accessibility** — Short sentences (<25 words), positive tone, inclusive examples.
 
 ## Note chunk
-When writing a note, use ≥2 quote items (e.g. "analogy", "example", "tip", "warning") to help explain the text.
+When writing a note, use ≥2 quote items (e.g. "analogy", "example", "tip", "warning") to help explain the text. The example, tip, etc, are quote types, so you should create a quote, and then make the quoteType example, tip, etc.
 Use as much text item as needed to explain the text.
 When referencing a chunk, use the title of the chunk.
 
