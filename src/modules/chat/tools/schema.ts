@@ -178,7 +178,7 @@ When creating a quote, you should use the quoteType to identify the type of quot
       .describe('List of 3-5 answer choices'),
   }),
 
-  /* ───────────── OPEN QUESTION ───────────── */
+  /* ───────────── QUESTION ───────────── */
   z.object({
     id: z.string().describe('Stable unique ID'),
     type: z
@@ -195,7 +195,9 @@ When creating a quote, you should use the quoteType to identify the type of quot
           answer: z.string().describe('Canonical answer or rubric bullet'),
           points: z
             .number()
-            .describe('Score awarded if learner meets this criterion'),
+            .describe(
+              'Score awarded if learner meets this criterion. An answer can have 1, 2 or 3 points',
+            ),
           explanation: z
             .string()
             .describe('Reference explanation shown after grading'),
