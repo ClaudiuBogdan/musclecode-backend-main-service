@@ -6,6 +6,7 @@ import {
   IsObject,
   IsString,
   IsBoolean,
+  IsOptional,
 } from 'class-validator';
 import { ModelDto } from 'src/modules/chat/dto/agent-chat.dto';
 
@@ -59,9 +60,9 @@ export class CheckQuestionDto {
   lessonQuestion: LessonQuestionDto;
 
   @IsObject()
-  @IsNotEmpty()
+  @IsOptional()
   @Type(() => ModelDto)
-  model: ModelDto;
+  model?: ModelDto;
 }
 
 export class QuestionResponseDto {
