@@ -55,6 +55,7 @@
     "gray-matter": "^4.0.3",
     "jsonwebtoken": "^9.0.2",
     "langchain": "^0.3.19",
+    "langfuse-langchain": "^3.37.2",
     "node-fetch": "2",
     "openai": "^4.86.2",
     "partial-json": "^0.1.7",

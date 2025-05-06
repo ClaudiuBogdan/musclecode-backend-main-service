@@ -30,11 +30,13 @@ import {
   QuestionResponseDto,
 } from 'src/modules/content/dto/questions.dto';
 import zodToJsonSchema from 'zod-to-json-schema';
+import CallbackHandler from 'langfuse-langchain';
 
 @Injectable()
 export class AgentsService implements OnModuleInit {
   private readonly logger = new Logger(AgentsService.name);
   private checkpointer: PostgresSaver;
+  private langfuseHandler?: CallbackHandler;
 
   constructor(
     private configService: ConfigService,
@@ -47,6 +49,17 @@ export class AgentsService implements OnModuleInit {
     this.checkpointer = PostgresSaver.fromConnString(databaseUrl, {
       schema: 'langchain_chat_histories',
     });
+
+    const isLangfuseEnabled = !!this.configService.get<string>(
+      'LANGFUSE_PUBLIC_KEY',
+    );
+    if (isLangfuseEnabled) {
+      this.langfuseHandler = new CallbackHandler({
+        publicKey: this.configService.get<string>('LANGFUSE_PUBLIC_KEY'),
+        secretKey: this.configService.get<string>('LANGFUSE_SECRET_KEY'),
+        baseUrl: this.configService.get<string>('LANGFUSE_BASE_URL'),
+      });
+    }
   }
 
   async onModuleInit() {
@@ -106,6 +119,7 @@ export class AgentsService implements OnModuleInit {
         metadata: {
           userId,
         },
+        callbacks: this.langfuseHandler ? [this.langfuseHandler] : undefined,
       },
     );
 
@@ -475,24 +489,28 @@ export class AgentsService implements OnModuleInit {
           apiKey,
           modelName,
           this.contentService.createModule.bind(this.contentService),
+          this.langfuseHandler,
         ),
         editModuleTool(
           apiKey,
           modelName,
           this.contentService.getModule.bind(this.contentService),
           this.contentService.editModule.bind(this.contentService),
+          this.langfuseHandler,
         ),
         createLessonsTool(
           apiKey,
           modelName,
           this.contentService.getModule.bind(this.contentService),
           this.contentService.upsertLessons.bind(this.contentService),
+          this.langfuseHandler,
         ),
         editLessonTool(
           apiKey,
           modelName,
           this.contentService.getLesson.bind(this.contentService),
           this.contentService.editLesson.bind(this.contentService),
+          this.langfuseHandler,
         ),
       ],
       checkpointSaver: this.checkpointer,

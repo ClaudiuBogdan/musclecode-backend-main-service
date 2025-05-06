@@ -18,11 +18,13 @@ import { zodToJsonSchema } from 'zod-to-json-schema';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 import { ContentStatus } from '@prisma/client';
 import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
+import CallbackHandler from 'langfuse-langchain';
 
 export const createModuleTool = (
   apiKey: string,
   model: string,
   createModule: ContentService['createModule'],
+  langfuseHandler?: CallbackHandler,
 ) =>
   tool(
     async (
@@ -68,6 +70,7 @@ ${input.moduleContext}
       const stream = await teacherAgent.stream(createModulePrompt, {
         ...config,
         tags: ['skip_client_stream'],
+        callbacks: langfuseHandler ? [langfuseHandler] : undefined,
       });
 
       let streamOutput = '';
@@ -110,6 +113,7 @@ export const editModuleTool = (
   model: string,
   getModule: ContentService['getModule'],
   editModule: ContentService['editModule'],
+  langfuseHandler?: CallbackHandler,
 ) =>
   tool(
     async (
@@ -165,6 +169,7 @@ ${input.moduleContext}
       const stream = await teacherAgent.stream(editModulePrompt, {
         ...config,
         tags: ['skip_client_stream'],
+        callbacks: langfuseHandler ? [langfuseHandler] : undefined,
       });
 
       let streamOutput = '';

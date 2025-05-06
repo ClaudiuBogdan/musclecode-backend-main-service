@@ -13,6 +13,7 @@ import {
   SearchToolConfig,
 } from './interfaces';
 import { getSearchProvider } from './provider';
+import CallbackHandler from 'langfuse-langchain';
 
 // Define the updated schema including the search engine selector
 const searchToolSchema = z.object({

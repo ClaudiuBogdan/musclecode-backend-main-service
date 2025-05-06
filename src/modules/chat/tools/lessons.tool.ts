@@ -21,6 +21,7 @@ import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
 import { tool } from '@langchain/core/tools';
 import { ContentStatus } from '@prisma/client';
 import { LessonEntity } from 'src/modules/content/entities';
+import CallbackHandler from 'langfuse-langchain';
 
 /**
  * ------------------------------------------------------------------
@@ -70,6 +71,7 @@ export const createLessonsTool = (
   model: string,
   getModule: ContentService['getModule'],
   upsertLessons: ContentService['upsertLessons'],
+  langfuseHandler?: CallbackHandler,
 ) =>
   tool(
     async (
@@ -155,6 +157,7 @@ ${lessonsContext}
           const stream = await teacherAgent.stream(createCoursePrompt, {
             ...config,
             tags: ['skip_client_stream'],
+            callbacks: langfuseHandler ? [langfuseHandler] : undefined,
           });
 
           let streamOutput = '';
@@ -223,6 +226,7 @@ export const editLessonTool = (
   model: string,
   getLesson: ContentService['getLesson'],
   editLesson: ContentService['editLesson'],
+  langfuseHandler?: CallbackHandler,
 ) =>
   tool(
     async (
@@ -293,6 +297,7 @@ ${lessonContext}
         const stream = await teacherAgent.stream(editLessonPrompt, {
           ...config,
           tags: ['skip_client_stream'],
+          callbacks: langfuseHandler ? [langfuseHandler] : undefined,
         });
 
         let streamOutput = '';
