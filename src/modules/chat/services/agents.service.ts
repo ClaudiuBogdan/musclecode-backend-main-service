@@ -118,6 +118,7 @@ export class AgentsService implements OnModuleInit {
         },
         metadata: {
           userId,
+          environment: this.configService.get<string>('NODE_ENV'),
         },
         callbacks: this.langfuseHandler ? [this.langfuseHandler] : undefined,
       },
