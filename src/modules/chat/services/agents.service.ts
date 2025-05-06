@@ -119,7 +119,9 @@ export class AgentsService implements OnModuleInit {
         },
         metadata: {
           userId,
+          threadId: message.threadId,
           langfuseUserId: userId,
+          langfuseSessionId: message.threadId,
           environment: this.configService.get<string>('NODE_ENV'),
           service: this.configService.get<string>('APP_NAME'),
         },
