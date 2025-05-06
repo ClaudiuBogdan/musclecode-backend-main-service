@@ -58,6 +58,7 @@ export class AgentsService implements OnModuleInit {
         publicKey: this.configService.get<string>('LANGFUSE_PUBLIC_KEY'),
         secretKey: this.configService.get<string>('LANGFUSE_SECRET_KEY'),
         baseUrl: this.configService.get<string>('LANGFUSE_BASE_URL'),
+        environment: this.configService.get<string>('APP_NAME'),
       });
     }
   }
@@ -118,7 +119,9 @@ export class AgentsService implements OnModuleInit {
         },
         metadata: {
           userId,
+          langfuseUserId: userId,
           environment: this.configService.get<string>('NODE_ENV'),
+          service: this.configService.get<string>('APP_NAME'),
         },
         callbacks: this.langfuseHandler ? [this.langfuseHandler] : undefined,
       },
