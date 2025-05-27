@@ -19,7 +19,7 @@ import {
   UpdatePermissionDto,
   PermissionResponseDto,
 } from './dto';
-import { ApiOperation } from '@nestjs/swagger';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 interface AuthenticatedRequest extends Request {
   user: { id: string; [key: string]: any };
@@ -27,6 +27,7 @@ interface AuthenticatedRequest extends Request {
 
 @Controller('permissions')
 @UseGuards(AuthGuard)
+@ApiTags('permissions')
 export class PermissionController {
   constructor(private readonly permissionService: PermissionService) {}
 
