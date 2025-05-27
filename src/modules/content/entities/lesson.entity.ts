@@ -16,7 +16,6 @@ export class LessonEntity {
     this.status = node.status;
     this.body = node.body as Record<string, any>;
     this.metadata = node.metadata as Record<string, any>;
-    this.userId = node.userId!;
     this.createdAt = node.createdAt;
     this.updatedAt = node.updatedAt;
   }

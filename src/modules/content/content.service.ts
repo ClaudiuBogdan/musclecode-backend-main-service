@@ -4,11 +4,13 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { ContentRepository } from './content.repository';
+import { PermissionService } from '../permission/permission.service';
 import {
   ContentNode,
   ContentStatus,
   ContentType,
   LinkType,
+  PermissionLevel,
 } from '@prisma/client';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { ModuleEntity } from './entities/module.entity';
@@ -20,7 +22,10 @@ import { EditContentNodeDto } from './dto/edit-content-node.dto';
 
 @Injectable()
 export class ContentService {
-  constructor(private contentRepository: ContentRepository) {}
+  constructor(
+    private contentRepository: ContentRepository,
+    private permissionService: PermissionService,
+  ) {}
 
   /**
    * Get all modules for a user
@@ -46,13 +51,15 @@ export class ContentService {
   ): Promise<ModuleEntity> {
     const { status, body, metadata } = dto;
 
-    const node = await this.contentRepository.createNode({
-      type: ContentType.MODULE,
-      status: status || ContentStatus.DRAFT,
-      body,
-      metadata: metadata || {},
+    const node = await this.contentRepository.createNodeWithPermission(
+      {
+        type: ContentType.MODULE,
+        status: status || ContentStatus.DRAFT,
+        body,
+        metadata: metadata || {},
+      },
       userId,
-    });
+    );
     return new ModuleEntity(node);
   }
 
@@ -65,25 +72,35 @@ export class ContentService {
   ): Promise<LessonEntity> {
     const { moduleId, status, body, metadata } = dto;
 
-    // Check if module exists and belongs to user
+    // Check if module exists and user has permission to edit it
     const module = await this.contentRepository.findNodeById(moduleId);
     if (!module) {
       throw new NotFoundException(`Module with ID ${moduleId} not found`);
     }
 
-    if (module.userId !== userId) {
+    const userPermission =
+      await this.permissionService.getUserPermissionForContentNode(
+        userId,
+        moduleId,
+      );
+    if (
+      !userPermission ||
+      !this.hasEditPermission(userPermission.permissionLevel)
+    ) {
       throw new ForbiddenException(
         'You do not have permission to add lessons to this module',
       );
     }
 
-    const lesson = await this.contentRepository.createNode({
-      type: ContentType.LESSON,
-      status: status || ContentStatus.DRAFT,
-      body,
-      metadata: metadata || {},
+    const lesson = await this.contentRepository.createNodeWithPermission(
+      {
+        type: ContentType.LESSON,
+        status: status || ContentStatus.DRAFT,
+        body,
+        metadata: metadata || {},
+      },
       userId,
-    });
+    );
 
     // Link the lesson to the module
     // TODO: FIXME: add lesson order
@@ -101,12 +118,21 @@ export class ContentService {
     userId: string,
     lessons: Pick<LessonEntity, 'body' | 'status' | 'metadata'>[],
   ): Promise<LessonEntity[]> {
-    // Check if module exists and belongs to user
+    // Check if module exists and user has permission to edit it
     const module = await this.contentRepository.findNodeById(moduleId);
     if (!module || module.type !== ContentType.MODULE) {
       throw new NotFoundException(`Module with ID ${moduleId} not found`);
     }
-    if (module.userId !== userId) {
+
+    const userPermission =
+      await this.permissionService.getUserPermissionForContentNode(
+        userId,
+        moduleId,
+      );
+    if (
+      !userPermission ||
+      !this.hasEditPermission(userPermission.permissionLevel)
+    ) {
       throw new ForbiddenException(
         'You do not have permission to upsert lessons for this module',
       );
@@ -128,13 +154,15 @@ export class ContentService {
     // Create and link new lessons
     const createdLessons: LessonEntity[] = [];
     for (const lesson of lessons) {
-      const newLesson = await this.contentRepository.createNode({
-        type: ContentType.LESSON,
-        status: lesson.status || ContentStatus.DRAFT,
-        body: lesson.body,
-        metadata: lesson.metadata || {},
+      const newLesson = await this.contentRepository.createNodeWithPermission(
+        {
+          type: ContentType.LESSON,
+          status: lesson.status || ContentStatus.DRAFT,
+          body: lesson.body,
+          metadata: lesson.metadata || {},
+        },
         userId,
-      });
+      );
       await this.contentRepository.linkNodes(
         moduleId,
         newLesson.id,
@@ -155,13 +183,21 @@ export class ContentService {
   ): Promise<ExerciseEntity> {
     const { moduleId, lessonId, description, status, body, metadata } = dto;
 
-    // Check if module exists and belongs to user
+    // Check if module exists and user has permission to edit it
     const module = await this.contentRepository.findNodeById(moduleId);
     if (!module) {
       throw new NotFoundException(`Module with ID ${moduleId} not found`);
     }
 
-    if (module.userId !== userId) {
+    const userPermission =
+      await this.permissionService.getUserPermissionForContentNode(
+        userId,
+        moduleId,
+      );
+    if (
+      !userPermission ||
+      !this.hasEditPermission(userPermission.permissionLevel)
+    ) {
       throw new ForbiddenException(
         'You do not have permission to add exercises to this module',
       );
@@ -189,13 +225,15 @@ export class ContentService {
       description: description || '',
     };
 
-    const exercise = await this.contentRepository.createNode({
-      type: ContentType.EXERCISE,
-      status: status || ContentStatus.DRAFT,
-      body: contentBody,
-      metadata: metadata || {},
+    const exercise = await this.contentRepository.createNodeWithPermission(
+      {
+        type: ContentType.EXERCISE,
+        status: status || ContentStatus.DRAFT,
+        body: contentBody,
+        metadata: metadata || {},
+      },
       userId,
-    });
+    );
 
     // Link the exercise to the module
     await this.contentRepository.linkNodes(
@@ -224,13 +262,18 @@ export class ContentService {
     dto: EditContentNodeDto,
     userId: string,
   ): Promise<ContentNode> {
-    // Check if the node exists and belongs to the user
+    // Check if the node exists and user has permission to edit it
     const node = await this.contentRepository.findNodeById(id);
     if (!node) {
       throw new NotFoundException(`Content node with ID ${id} not found`);
     }
 
-    if (node.userId !== userId) {
+    const userPermission =
+      await this.permissionService.getUserPermissionForContentNode(userId, id);
+    if (
+      !userPermission ||
+      !this.hasEditPermission(userPermission.permissionLevel)
+    ) {
       throw new ForbiddenException(
         'You do not have permission to edit this content',
       );
@@ -364,14 +407,14 @@ export class ContentService {
       throw new NotFoundException(`Module with ID ${id} not found`);
     }
 
-    // Check permissions
-    // TODO: FIXME: remove this once we have a proper permission system
-    // if (module.userId !== userId) {
-    //   // You might want to check for shared permissions here
-    //   throw new ForbiddenException(
-    //     'You do not have permission to view this module',
-    //   );
-    // }
+    // Check permissions - user needs at least VIEW permission
+    const userPermission =
+      await this.permissionService.getUserPermissionForContentNode(userId, id);
+    if (!userPermission) {
+      throw new ForbiddenException(
+        'You do not have permission to view this module',
+      );
+    }
 
     // Get lessons
     const lessons = await this.contentRepository.findChildNodes(
@@ -399,12 +442,14 @@ export class ContentService {
       throw new NotFoundException(`Lesson with ID ${id} not found`);
     }
 
-    // TODO: FIXME: remove this once we have a proper permission system
-    // if (node.userId !== userId) {
-    //   throw new ForbiddenException(
-    //     'You do not have permission to view this lesson',
-    //   );
-    // }
+    // Check permissions - user needs at least VIEW permission
+    const userPermission =
+      await this.permissionService.getUserPermissionForContentNode(userId, id);
+    if (!userPermission) {
+      throw new ForbiddenException(
+        'You do not have permission to view this lesson',
+      );
+    }
 
     return new LessonEntity({ ...node });
   }
@@ -418,7 +463,12 @@ export class ContentService {
       throw new NotFoundException(`Module with ID ${id} not found`);
     }
 
-    if (module.userId !== userId) {
+    const userPermission =
+      await this.permissionService.getUserPermissionForContentNode(userId, id);
+    if (
+      !userPermission ||
+      !this.hasManagePermission(userPermission.permissionLevel)
+    ) {
       throw new ForbiddenException(
         'You do not have permission to publish this module',
       );
@@ -467,5 +517,19 @@ export class ContentService {
     }
 
     return updatedModule;
+  }
+
+  /**
+   * Helper method to check if a permission level allows editing
+   */
+  private hasEditPermission(permissionLevel: PermissionLevel): boolean {
+    return ['EDIT', 'MANAGE', 'OWNER'].includes(permissionLevel);
+  }
+
+  /**
+   * Helper method to check if a permission level allows management
+   */
+  private hasManagePermission(permissionLevel: PermissionLevel): boolean {
+    return ['MANAGE', 'OWNER'].includes(permissionLevel);
   }
 }

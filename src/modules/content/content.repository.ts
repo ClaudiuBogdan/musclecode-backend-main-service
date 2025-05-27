@@ -6,14 +6,56 @@ import {
   LinkType,
   Prisma,
   ContentType,
+  PermissionLevel,
 } from '@prisma/client';
+
+export interface ContentNodeCreateInput {
+  type: ContentType;
+  status?: Prisma.ContentNodeCreateInput['status'];
+  body: Prisma.ContentNodeCreateInput['body'];
+  metadata?: Prisma.ContentNodeCreateInput['metadata'];
+  isPublic?: boolean;
+}
 
 @Injectable()
 export class ContentRepository {
   constructor(private prisma: PrismaService) {}
 
   /**
-   * Create a new content node
+   * Create a new content node with permission for the creator
+   */
+  async createNodeWithPermission(
+    data: ContentNodeCreateInput,
+    userId: string,
+  ): Promise<ContentNode> {
+    return this.prisma.$transaction(async (tx) => {
+      // Create the content node
+      const node = await tx.contentNode.create({
+        data: {
+          type: data.type,
+          status: data.status,
+          body: data.body,
+          metadata: data.metadata,
+          isPublic: data.isPublic || false,
+        },
+      });
+
+      // Grant OWNER permission to the creator
+      await tx.explicitPermission.create({
+        data: {
+          contentNodeId: node.id,
+          userId: userId,
+          permissionLevel: PermissionLevel.OWNER,
+          grantedBy: userId, // Self-granted
+        },
+      });
+
+      return node;
+    });
+  }
+
+  /**
+   * Create a new content node (legacy method for backward compatibility)
    */
   async createNode(data: Prisma.ContentNodeCreateInput): Promise<ContentNode> {
     return this.prisma.contentNode.create({
@@ -31,16 +73,42 @@ export class ContentRepository {
   }
 
   /**
-   * Find content nodes by user ID
+   * Find content nodes that user has access to
    */
   async findNodesByUserId(userId: string): Promise<ContentNode[]> {
     return this.prisma.contentNode.findMany({
-      where: { userId },
+      where: {
+        OR: [
+          {
+            isPublic: true,
+          },
+          {
+            ExplicitPermission: {
+              some: {
+                userId: userId,
+              },
+            },
+          },
+          {
+            ExplicitPermission: {
+              some: {
+                group: {
+                  members: {
+                    some: {
+                      userId: userId,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        ],
+      },
     });
   }
 
   /**
-   * Find content nodes by user ID and type
+   * Find content nodes by user access and type
    */
   async findNodesByUserIdAndType(
     userId: string,
@@ -48,8 +116,32 @@ export class ContentRepository {
   ): Promise<ContentNode[]> {
     return this.prisma.contentNode.findMany({
       where: {
-        userId,
         type,
+        OR: [
+          {
+            isPublic: true,
+          },
+          {
+            ExplicitPermission: {
+              some: {
+                userId: userId,
+              },
+            },
+          },
+          {
+            ExplicitPermission: {
+              some: {
+                group: {
+                  members: {
+                    some: {
+                      userId: userId,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        ],
       },
     });
   }

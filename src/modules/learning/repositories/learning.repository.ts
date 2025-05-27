@@ -40,6 +40,16 @@ export class LearningRepository {
         },
       });
 
+      // Grant OWNER permission to the creator
+      await tx.explicitPermission.create({
+        data: {
+          contentNodeId: moduleNode.id,
+          userId: userId,
+          permissionLevel: 'OWNER',
+          grantedBy: userId,
+        },
+      });
+
       const createdLessons = [];
       const createdExercises = [];
 
@@ -57,6 +67,17 @@ export class LearningRepository {
             metadata: {},
           },
         });
+
+        // Grant OWNER permission to the creator
+        await tx.explicitPermission.create({
+          data: {
+            contentNodeId: lessonNode.id,
+            userId: userId,
+            permissionLevel: 'OWNER',
+            grantedBy: userId,
+          },
+        });
+
         createdLessons.push(lessonNode);
 
         // Create link from module to lesson
@@ -90,6 +111,17 @@ export class LearningRepository {
             metadata: {},
           },
         });
+
+        // Grant OWNER permission to the creator
+        await tx.explicitPermission.create({
+          data: {
+            contentNodeId: exerciseNode.id,
+            userId: userId,
+            permissionLevel: 'OWNER',
+            grantedBy: userId,
+          },
+        });
+
         createdExercises.push(exerciseNode);
 
         // Create link from module to exercise

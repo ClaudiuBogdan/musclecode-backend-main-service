@@ -39,11 +39,12 @@ export class ChatRepository {
     userId: string,
   ): Promise<ChatThread> {
     const thread = await this.prisma.contentNode.findUnique({
-      where: { id: threadId, userId, type: ContentType.CHAT_THREAD },
+      where: { id: threadId, type: ContentType.CHAT_THREAD },
     });
     if (!thread) {
       return this.createThreadContentNode(threadId, userId);
     }
+    // TODO: add permission check
     return this.mapThreadToChatThread(thread);
   }
 
@@ -54,7 +55,6 @@ export class ChatRepository {
     const thread = await this.prisma.contentNode.create({
       data: {
         id: threadId,
-        userId,
         type: ContentType.CHAT_THREAD,
         body: {
           version: 1,
@@ -62,6 +62,7 @@ export class ChatRepository {
         },
       },
     });
+    // TODO: add permission check
     return this.mapThreadToChatThread(thread);
   }
 
@@ -71,7 +72,7 @@ export class ChatRepository {
     messages: ChatMessage[],
   ): Promise<ChatThread> {
     const updatedThread = await this.prisma.contentNode.update({
-      where: { id: threadId, userId, type: ContentType.CHAT_THREAD },
+      where: { id: threadId, type: ContentType.CHAT_THREAD },
       data: {
         body: {
           version: 1,
@@ -79,6 +80,7 @@ export class ChatRepository {
         },
       },
     });
+    // TODO: add permission check
     return this.mapThreadToChatThread(updatedThread);
   }
 
