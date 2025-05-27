@@ -32,7 +32,6 @@ export class LearningRepository {
       const moduleNode = await tx.contentNode.create({
         data: {
           type: ContentType.MODULE,
-          userId,
           body: {
             title: moduleData.title,
             description: moduleData.description,
@@ -49,7 +48,6 @@ export class LearningRepository {
         const lessonNode = await tx.contentNode.create({
           data: {
             type: ContentType.LESSON,
-            userId,
             status: ContentStatus.DRAFT,
             body: {
               title: lesson.title,
@@ -83,7 +81,6 @@ export class LearningRepository {
         const exerciseNode = await tx.contentNode.create({
           data: {
             type: ContentType.EXERCISE,
-            userId,
             body: {
               title: exercise.title,
               description: exercise.description,

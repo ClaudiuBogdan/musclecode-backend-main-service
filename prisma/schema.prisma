@@ -165,19 +165,17 @@ model ContentNode {
   status    ContentStatus @default(DRAFT)
   body      Json // Markdown, HTML, or structured JSON content
   metadata  Json? // Field to store additional dynamic properties
-  userId    String?
   createdAt DateTime      @default(now())
   updatedAt DateTime      @updatedAt
+  isPublic  Boolean       @default(false)
 
-  outgoingLinks      ContentLink[]     @relation("OutgoingLinks")
-  incomingLinks      ContentLink[]     @relation("IncomingLinks")
+  outgoingLinks      ContentLink[]        @relation("OutgoingLinks")
+  incomingLinks      ContentLink[]        @relation("IncomingLinks")
   interactions       InteractionData[]
-  tags               Tag[]             @relation("ContentNodeTags")
-  nodePermissions    NodePermission[]
-  sourceOfPermission NodePermission[]  @relation("SourceOfPermission")
+  tags               Tag[]                @relation("ContentNodeTags")
+  ExplicitPermission ExplicitPermission[]
 
-  @@index([userId]) // Optimizes queries filtering by userId
-  @@index([type]) // Useful when filtering by content type
+  @@index([type, status])
 }
 
 model ContentLink {
@@ -214,44 +212,99 @@ model InteractionData {
   @@index([userId]) // Optimizes lookups for interactions by user
 }
 
-// Stores the calculated effective permission for a user on a node
-// This table is populated/updated by the propagation logic
-model NodePermission {
+// Permission system
+model PermissionGroup {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  ownerId     String // Group owner
+  isPublic    Boolean  @default(false) // Public groups anyone can join
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  members            GroupMember[]
+  ExplicitPermission ExplicitPermission[]
+
+  @@index([ownerId])
+}
+
+model GroupMember {
+  id       String    @id @default(uuid())
+  groupId  String
+  userId   String
+  role     GroupRole @default(MEMBER)
+  joinedAt DateTime  @default(now())
+
+  group PermissionGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([userId])
+}
+
+// Direct permission grants - source of truth for explicit permissions
+model ExplicitPermission {
   id              String          @id @default(uuid())
-  userId          String // User whose effective permission this is
-  nodeId          String // The ContentNode this permission applies to
-  permissionLevel PermissionLevel // The resulting access level after propagation/overrides
-  sourceNodeId    String // The ID of the ContentNode where the relevant ExplicitPermission originated
-  isExplicit      Boolean         @default(true) // True if this effective permission comes directly from an ExplicitPermission on this node
-  grantingUserId  String // The user who granted the permission
+  contentNodeId   String
+  userId          String?
+  groupId         String?
+  permissionLevel PermissionLevel
+  grantedBy       String // userId who granted this permission
+  expiresAt       DateTime? // Optional expiration
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
 
-  contentNode ContentNode @relation(fields: [nodeId], references: [id])
-  sourceNode  ContentNode @relation("SourceOfPermission", fields: [sourceNodeId], references: [id]) // Relation to the source node
-  // Consider adding relations to User models
+  contentNode ContentNode      @relation(fields: [contentNodeId], references: [id])
+  group       PermissionGroup? @relation(fields: [groupId], references: [id])
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  @@unique([contentNodeId, userId, groupId, permissionLevel])
+  @@index([contentNodeId])
+  @@index([userId])
+  @@index([groupId])
+  @@index([grantedBy])
+}
 
-  @@unique([userId, nodeId]) // A user has one effective permission level per node
-  @@index([userId, permissionLevel]) // Optimize permission checks
-  @@index([nodeId])
-  @@index([sourceNodeId]) // Useful for propagation updates
+// Add a trigger to update the effective permission when a new explicit permission is created
+// Just be sure to update or invalidate rows in EffectivePermission whenever:
+// A row in ExplicitPermission changes.
+// A GroupMember is added/removed.
+// A owner assignment changes.
+// model EffectivePermission {
+//   id              String          @id @default(uuid())
+//   userId          String // User whose effective permission this is
+//   contentNodeId   String // The resource this permission applies to
+//   permissionLevel PermissionLevel // The resulting access level after computation
+//   sourceId        String // ID of the source (explicitPermissionId, groupId, etc.)
+//   grantingUserId  String // The user who ultimately granted the permission
+//   computedAt      DateTime        @default(now()) // When this was last computed
+//   createdAt       DateTime        @default(now())
+//   updatedAt       DateTime        @updatedAt
+
+//   contentNode ContentNode @relation(fields: [contentNodeId], references: [id])
+
+//   @@unique([userId, contentNodeId]) // A user has one effective permission per resource
+//   @@index([userId, permissionLevel]) // Optimize permission checks
+//   @@index([contentNodeId, permissionLevel])
+// }
+
+// Tag model for content nodes
+model Tag {
+  id    String        @id @default(uuid())
+  name  String        @unique
+  nodes ContentNode[] @relation("ContentNodeTags")
+}
+
+enum GroupRole {
+  MEMBER
+  ADMIN
+  OWNER
 }
 
 enum PermissionLevel {
-  NONE // Explicitly denies access (useful for overrides)
-  VIEW // Can see the node content
-  INTERACT // Can view and interact (e.g., answer quizzes)
-  EDIT // Can modify the node content/metadata
-  MANAGE // Can grant/revoke permissions on this node and potentially descendants
-  OWNER // Full control (Define semantics clearly)
-}
-
-// New model to support tagging of content nodes
-model Tag {
-  id    String        @id @default(uuid())
-  name  String        @unique // Ensures tag names are unique
-  nodes ContentNode[] @relation("ContentNodeTags")
+  VIEW // Can see the resource
+  INTERACT // Can view and interact
+  EDIT // Can modify the resource
+  MANAGE // Can grant/revoke permissions
+  OWNER // Full control (only through ownership)
 }
 
 enum ContentStatus {

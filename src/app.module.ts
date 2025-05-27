@@ -13,6 +13,7 @@ import { OnboardingModule } from './modules/onboarding/onboarding.module';
 import { ChatModule } from './modules/chat/chat.module';
 import { LearningModule } from './modules/learning/learning.module';
 import { ContentModule } from './modules/content/content.module';
+import { PermissionModule } from './modules/permission/permission.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { ContentModule } from './modules/content/content.module';
     ChatModule,
     LearningModule,
     ContentModule,
+    PermissionModule,
   ],
   controllers: [AppController],
   providers: [
