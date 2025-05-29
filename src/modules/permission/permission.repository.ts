@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { PrismaService } from '../../infrastructure/database/prisma.service';
 import {
   ExplicitPermission,
@@ -9,7 +9,8 @@ import {
   Prisma,
   LinkType,
 } from '@prisma/client';
-import { PermissionResponseDto } from './dto';
+import { PermissionDto } from './dto';
+import { isUUID } from 'src/fn/uuid';
 
 export interface ContentNodeWithLinks extends ContentNode {
   outgoingLinks: Array<{
@@ -26,6 +27,12 @@ export interface ContentNodeWithLinks extends ContentNode {
   }>;
 }
 
+// Helper type for the raw SQL query result.
+type RawPermissionResult = ExplicitPermission & {
+  depth: number;
+  priority: number;
+};
+
 @Injectable()
 export class PermissionRepository {
   constructor(private prisma: PrismaService) {}
@@ -35,26 +42,24 @@ export class PermissionRepository {
    */
   async createExplicitPermission(
     data: Prisma.ExplicitPermissionCreateInput,
-  ): Promise<PermissionResponseDto> {
+  ): Promise<PermissionDto> {
     const permission = await this.prisma.explicitPermission.create({
       data,
     });
-    return this.mapExplicitPermissionToDto(permission, 'explicit', false);
+    return this.mapExplicitPermissionToDto(permission, 'explicit');
   }
 
   /**
    * Find explicit permission by ID
    */
-  async findExplicitPermissionById(
-    id: string,
-  ): Promise<PermissionResponseDto | null> {
+  async findExplicitPermissionById(id: string): Promise<PermissionDto | null> {
     const permission = await this.prisma.explicitPermission.findUnique({
       where: { id },
     });
     if (!permission) {
       return null;
     }
-    return this.mapExplicitPermissionToDto(permission, 'explicit', false);
+    return this.mapExplicitPermissionToDto(permission, 'explicit');
   }
 
   /**
@@ -63,7 +68,7 @@ export class PermissionRepository {
    */
   async findExplicitPermissionsByContentNode(
     contentNodeId: string,
-  ): Promise<PermissionResponseDto[]> {
+  ): Promise<PermissionDto[]> {
     const permissions = await this.prisma.explicitPermission.findMany({
       where: {
         contentNodeId,
@@ -73,7 +78,7 @@ export class PermissionRepository {
     });
 
     return permissions.map((permission) =>
-      this.mapExplicitPermissionToDto(permission, 'explicit', false),
+      this.mapExplicitPermissionToDto(permission, 'explicit'),
     );
   }
 
@@ -84,7 +89,7 @@ export class PermissionRepository {
   async findExplicitPermissionsForUserOnNode(
     userId: string,
     contentNodeId: string,
-  ): Promise<PermissionResponseDto[]> {
+  ): Promise<PermissionDto[]> {
     // Get user's group memberships
     const userGroups = await this.prisma.groupMember.findMany({
       where: { userId },
@@ -107,19 +112,27 @@ export class PermissionRepository {
     });
 
     return permissions.map((permission) =>
-      this.mapExplicitPermissionToDto(permission, 'explicit', false),
+      this.mapExplicitPermissionToDto(permission, 'explicit'),
     );
   }
 
   /**
-   * Returns the single strongest ExplicitPermission (or the synthetic public VIEW)
-   * according to the spec, using ONE optimized recursive query.
+   * Returns the single strongest explicit permission (direct or inherited)
+   * for a user on a given content node using a single, optimized recursive query.
+   * This version does NOT check for public access.
    */
   async findUserPermissionWithInheritance(
     userId: string,
     contentNodeId: string,
-  ): Promise<PermissionResponseDto | null> {
-    // Step 1: Get user's group memberships. (1st DB Call)
+  ): Promise<PermissionDto | null> {
+    if (!isUUID(userId)) {
+      throw new BadRequestException('Invalid user ID');
+    }
+    if (!isUUID(contentNodeId)) {
+      throw new BadRequestException('Invalid content node ID');
+    }
+
+    // Step 1: Fetch the user's group memberships.
     const groupIds = (
       await this.prisma.groupMember.findMany({
         where: { userId },
@@ -127,48 +140,46 @@ export class PermissionRepository {
       })
     ).map((g) => g.groupId);
 
-    // Define the shape of the full permission object we expect from the raw query
-    type FullPermissionResult = ExplicitPermission & { sourceId?: 'PUBLIC' };
+    // Define the link types that allow permission inheritance.
+    const inheritanceLinkTypes: LinkType[] = [
+      LinkType.DEPENDENCY,
+      LinkType.EXTENDS,
+    ];
 
-    // Step 2: Run the main recursive query. (2nd and FINAL DB Call for permissions)
-    // This query now returns all necessary fields, not just the ID.
-    const results = await this.prisma.$queryRawUnsafe<FullPermissionResult[]>(
-      `
-    -- This query finds the single highest-priority permission for a user on a content node,
-    -- respecting the node hierarchy (inheritance) and public access rules.
-
-    -- CTE 1: Find the target node and all its ancestors recursively.
-    WITH RECURSIVE ancestors AS (
-      SELECT id, 0 AS depth
-      FROM "ContentNode"
-      WHERE id = $1
-
-      UNION ALL
-
-      -- Recursively walk up the parent chain via 'DEPENDENCY' or 'EXTENDS' links.
-      SELECT cl."fromId", a.depth + 1
-      FROM "ContentLink" cl
-      JOIN ancestors a ON a.id = cl."toId"
-      WHERE cl."linkType" IN ('DEPENDENCY', 'EXTENDS') -- Ensure we only use hierarchical links
-    ),
-    -- CTE 2: Combine all possible permission sources (explicit and public) into one set.
-    all_possible_permissions AS (
-      -- Source A: Find the best explicit permission from the ancestor chain.
+    // Step 2: Execute the recursive query to find the highest-priority explicit permission.
+    const results = await this.prisma.$queryRaw<RawPermissionResult[]>`
+      -- This query finds the single highest-priority EXPLICIT permission for a user on a content node,
+      -- respecting the node hierarchy (inheritance). It ignores public permissions.
+      WITH RECURSIVE ancestors AS (
+        -- CTE 1: Find the target node and all its ancestors recursively.
+        SELECT id, 0 AS depth
+          FROM "ContentNode"
+         WHERE id = ${contentNodeId}
+        UNION ALL
+        SELECT cl."fromId", anc.depth + 1
+          FROM "ContentLink" cl
+          JOIN ancestors anc ON cl."toId" = anc.id
+         WHERE cl."linkType"::text = ANY(${inheritanceLinkTypes})
+      )
+      -- Final Selection: Find all permissions on the ancestor chain and select the best one.
       SELECT
-        ep.*, -- Select all columns from ExplicitPermission
-        a.depth
-      FROM ancestors a
-      JOIN "ExplicitPermission" ep ON ep."contentNodeId" = a.id
+        ep.*,
+        anc.depth
+      FROM ancestors anc
+      JOIN "ExplicitPermission" ep
+        ON ep."contentNodeId" = anc.id
       WHERE
-        (ep."expiresAt" IS NULL OR ep."expiresAt" > now())
+        -- Filter for active permissions relevant to the user or their groups.
+        (ep."expiresAt" IS NULL OR ep."expiresAt" > NOW())
         AND (
-          ep."userId" = $2
-          OR ep."groupId" = ANY($3::uuid[])
+          ep."userId" = ${userId}
+          OR ep."groupId" = ANY(${groupIds})
         )
-      -- Order by proximity (depth) first, then by permission strength.
-      -- This single ORDER BY / LIMIT 1 is more efficient than using ROW_NUMBER().
+      -- The ranking is key:
+      -- 1. Order by "depth" to prioritize permissions closer to the target node.
+      -- 2. Order by "permissionLevel" enum order to get the strongest permission at a given depth.
       ORDER BY
-        a.depth ASC,
+        anc.depth ASC,
         CASE ep."permissionLevel"
           WHEN 'OWNER'    THEN 1
           WHEN 'MANAGE'   THEN 2
@@ -176,61 +187,44 @@ export class PermissionRepository {
           WHEN 'INTERACT' THEN 4
           WHEN 'VIEW'     THEN 5
         END ASC
-      LIMIT 1
-    ),
-    -- Source B: The public permission, if applicable.
-    public_view AS (
-      SELECT
-        NULL AS id, -- Use NULL for synthetic permissions
-        'VIEW'::"PermissionLevel" as "permissionLevel",
-        -- Fill in other required fields with NULL or default values
-        NULL as "contentNodeId", NULL as "userId", NULL as "groupId",
-        NULL as "grantedBy", NULL as "expiresAt", NULL as "createdAt", NULL as "updatedAt"
-      FROM "ContentNode"
-      WHERE id = $1 AND "isPublic" IS TRUE
-    )
+      -- We only need the single best permission.
+      LIMIT 1;
+    `;
 
-    -- Final Selection: Prioritize the explicit permission over the public one.
-    -- The LIMIT 1 ensures that if an explicit permission exists, the public one is ignored.
-    SELECT * FROM all_possible_permissions
-    UNION ALL
-    SELECT * FROM public_view
-    LIMIT 1;
-    `,
-      contentNodeId,
-      userId,
-      groupIds,
-    );
+    // Step 3: Map the result to a DTO or return null if no permission was found.
+    if (results.length === 0) {
+      return null;
+    }
 
     const bestPermission = results[0];
 
-    if (!bestPermission) {
-      return null; // No permission found
-    }
-
-    // Handle the synthetic public permission
-    if (bestPermission.id === null) {
-      return this.mapExplicitPermissionToDto(bestPermission, 'inherited', true);
-    }
-
-    // Because the query now returns a full ExplicitPermission object,
-    // we can just return it. We still need to fetch relations if needed.
-    // For maximum efficiency, those could also be joined in the SQL,
-    // but this is a great balance of performance and code clarity.
-    return this.mapExplicitPermissionToDto(bestPermission, 'explicit', false);
+    return {
+      id: bestPermission.id,
+      // 'depth > 0' means it came from a parent node.
+      type: bestPermission.depth > 0 ? 'inherited' : 'explicit',
+      contentNodeId: bestPermission.contentNodeId,
+      userId: bestPermission.userId ?? undefined,
+      groupId: bestPermission.groupId ?? undefined,
+      permissionLevel: bestPermission.permissionLevel,
+      grantedBy: bestPermission.grantedBy,
+      expiresAt: bestPermission.expiresAt ?? undefined,
+      createdAt: bestPermission.createdAt,
+      updatedAt: bestPermission.updatedAt,
+    };
   }
+
   /**
    * Update an explicit permission
    */
   async updateExplicitPermission(
     id: string,
     data: Prisma.ExplicitPermissionUpdateInput,
-  ): Promise<PermissionResponseDto> {
+  ): Promise<PermissionDto> {
     const permission = await this.prisma.explicitPermission.update({
       where: { id },
       data,
     });
-    return this.mapExplicitPermissionToDto(permission, 'explicit', false);
+    return this.mapExplicitPermissionToDto(permission, 'explicit');
   }
 
   /**
@@ -355,12 +349,10 @@ export class PermissionRepository {
   private mapExplicitPermissionToDto(
     permission: ExplicitPermission,
     type: 'explicit' | 'inherited',
-    isPublic: boolean,
-  ): PermissionResponseDto {
+  ): PermissionDto {
     return {
       id: permission.id,
       type,
-      isPublic,
       contentNodeId: permission.contentNodeId,
       userId: permission.userId || undefined,
       groupId: permission.groupId || undefined,

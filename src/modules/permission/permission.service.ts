@@ -10,7 +10,8 @@ import {
   GrantPermissionDto,
   RevokePermissionDto,
   UpdatePermissionDto,
-  PermissionResponseDto,
+  PermissionDto,
+  PermissionSharingDto,
 } from './dto';
 
 @Injectable()
@@ -23,7 +24,7 @@ export class PermissionService {
   async grantPermission(
     dto: GrantPermissionDto,
     grantedBy: string,
-  ): Promise<PermissionResponseDto> {
+  ): Promise<PermissionDto> {
     // Validate that either userId or groupId is provided
     if (!dto.userId && !dto.groupId) {
       throw new BadRequestException(
@@ -120,7 +121,7 @@ export class PermissionService {
     permissionId: string,
     dto: UpdatePermissionDto,
     updatedBy: string,
-  ): Promise<PermissionResponseDto> {
+  ): Promise<PermissionDto> {
     // Find the existing permission
     const existingPermission =
       await this.permissionRepository.findExplicitPermissionById(permissionId);
@@ -154,27 +155,33 @@ export class PermissionService {
     requestedBy: string,
   ): Promise<{
     contentNodeId: string;
-    explicitPermissions: PermissionResponseDto[];
+    permissions: PermissionDto[];
+    sharing: PermissionSharingDto;
   }> {
+    // Check if requesting user has MANAGE permission on the content node
+    await this.validateManagePermission(requestedBy, contentNodeId);
+
     // Check if content node exists
-    const contentNode =
-      await this.permissionRepository.findContentNodeById(contentNodeId);
+    const [contentNode, permissions] = await Promise.all([
+      this.permissionRepository.findContentNodeById(contentNodeId),
+      this.permissionRepository.findExplicitPermissionsByContentNode(
+        contentNodeId,
+      ),
+    ]);
+
     if (!contentNode) {
       throw new NotFoundException('Content node not found');
     }
 
-    // Check if requesting user has MANAGE permission on the content node
-    await this.validateManagePermission(requestedBy, contentNodeId);
-
-    // Get explicit permissions (only direct permissions, no inheritance)
-    const explicitPermissions =
-      await this.permissionRepository.findExplicitPermissionsByContentNode(
-        contentNodeId,
-      );
-
     return {
       contentNodeId,
-      explicitPermissions: explicitPermissions,
+      permissions,
+      // users,
+      sharing: {
+        contentNodeId,
+        isPublic: contentNode.isPublic,
+        defaultPermission: contentNode.defaultPermission,
+      },
     };
   }
 
@@ -188,7 +195,7 @@ export class PermissionService {
   async getUserPermissionForContentNode(
     userId: string,
     contentNodeId: string,
-  ): Promise<PermissionResponseDto | null> {
+  ): Promise<PermissionDto | null> {
     // Check if content node exists
     const contentNode =
       await this.permissionRepository.findContentNodeById(contentNodeId);

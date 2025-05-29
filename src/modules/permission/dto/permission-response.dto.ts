@@ -1,9 +1,8 @@
 import { PermissionLevel } from '@prisma/client';
 
-export class PermissionResponseDto {
+export class PermissionDto {
   id: string;
   type: 'explicit' | 'inherited';
-  isPublic: boolean;
   contentNodeId: string;
   userId?: string;
   groupId?: string;
@@ -12,4 +11,10 @@ export class PermissionResponseDto {
   expiresAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+}
+
+export class PermissionSharingDto {
+  contentNodeId: string;
+  isPublic: boolean;
+  defaultPermission: PermissionLevel;
 }

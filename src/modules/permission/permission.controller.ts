@@ -17,7 +17,8 @@ import {
   GrantPermissionDto,
   RevokePermissionDto,
   UpdatePermissionDto,
-  PermissionResponseDto,
+  PermissionDto,
+  PermissionSharingDto,
 } from './dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
@@ -25,7 +26,7 @@ interface AuthenticatedRequest extends Request {
   user: { id: string; [key: string]: any };
 }
 
-@Controller('permissions')
+@Controller('api/v1/permissions')
 @UseGuards(AuthGuard)
 @ApiTags('permissions')
 export class PermissionController {
@@ -39,7 +40,7 @@ export class PermissionController {
   async grantPermission(
     @Body() dto: GrantPermissionDto,
     @Request() req: AuthenticatedRequest,
-  ): Promise<PermissionResponseDto> {
+  ): Promise<PermissionDto> {
     return this.permissionService.grantPermission(dto, req.user.id);
   }
 
@@ -64,7 +65,7 @@ export class PermissionController {
     @Param('permissionId') permissionId: string,
     @Body() dto: UpdatePermissionDto,
     @Request() req: AuthenticatedRequest,
-  ): Promise<PermissionResponseDto> {
+  ): Promise<PermissionDto> {
     return this.permissionService.updatePermission(
       permissionId,
       dto,
@@ -72,7 +73,7 @@ export class PermissionController {
     );
   }
 
-  @Get('all/content-node/:contentNodeId')
+  @Get('content-node/:contentNodeId/all')
   @HttpCode(HttpStatus.OK)
   @ApiOperation({
     summary: 'Get all explicit permissions for a content node',
@@ -82,7 +83,8 @@ export class PermissionController {
     @Request() req: AuthenticatedRequest,
   ): Promise<{
     contentNodeId: string;
-    explicitPermissions: PermissionResponseDto[];
+    permissions: PermissionDto[];
+    sharing: PermissionSharingDto;
   }> {
     return this.permissionService.getContentNodePermissions(
       contentNodeId,
@@ -98,7 +100,7 @@ export class PermissionController {
   async getUserPermissionForContentNode(
     @Param('contentNodeId') contentNodeId: string,
     @Request() req: AuthenticatedRequest,
-  ): Promise<PermissionResponseDto | null> {
+  ): Promise<PermissionDto | null> {
     return this.permissionService.getUserPermissionForContentNode(
       req.user.id,
       contentNodeId,

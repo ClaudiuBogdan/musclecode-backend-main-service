@@ -36,7 +36,6 @@ export class ContentRepository {
           status: data.status,
           body: data.body,
           metadata: data.metadata,
-          isPublic: data.isPublic || false,
         },
       });
 

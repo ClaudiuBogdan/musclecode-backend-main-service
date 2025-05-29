@@ -78,6 +78,7 @@ export class ContentService {
       throw new NotFoundException(`Module with ID ${moduleId} not found`);
     }
 
+    // TODO: FIXME: add proper userId check. Don't rely on type safety as the userId may be undefined
     const userPermission =
       await this.permissionService.getUserPermissionForContentNode(
         userId,
@@ -92,15 +93,13 @@ export class ContentService {
       );
     }
 
-    const lesson = await this.contentRepository.createNodeWithPermission(
-      {
-        type: ContentType.LESSON,
-        status: status || ContentStatus.DRAFT,
-        body,
-        metadata: metadata || {},
-      },
-      userId,
-    );
+    // TODO: fix this. Maybe the lesson permission should be inherited from the module. No need to create an explicit permission for the lesson.
+    const lesson = await this.contentRepository.createNode({
+      type: ContentType.LESSON,
+      status: status || ContentStatus.DRAFT,
+      body,
+      metadata: metadata || {},
+    });
 
     // Link the lesson to the module
     // TODO: FIXME: add lesson order
@@ -124,6 +123,7 @@ export class ContentService {
       throw new NotFoundException(`Module with ID ${moduleId} not found`);
     }
 
+    // TODO: FIXME: add proper userId check. Don't rely on type safety as the userId may be undefined
     const userPermission =
       await this.permissionService.getUserPermissionForContentNode(
         userId,
@@ -189,6 +189,7 @@ export class ContentService {
       throw new NotFoundException(`Module with ID ${moduleId} not found`);
     }
 
+    // TODO: FIXME: add proper userId check. Don't rely on type safety as the userId may be undefined
     const userPermission =
       await this.permissionService.getUserPermissionForContentNode(
         userId,
@@ -268,6 +269,7 @@ export class ContentService {
       throw new NotFoundException(`Content node with ID ${id} not found`);
     }
 
+    // TODO: FIXME: add proper userId check. Don't rely on type safety as the userId may be undefined
     const userPermission =
       await this.permissionService.getUserPermissionForContentNode(userId, id);
     if (
@@ -408,6 +410,7 @@ export class ContentService {
     }
 
     // Check permissions - user needs at least VIEW permission
+    // TODO: FIXME: add proper userId check. Don't rely on type safety as the userId may be undefined
     const userPermission =
       await this.permissionService.getUserPermissionForContentNode(userId, id);
     if (!userPermission) {
@@ -443,6 +446,7 @@ export class ContentService {
     }
 
     // Check permissions - user needs at least VIEW permission
+    // TODO: FIXME: add proper userId check. Don't rely on type safety as the userId may be undefined
     const userPermission =
       await this.permissionService.getUserPermissionForContentNode(userId, id);
     if (!userPermission) {
@@ -463,6 +467,7 @@ export class ContentService {
       throw new NotFoundException(`Module with ID ${id} not found`);
     }
 
+    // TODO: FIXME: add proper userId check. Don't rely on type safety as the userId may be undefined
     const userPermission =
       await this.permissionService.getUserPermissionForContentNode(userId, id);
     if (

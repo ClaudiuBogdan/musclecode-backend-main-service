@@ -160,14 +160,16 @@ model ChatThread {
 
 // A generic node representing any learning content
 model ContentNode {
-  id        String        @id @default(uuid())
-  type      ContentType
-  status    ContentStatus @default(DRAFT)
-  body      Json // Markdown, HTML, or structured JSON content
-  metadata  Json? // Field to store additional dynamic properties
-  createdAt DateTime      @default(now())
-  updatedAt DateTime      @updatedAt
-  isPublic  Boolean       @default(false)
+  id                String          @id @default(uuid())
+  type              ContentType
+  status            ContentStatus   @default(DRAFT)
+  body              Json // Markdown, HTML, or structured JSON content
+  metadata          Json? // Field to store additional dynamic properties
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+  // Sharing permissions
+  isPublic          Boolean         @default(false)
+  defaultPermission PermissionLevel @default(VIEW)
 
   outgoingLinks      ContentLink[]        @relation("OutgoingLinks")
   incomingLinks      ContentLink[]        @relation("IncomingLinks")
