@@ -85,7 +85,7 @@ export const createLessonsTool = (
         if (!userId) throw new Error('User ID is required');
 
         // ───────────── Fetch module & sanity-check ─────────────
-        const moduleNode = await getModule(moduleId, userId);
+        const { module: moduleNode } = await getModule(moduleId, userId);
         if (!moduleNode) throw new Error('Module not found');
         const module = moduleNode.body as ModuleSchemaType;
 

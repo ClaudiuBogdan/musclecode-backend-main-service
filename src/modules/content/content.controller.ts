@@ -31,6 +31,7 @@ import { ExerciseEntity } from './entities/exercise.entity';
 import { ContentNode } from '@prisma/client';
 import { CheckQuestionDto, QuestionResponseDto } from './dto/questions.dto';
 import { AgentsService } from '../chat/services/agents.service';
+import { PermissionDto } from '../permission/dto';
 
 @ApiTags('Content')
 @Controller('api/v1/content')
@@ -116,12 +117,14 @@ export class ContentController {
   async getModule(
     @User('id') userId: string,
     @Param('id') id: string,
-  ): Promise<any> {
+  ): Promise<{
+    module: ModuleEntity;
+    permission: PermissionDto | null;
+    lessons: LessonEntity[];
+  }> {
     this.logger.debug('Fetching Module', { moduleId: id });
     try {
-      const module = await this.contentService.getModule(id, userId);
-      this.logger.log('Module Fetched', { moduleId: id });
-      return module;
+      return this.contentService.getModule(id, userId);
     } catch (error) {
       this.logger.error('Module Fetch Failed', error, { moduleId: id });
       throw error;

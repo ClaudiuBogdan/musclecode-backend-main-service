@@ -126,7 +126,7 @@ export const editModuleTool = (
         throw new Error('User ID is required');
       }
 
-      const moduleNode = await getModule(input.moduleId, userId);
+      const { module: moduleNode } = await getModule(input.moduleId, userId);
 
       if (!moduleNode) {
         throw new Error('Module not found');

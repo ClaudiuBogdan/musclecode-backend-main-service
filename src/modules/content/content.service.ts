@@ -19,6 +19,7 @@ import { LessonEntity } from './entities/lesson.entity';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { ExerciseEntity } from './entities/exercise.entity';
 import { EditContentNodeDto } from './dto/edit-content-node.dto';
+import { PermissionDto } from '../permission/dto';
 
 @Injectable()
 export class ContentService {
@@ -398,7 +399,14 @@ export class ContentService {
   /**
    * Get a module with its lessons and exercises
    */
-  async getModule(id: string, userId: string): Promise<any> {
+  async getModule(
+    id: string,
+    userId: string,
+  ): Promise<{
+    module: ModuleEntity;
+    lessons: LessonEntity[];
+    permission: PermissionDto | null;
+  }> {
     // TODO: add proper userId check. Don't rely on type safety as the userId may be undefined
     if (!userId) {
       throw new Error('User ID is required');
@@ -411,7 +419,7 @@ export class ContentService {
 
     // Check permissions - user needs at least VIEW permission
     // TODO: FIXME: add proper userId check. Don't rely on type safety as the userId may be undefined
-    const userPermission =
+    let userPermission =
       await this.permissionService.getUserPermissionForContentNode(userId, id);
     if (!userPermission && !module.isPublic) {
       throw new ForbiddenException(
@@ -420,7 +428,7 @@ export class ContentService {
     }
 
     if (!userPermission && module.isPublic) {
-      await this.permissionService.grantPermission(
+      userPermission = await this.permissionService.grantPermission(
         {
           userId,
           contentNodeId: id,
@@ -444,9 +452,9 @@ export class ContentService {
     });
 
     return {
-      ...module,
-      lessons: orderedLessons,
-      exercises: [],
+      module: new ModuleEntity(module),
+      lessons: orderedLessons.map((lesson) => new LessonEntity(lesson)),
+      permission: userPermission,
     };
   }
 
