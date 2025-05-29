@@ -1,4 +1,4 @@
-import { IsEnum, IsOptional, IsDateString } from 'class-validator';
+import { IsEnum, IsOptional, IsDateString, IsBoolean } from 'class-validator';
 import { PermissionLevel } from '@prisma/client';
 
 export class UpdatePermissionDto {
@@ -8,4 +8,12 @@ export class UpdatePermissionDto {
   @IsOptional()
   @IsDateString()
   expiresAt?: string;
+}
+
+export class UpdateContentNodeSharingDto {
+  @IsBoolean()
+  isPublic: boolean;
+
+  @IsEnum(PermissionLevel)
+  defaultPermission: PermissionLevel;
 }

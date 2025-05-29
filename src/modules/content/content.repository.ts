@@ -45,7 +45,7 @@ export class ContentRepository {
           contentNodeId: node.id,
           userId: userId,
           permissionLevel: PermissionLevel.OWNER,
-          grantedBy: userId, // Self-granted
+          grantedBy: null, // Self-granted
         },
       });
 

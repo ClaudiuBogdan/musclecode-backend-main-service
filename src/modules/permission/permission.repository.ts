@@ -228,6 +228,19 @@ export class PermissionRepository {
   }
 
   /**
+   * Update the sharing settings for a content node
+   */
+  async updateContentNodeSharing(
+    contentNodeId: string,
+    data: Pick<Prisma.ContentNodeUpdateInput, 'isPublic' | 'defaultPermission'>,
+  ): Promise<ContentNode> {
+    return this.prisma.contentNode.update({
+      where: { id: contentNodeId },
+      data,
+    });
+  }
+
+  /**
    * Delete explicit permissions
    */
   async deleteExplicitPermissions(where: {

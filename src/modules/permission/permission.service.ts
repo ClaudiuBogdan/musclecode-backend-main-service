@@ -12,6 +12,8 @@ import {
   UpdatePermissionDto,
   PermissionDto,
   PermissionSharingDto,
+  UpdateContentNodeSharingDto,
+  PermissionSharingWithUsersDto,
 } from './dto';
 
 @Injectable()
@@ -23,7 +25,7 @@ export class PermissionService {
    */
   async grantPermission(
     dto: GrantPermissionDto,
-    grantedBy: string,
+    grantedBy: string | null,
   ): Promise<PermissionDto> {
     // Validate that either userId or groupId is provided
     if (!dto.userId && !dto.groupId) {
@@ -45,7 +47,9 @@ export class PermissionService {
     }
 
     // Check if granting user has MANAGE permission on the content node
-    await this.validateManagePermission(grantedBy, dto.contentNodeId);
+    if (grantedBy !== null) {
+      await this.validateManagePermission(grantedBy, dto.contentNodeId);
+    }
 
     // Check if group exists (if groupId is provided)
     if (dto.groupId) {
@@ -146,6 +150,35 @@ export class PermissionService {
     return updatedPermission;
   }
 
+  async updateContentNodeSharing(
+    contentNodeId: string,
+    dto: UpdateContentNodeSharingDto,
+    updatedBy: string,
+  ): Promise<PermissionSharingDto> {
+    // Check if content node exists
+    const contentNode =
+      await this.permissionRepository.findContentNodeById(contentNodeId);
+    if (!contentNode) {
+      throw new NotFoundException('Content node not found');
+    }
+
+    // Check if updating user has MANAGE permission on the content node
+    await this.validateManagePermission(updatedBy, contentNodeId);
+
+    // Update the content node sharing
+    const updatedContentNode =
+      await this.permissionRepository.updateContentNodeSharing(contentNodeId, {
+        isPublic: dto.isPublic,
+        defaultPermission: dto.defaultPermission,
+      });
+
+    return {
+      contentNodeId,
+      isPublic: updatedContentNode.isPublic,
+      defaultPermission: updatedContentNode.defaultPermission,
+    };
+  }
+
   /**
    * Get all explicit permissions for a content node (ADMIN OPERATION)
    * Returns only direct explicit permissions, no inheritance
@@ -156,7 +189,7 @@ export class PermissionService {
   ): Promise<{
     contentNodeId: string;
     permissions: PermissionDto[];
-    sharing: PermissionSharingDto;
+    sharing: PermissionSharingWithUsersDto;
   }> {
     // Check if requesting user has MANAGE permission on the content node
     await this.validateManagePermission(requestedBy, contentNodeId);
@@ -173,14 +206,23 @@ export class PermissionService {
       throw new NotFoundException('Content node not found');
     }
 
+    // TODO: get user data.
+    const users = permissions.map((permission) => ({
+      id: permission.userId!,
+      name: permission.userId!,
+      email: permission.userId!,
+      permissionId: permission.id,
+      permissionLevel: permission.permissionLevel,
+    }));
+
     return {
       contentNodeId,
       permissions,
-      // users,
       sharing: {
         contentNodeId,
         isPublic: contentNode.isPublic,
         defaultPermission: contentNode.defaultPermission,
+        users,
       },
     };
   }

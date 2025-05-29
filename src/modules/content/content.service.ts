@@ -413,9 +413,20 @@ export class ContentService {
     // TODO: FIXME: add proper userId check. Don't rely on type safety as the userId may be undefined
     const userPermission =
       await this.permissionService.getUserPermissionForContentNode(userId, id);
-    if (!userPermission) {
+    if (!userPermission && !module.isPublic) {
       throw new ForbiddenException(
         'You do not have permission to view this module',
+      );
+    }
+
+    if (!userPermission && module.isPublic) {
+      await this.permissionService.grantPermission(
+        {
+          userId,
+          contentNodeId: id,
+          permissionLevel: module.defaultPermission,
+        },
+        null,
       );
     }
 

@@ -10,6 +10,7 @@ import {
   Request,
   HttpStatus,
   HttpCode,
+  Patch,
 } from '@nestjs/common';
 import { AuthGuard } from '../auth/guards/auth.guard';
 import { PermissionService } from './permission.service';
@@ -19,6 +20,7 @@ import {
   UpdatePermissionDto,
   PermissionDto,
   PermissionSharingDto,
+  UpdateContentNodeSharingDto,
 } from './dto';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
@@ -54,6 +56,23 @@ export class PermissionController {
     @Request() req: AuthenticatedRequest,
   ): Promise<{ deletedCount: number }> {
     return this.permissionService.revokePermission(dto, req.user.id);
+  }
+
+  @Patch('content-node/:contentNodeId/sharing')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Update the sharing settings for a content node',
+  })
+  async updateContentNodeSharing(
+    @Param('contentNodeId') contentNodeId: string,
+    @Body() dto: UpdateContentNodeSharingDto,
+    @Request() req: AuthenticatedRequest,
+  ): Promise<PermissionSharingDto> {
+    return this.permissionService.updateContentNodeSharing(
+      contentNodeId,
+      dto,
+      req.user.id,
+    );
   }
 
   @Put(':permissionId')

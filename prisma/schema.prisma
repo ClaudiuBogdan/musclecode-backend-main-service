@@ -169,7 +169,7 @@ model ContentNode {
   updatedAt         DateTime        @updatedAt
   // Sharing permissions
   isPublic          Boolean         @default(false)
-  defaultPermission PermissionLevel @default(VIEW)
+  defaultPermission PermissionLevel @default(INTERACT)
 
   outgoingLinks      ContentLink[]        @relation("OutgoingLinks")
   incomingLinks      ContentLink[]        @relation("IncomingLinks")
@@ -250,7 +250,7 @@ model ExplicitPermission {
   userId          String?
   groupId         String?
   permissionLevel PermissionLevel
-  grantedBy       String // userId who granted this permission
+  grantedBy       String? // userId who granted this permission. If null, the permission was granted by a public content node or when the content node was created.
   expiresAt       DateTime? // Optional expiration
   createdAt       DateTime        @default(now())
   updatedAt       DateTime        @updatedAt
