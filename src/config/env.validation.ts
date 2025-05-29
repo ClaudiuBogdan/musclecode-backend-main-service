@@ -76,6 +76,21 @@ export class EnvironmentVariables {
   @IsString()
   @IsOptional()
   K8S_POD_NAME?: string;
+
+  // Keycloak configuration
+  @IsString()
+  @IsOptional()
+  KEYCLOAK_REALM?: string;
+
+  @IsString()
+  @IsUrl()
+  @IsOptional()
+  KEYCLOAK_AUTH_SERVER_URL?: string;
+
+  // Keycloak database connection (optional)
+  @IsString()
+  @IsOptional()
+  KEYCLOAK_DATABASE_URL?: string;
 }
 
 export function validate(config: Record<string, unknown>) {

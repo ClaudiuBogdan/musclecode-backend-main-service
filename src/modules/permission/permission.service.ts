@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { PermissionLevel } from '@prisma/client';
 import { PermissionRepository } from './permission.repository';
+import { KeycloakDatabaseService } from '../auth/services/keycloak-database.service';
 import {
   GrantPermissionDto,
   RevokePermissionDto,
@@ -18,7 +19,10 @@ import {
 
 @Injectable()
 export class PermissionService {
-  constructor(private readonly permissionRepository: PermissionRepository) {}
+  constructor(
+    private readonly permissionRepository: PermissionRepository,
+    private readonly keycloakDatabaseService: KeycloakDatabaseService,
+  ) {}
 
   /**
    * Grant permission to a user or group on a content node (ADMIN OPERATION)
@@ -206,14 +210,13 @@ export class PermissionService {
       throw new NotFoundException('Content node not found');
     }
 
-    // TODO: get user data.
-    const users = permissions.map((permission) => ({
-      id: permission.userId!,
-      name: permission.userId!,
-      email: permission.userId!,
-      permissionId: permission.id,
-      permissionLevel: permission.permissionLevel,
-    }));
+    // Extract unique user IDs from permissions
+    const userIds = permissions
+      .filter((permission) => permission.userId)
+      .map((permission) => permission.userId!);
+
+    // Fetch user data from Keycloak database or fallback to user IDs
+    const users = await this.enrichUsersWithKeycloakData(userIds, permissions);
 
     return {
       contentNodeId,
@@ -259,6 +262,41 @@ export class PermissionService {
   }
 
   // ===== HELPER METHODS =====
+
+  /**
+   * Enrich user data with information from Keycloak database or fallback to user IDs
+   */
+  private async enrichUsersWithKeycloakData(
+    userIds: string[],
+    permissions: PermissionDto[],
+  ): Promise<
+    {
+      id: string;
+      name: string;
+      email: string;
+      permissionId: string;
+      permissionLevel: PermissionLevel;
+    }[]
+  > {
+    // Try to fetch user data from Keycloak database
+    const userMap = await this.keycloakDatabaseService.getUsersByIds(userIds);
+
+    // Map permissions to users with enriched data
+    return permissions
+      .filter((permission) => permission.userId)
+      .map((permission) => {
+        const userId = permission.userId!;
+        const keycloakUser = userMap.get(userId);
+
+        return {
+          id: userId,
+          name: keycloakUser?.name || userId,
+          email: keycloakUser?.email || userId,
+          permissionId: permission.id,
+          permissionLevel: permission.permissionLevel,
+        };
+      });
+  }
 
   /**
    * Validate that a user has MANAGE permission on a content node
