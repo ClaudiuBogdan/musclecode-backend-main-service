@@ -1,59 +1,48 @@
 import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { Pool, PoolClient } from 'pg';
-import { StructuredLogger } from '../../../logger/structured-logger.service'; // Assuming this path is correct
-import { UserBasicInfo } from '../interfaces/user.interface'; // Assuming this path is correct
+import { Pool } from 'pg';
+import { StructuredLogger } from '../../../logger/structured-logger.service';
+import { UserBasicInfo } from '../interfaces/user.interface';
 
-// TODO: Fix this. This is a temporary solution to get the user's name from the Keycloak database, but is compromising security.
-// We should use the Keycloak API to get the user's name instead or create a keycloak extension to get the user's name.
 @Injectable()
 export class KeycloakDatabaseService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new StructuredLogger(KeycloakDatabaseService.name);
   private pool: Pool | null = null;
-  private isAvailable = false;
   private realmId: string | undefined;
+  private isAvailable = false;
 
   constructor(private configService: ConfigService) {}
 
   async onModuleInit() {
     const databaseUrl = this.configService.get<string>('KEYCLOAK_DATABASE_URL');
-
-    if (!databaseUrl) {
-      this.logger.warn(
-        'KEYCLOAK_DATABASE_URL not provided. Keycloak database integration disabled.',
-      );
-      return;
-    }
-
     this.realmId = this.configService.get<string>('KEYCLOAK_REALM');
 
-    if (!this.realmId) {
+    if (!databaseUrl || !this.realmId) {
       this.logger.warn(
-        'KEYCLOAK_REALM not provided. Keycloak database integration disabled.',
+        !databaseUrl
+          ? 'KEYCLOAK_DATABASE_URL not set - skipping DB integration.'
+          : 'KEYCLOAK_REALM not set - skipping DB integration.',
       );
       return;
     }
 
+    this.pool = new Pool({
+      connectionString: databaseUrl,
+      ssl: databaseUrl.includes('sslmode=require')
+        ? { rejectUnauthorized: false }
+        : false,
+      max: 10,
+      idleTimeoutMillis: 30_000,
+      connectionTimeoutMillis: 2_000,
+    });
+
     try {
-      this.pool = new Pool({
-        connectionString: databaseUrl,
-        ssl: databaseUrl.includes('sslmode=require')
-          ? { rejectUnauthorized: false } // WARNING: Using rejectUnauthorized: false is insecure for production. Use with trusted self-signed certs or for local dev only.
-          : false,
-        max: 10, // Max number of clients in the pool
-        idleTimeoutMillis: 30000, // How long a client is allowed to remain idle before being closed
-        connectionTimeoutMillis: 2000, // How long to wait for a connection to be established
-      });
-
-      const client = await this.pool.connect();
-      await client.query('SELECT 1'); // Test the connection
-      client.release();
-
+      await this.pool.query('SELECT 1'); // smoke test
       this.isAvailable = true;
-      this.logger.log('Keycloak database connection established successfully');
-    } catch (error) {
-      this.logger.error('Failed to connect to Keycloak database:', error);
-      this.isAvailable = false;
+      this.logger.log('Keycloak database connection established');
+    } catch (err) {
+      this.logger.error('Keycloak DB connection failed:', err);
+      this.pool = null;
     }
   }
 
@@ -62,146 +51,94 @@ export class KeycloakDatabaseService implements OnModuleInit, OnModuleDestroy {
       try {
         await this.pool.end();
         this.logger.log('Keycloak database connection closed');
-      } catch (error) {
-        this.logger.error('Error closing Keycloak database connection:', error);
+      } catch (err) {
+        this.logger.error('Error closing Keycloak DB connection:', err);
       }
     }
   }
 
-  /**
-   * Check if the Keycloak database service is available
-   */
   isKeycloakDatabaseAvailable(): boolean {
     return this.isAvailable && this.pool !== null;
   }
 
-  /**
-   * Fetch user by ID from Keycloak database, filtering by realm.
-   */
   async getUserById(userId: string): Promise<UserBasicInfo | null> {
     if (!this.isKeycloakDatabaseAvailable() || !this.realmId) {
-      this.logger.warn(
-        'Keycloak database is not available. Skipping getUserById.',
-      );
+      this.logger.warn('DB not available – skipping getUserById');
       return null;
     }
 
-    let client: PoolClient | null = null;
+    const text = `
+      SELECT id, username, email, first_name, last_name
+      FROM user_entity
+      WHERE id = $1 AND realm_id = $2 AND enabled = true
+    `;
+    const params = [userId, this.realmId];
     try {
-      client = await this.pool!.connect();
+      const { rows } = await this.pool!.query({
+        name: 'fetch-user-by-id',
+        text,
+        values: params,
+      });
 
-      // Keycloak typically uses 'realm_id' (lowercase) in the user_entity table.
-      // If your schema uses 'REALM_ID' (uppercase), adjust the query (e.g., "REALM_ID").
-      const query = `
-        SELECT 
-          id,
-          username,
-          email,
-          first_name,
-          last_name,
-          enabled
-        FROM user_entity 
-        WHERE id = $1 AND realm_id = $2 AND enabled = true
-      `;
+      if (rows.length === 0) return null;
 
-      const result = await client.query(query, [userId, this.realmId]);
-
-      if (result.rows.length === 0) {
-        this.logger.debug(
-          `User ${userId} not found in realm ${this.realmId} or not enabled.`,
-        );
-        return null;
-      }
-
-      const user = result.rows[0];
+      const u = rows[0];
       return {
-        id: user.id,
-        name: this.formatUserName(
-          user.first_name,
-          user.last_name,
-          user.username,
-        ),
-        email: user.email || user.username, // Fallback to username if email is null
+        id: u.id,
+        name: this.formatUserName(u.first_name, u.last_name, u.username),
+        email: u.email ?? u.username,
       };
-    } catch (error) {
-      this.logger.error(
-        `Error fetching user ${userId} from realm ${this.realmId} in Keycloak database:`,
-        error,
-      );
+    } catch (err) {
+      this.logger.error(`Error in getUserById(${userId}):`, err);
       return null;
-    } finally {
-      if (client) {
-        client.release();
-      }
     }
   }
 
-  /**
-   * Fetch multiple users by IDs from Keycloak database, filtering by realm.
-   */
   async getUsersByIds(userIds: string[]): Promise<Map<string, UserBasicInfo>> {
-    const userMap = new Map<string, UserBasicInfo>();
-
-    if (!this.isKeycloakDatabaseAvailable() || !this.realmId) {
-      this.logger.warn(
-        'Keycloak database is not available. Skipping getUsersByIds.',
-      );
-      return userMap;
+    const map = new Map<string, UserBasicInfo>();
+    if (
+      !this.isKeycloakDatabaseAvailable() ||
+      !this.realmId ||
+      userIds.length === 0
+    ) {
+      if (!this.isKeycloakDatabaseAvailable()) {
+        this.logger.warn('DB not available - skipping getUsersByIds');
+      }
+      return map;
     }
 
-    if (userIds.length === 0) {
-      return userMap;
-    }
+    const text = `
+      SELECT id, username, email, first_name, last_name
+      FROM user_entity
+      WHERE id = ANY($1::varchar[]) AND realm_id = $2 AND enabled = true
+    `;
+    const params = [userIds, this.realmId];
 
-    let client: PoolClient | null = null;
     try {
-      client = await this.pool!.connect();
-
-      // Keycloak typically uses 'realm_id' (lowercase) in the user_entity table.
-      // If your schema uses 'REALM_ID' (uppercase), adjust the query (e.g., "REALM_ID").
-      const query = `
-        SELECT 
-          id,
-          username,
-          email,
-          first_name,
-          last_name,
-          enabled
-        FROM user_entity 
-        WHERE id = ANY($1::varchar[]) AND realm_id = $2 AND enabled = true
-      `; // ::varchar[] for explicit type casting of the user ID array
-
-      const result = await client.query(query, [userIds, this.realmId]);
-
-      for (const user of result.rows) {
-        userMap.set(user.id, {
-          id: user.id,
-          name: this.formatUserName(
-            user.first_name,
-            user.last_name,
-            user.username,
-          ),
-          email: user.email || user.username, // Fallback to username if email is null
+      const { rows } = await this.pool!.query({
+        name: 'fetch-users-by-ids',
+        text,
+        values: params,
+      });
+      if (rows.length < userIds.length) {
+        this.logger.warn(
+          `getUsersByIds: fewer users returned than requested (${rows.length} of ${userIds.length})`,
+        );
+      }
+      for (const u of rows) {
+        map.set(u.id, {
+          id: u.id,
+          name: this.formatUserName(u.first_name, u.last_name, u.username),
+          email: u.email ?? u.username,
         });
       }
-    } catch (error) {
-      this.logger.error(
-        `Error fetching users for realm ${this.realmId} from Keycloak database:`,
-        error,
-      );
-      // Depending on requirements, you might want to throw the error or return a partial map
-    } finally {
-      if (client) {
-        client.release();
-      }
+    } catch (err) {
+      this.logger.error('Error in getUsersByIds:', err);
     }
 
-    return userMap;
+    return map;
   }
 
-  /**
-   * Format user name from first name, last name, and username
-   */
   private formatUserName(
     firstName: string | null,
     lastName: string | null,
@@ -209,15 +146,9 @@ export class KeycloakDatabaseService implements OnModuleInit, OnModuleDestroy {
   ): string {
     const first = firstName?.trim();
     const last = lastName?.trim();
-
-    if (first && last) {
-      return `${first} ${last}`;
-    } else if (first) {
-      return first;
-    } else if (last) {
-      return last;
-    } else {
-      return username;
-    }
+    if (first && last) return `${first} ${last}`;
+    if (first) return first;
+    if (last) return last;
+    return username;
   }
 }
