@@ -8,16 +8,16 @@ import { UserBasicInfo } from '../interfaces/user.interface';
 export class KeycloakDatabaseService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new StructuredLogger(KeycloakDatabaseService.name);
   private pool: Pool | null = null;
-  private realmId: string | undefined;
+  private realmName: string | undefined;
   private isAvailable = false;
 
   constructor(private configService: ConfigService) {}
 
   async onModuleInit() {
     const databaseUrl = this.configService.get<string>('KEYCLOAK_DATABASE_URL');
-    this.realmId = this.configService.get<string>('KEYCLOAK_REALM');
+    this.realmName = this.configService.get<string>('KEYCLOAK_REALM');
 
-    if (!databaseUrl || !this.realmId) {
+    if (!databaseUrl || !this.realmName) {
       this.logger.warn(
         !databaseUrl
           ? 'KEYCLOAK_DATABASE_URL not set - skipping DB integration.'
@@ -62,17 +62,27 @@ export class KeycloakDatabaseService implements OnModuleInit, OnModuleDestroy {
   }
 
   async getUserById(userId: string): Promise<UserBasicInfo | null> {
-    if (!this.isKeycloakDatabaseAvailable() || !this.realmId) {
+    if (!this.isKeycloakDatabaseAvailable() || !this.realmName) {
       this.logger.warn('DB not available – skipping getUserById');
       return null;
     }
 
     const text = `
-      SELECT id, username, email, first_name, last_name
-      FROM user_entity
-      WHERE id = $1 AND realm_id = $2 AND enabled = true
-    `;
-    const params = [userId, this.realmId];
+    SELECT
+      u.id,
+      u.username,
+      u.email,
+      u.first_name,
+      u.last_name
+    FROM user_entity u
+    JOIN realm r
+      ON u.realm_id = r.id
+    WHERE
+      u.id       = $1
+      AND r.name = $2
+      AND u.enabled = true
+  `;
+    const params = [userId, this.realmName];
     try {
       const { rows } = await this.pool!.query({
         name: 'fetch-user-by-id',
@@ -98,7 +108,7 @@ export class KeycloakDatabaseService implements OnModuleInit, OnModuleDestroy {
     const map = new Map<string, UserBasicInfo>();
     if (
       !this.isKeycloakDatabaseAvailable() ||
-      !this.realmId ||
+      !this.realmName ||
       userIds.length === 0
     ) {
       if (!this.isKeycloakDatabaseAvailable()) {
@@ -108,11 +118,21 @@ export class KeycloakDatabaseService implements OnModuleInit, OnModuleDestroy {
     }
 
     const text = `
-      SELECT id, username, email, first_name, last_name
-      FROM user_entity
-      WHERE id = ANY($1::varchar[]) AND realm_id = $2 AND enabled = true
-    `;
-    const params = [userIds, this.realmId];
+    SELECT
+      u.id,
+      u.username,
+      u.email,
+      u.first_name,
+      u.last_name
+    FROM user_entity u
+    JOIN realm r
+      ON u.realm_id = r.id
+    WHERE
+      u.id       = ANY($1::varchar[])
+      AND r.name = $2
+      AND u.enabled = true
+  `;
+    const params = [userIds, this.realmName];
 
     try {
       const { rows } = await this.pool!.query({
