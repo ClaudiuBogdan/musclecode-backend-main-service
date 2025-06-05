@@ -19,7 +19,7 @@ export interface ItemInteractionLog {
 }
 
 /**
- * The overall structure stored in InteractionData.body for a user's interactions with a content node.
+ * The overall structure stored in InteractionData.body for a user's interaction with a content node.
  * It maps each interactive element's ID (ItemId) within that node to its log of interaction events.
  */
 export interface InteractionBody {

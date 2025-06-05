@@ -462,7 +462,7 @@ export class ContentService {
   ): Promise<{
     lesson: LessonEntity;
     permission: PermissionDto | null;
-    interactions: InteractionBody | null;
+    interaction: InteractionBody | null;
   }> {
     const node = await this.contentRepository.findNodeById(id);
     if (!node || node.type !== ContentType.LESSON) {
@@ -479,17 +479,17 @@ export class ContentService {
       );
     }
 
-    const interactionsEntry = await this.contentRepository.findUserInteraction(
+    const interactionEntry = await this.contentRepository.findUserInteraction(
       id,
       userId,
     );
 
-    const interactions = interactionsEntry?.body as InteractionBody | null;
+    const interaction = interactionEntry?.body as InteractionBody | null;
 
     return {
       lesson: new LessonEntity({ ...node }),
       permission: userPermission,
-      interactions,
+      interaction,
     };
   }
 
@@ -592,7 +592,7 @@ export class ContentService {
     nodeId: string,
     userId: string,
     interactionDto: InteractionDataDto,
-  ): Promise<void> {
+  ): Promise<InteractionBody | null> {
     const hasPermission = await this.permissionService.checkUserPermission(
       userId,
       nodeId,
@@ -645,9 +645,12 @@ export class ContentService {
     itemLog.events.push(newEvent); // Add the new event
     currentInteractionBody.items[interactionDto.id] = itemLog;
 
-    await this.contentRepository.updateUserInteraction(
-      interactionDataEntry.id,
-      currentInteractionBody,
-    );
+    const updatedInteraction =
+      await this.contentRepository.updateUserInteraction(
+        interactionDataEntry.id,
+        currentInteractionBody,
+      );
+
+    return updatedInteraction.body as unknown as InteractionBody | null;
   }
 }

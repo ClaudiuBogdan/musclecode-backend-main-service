@@ -286,8 +286,8 @@ export class ContentRepository {
   async updateUserInteraction(
     interactionId: string,
     content: Record<string, any>,
-  ): Promise<void> {
-    await this.prisma.interactionData.update({
+  ): Promise<InteractionData> {
+    const updatedInteraction = await this.prisma.interactionData.update({
       where: {
         id: interactionId,
       },
@@ -295,6 +295,8 @@ export class ContentRepository {
         body: content,
       },
     });
+
+    return updatedInteraction;
   }
 
   async findOrCreateUserInteraction(

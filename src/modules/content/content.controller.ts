@@ -262,7 +262,7 @@ export class ContentController {
     data: {
       lesson: LessonEntity;
       permission: PermissionDto | null;
-      interactions: InteractionBody | null;
+      interaction: InteractionBody | null;
     };
   }> {
     this.logger.debug('Fetching Lesson', { lessonId: id });
@@ -448,7 +448,12 @@ export class ContentController {
   async addInteractionEntry(
     @User('id') userId: string,
     @Body(new ValidationPipe()) interactionRequestDto: InteractionRequestDto,
-  ): Promise<{ success: boolean }> {
+  ): Promise<{
+    data: {
+      interaction: InteractionBody | null;
+    };
+    success: boolean;
+  }> {
     const { nodeId, interaction } = interactionRequestDto;
     const interactionId = interaction.id;
     this.logger.debug('Adding Interaction Entry', {
@@ -457,13 +462,20 @@ export class ContentController {
       userId,
     });
     try {
-      await this.contentService.addUserInteraction(nodeId, userId, interaction);
+      const result = await this.contentService.addUserInteraction(
+        nodeId,
+        userId,
+        interaction,
+      );
       this.logger.log('Interaction Entry Added', {
         interactionId,
         nodeId,
         userId,
       });
       return {
+        data: {
+          interaction: result,
+        },
         success: true,
       };
     } catch (error) {
