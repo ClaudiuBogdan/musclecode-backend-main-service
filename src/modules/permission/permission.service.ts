@@ -1,7 +1,6 @@
 import {
   Injectable,
   NotFoundException,
-  ForbiddenException,
   BadRequestException,
 } from '@nestjs/common';
 import { PermissionLevel } from '@prisma/client';
@@ -52,7 +51,11 @@ export class PermissionService {
 
     // Check if granting user has MANAGE permission on the content node
     if (grantedBy !== null) {
-      await this.validateManagePermission(grantedBy, dto.contentNodeId);
+      await this.checkUserPermission(
+        grantedBy,
+        dto.contentNodeId,
+        PermissionLevel.MANAGE,
+      );
     }
 
     // Check if group exists (if groupId is provided)
@@ -105,7 +108,11 @@ export class PermissionService {
     }
 
     // Check if revoking user has MANAGE permission on the content node
-    await this.validateManagePermission(revokedBy, dto.contentNodeId);
+    await this.checkUserPermission(
+      revokedBy,
+      dto.contentNodeId,
+      PermissionLevel.MANAGE,
+    );
 
     // Delete explicit permissions
     const deletedCount =
@@ -138,9 +145,10 @@ export class PermissionService {
     }
 
     // Check if updating user has MANAGE permission on the content node
-    await this.validateManagePermission(
+    await this.checkUserPermission(
       updatedBy,
       existingPermission.contentNodeId,
+      PermissionLevel.MANAGE,
     );
 
     // Update the permission
@@ -167,7 +175,11 @@ export class PermissionService {
     }
 
     // Check if updating user has MANAGE permission on the content node
-    await this.validateManagePermission(updatedBy, contentNodeId);
+    await this.checkUserPermission(
+      updatedBy,
+      contentNodeId,
+      PermissionLevel.MANAGE,
+    );
 
     // Update the content node sharing
     const updatedContentNode =
@@ -196,7 +208,11 @@ export class PermissionService {
     sharing: PermissionSharingWithUsersDto;
   }> {
     // Check if requesting user has MANAGE permission on the content node
-    await this.validateManagePermission(requestedBy, contentNodeId);
+    await this.checkUserPermission(
+      requestedBy,
+      contentNodeId,
+      PermissionLevel.MANAGE,
+    );
 
     // Check if content node exists
     const [contentNode, permissions] = await Promise.all([
@@ -261,6 +277,45 @@ export class PermissionService {
     return permission;
   }
 
+  async checkUserPermission(
+    userId: string,
+    contentNodeId: string,
+    permissionLevel: PermissionLevel,
+  ): Promise<boolean> {
+    const permission =
+      await this.permissionRepository.findUserPermissionWithInheritance(
+        userId,
+        contentNodeId,
+      );
+
+    if (!permission) {
+      return false;
+    }
+
+    const getPermissionScore = (level: PermissionLevel): number => {
+      return (
+        {
+          [PermissionLevel.OWNER]: 5,
+          [PermissionLevel.MANAGE]: 4,
+          [PermissionLevel.EDIT]: 3,
+          [PermissionLevel.INTERACT]: 2,
+          [PermissionLevel.VIEW]: 1,
+        } as const
+      )[level];
+    };
+
+    const userPermissionScore = getPermissionScore(permission.permissionLevel);
+    const requiredPermissionScore = getPermissionScore(permissionLevel);
+
+    if (
+      userPermissionScore === undefined ||
+      requiredPermissionScore === undefined
+    ) {
+      throw new NotFoundException('Permission not found');
+    }
+
+    return userPermissionScore >= requiredPermissionScore;
+  }
   // ===== HELPER METHODS =====
 
   /**
@@ -296,38 +351,5 @@ export class PermissionService {
           permissionLevel: permission.permissionLevel,
         };
       });
-  }
-
-  /**
-   * Validate that a user has MANAGE permission on a content node
-   */
-  private async validateManagePermission(
-    userId: string,
-    contentNodeId: string,
-  ): Promise<void> {
-    const userPermission =
-      await this.permissionRepository.findUserPermissionWithInheritance(
-        userId,
-        contentNodeId,
-      );
-
-    if (
-      !userPermission ||
-      !this.hasManagePermission(userPermission.permissionLevel)
-    ) {
-      throw new ForbiddenException(
-        'You do not have manage permission on this content node',
-      );
-    }
-  }
-
-  /**
-   * Check if a permission level includes manage rights
-   */
-  private hasManagePermission(permissionLevel: PermissionLevel): boolean {
-    return (
-      permissionLevel === PermissionLevel.MANAGE ||
-      permissionLevel === PermissionLevel.OWNER
-    );
   }
 }

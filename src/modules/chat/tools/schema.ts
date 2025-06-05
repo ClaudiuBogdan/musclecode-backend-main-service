@@ -229,6 +229,7 @@ When creating a quote, you should use the quoteType to identify the type of quot
  */
 export const lessonChunkSchema = z
   .object({
+    // TODO: add the id programmatically using uuid()
     id: z.string().describe('Stable unique ID for the chunk'),
     title: z.string().describe('Title of the chunk'),
     type: z.enum(['note', 'question', 'flashcard']).describe(
@@ -259,3 +260,5 @@ export const lessonSchema = z
       ),
   })
   .describe('Complete lesson blueprint delivered to the client application');
+
+export type LessonSchemaType = z.infer<typeof lessonSchema>;

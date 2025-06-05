@@ -32,6 +32,11 @@ import { ContentNode } from '@prisma/client';
 import { CheckQuestionDto, QuestionResponseDto } from './dto/questions.dto';
 import { AgentsService } from '../chat/services/agents.service';
 import { PermissionDto } from '../permission/dto';
+import {
+  InteractionDataDto,
+  InteractionRequestDto,
+} from './dto/interaction.dto';
+import { InteractionBody } from './entities/interaction.entity';
 
 @ApiTags('Content')
 @Controller('api/v1/content')
@@ -253,12 +258,20 @@ export class ContentController {
   async getLesson(
     @User('id') userId: string,
     @Param('id') id: string,
-  ): Promise<LessonEntity> {
+  ): Promise<{
+    data: {
+      lesson: LessonEntity;
+      permission: PermissionDto | null;
+      interactions: InteractionBody | null;
+    };
+  }> {
     this.logger.debug('Fetching Lesson', { lessonId: id });
     try {
-      const lesson = await this.contentService.getLesson(id, userId);
+      const data = await this.contentService.getLesson(id, userId);
       this.logger.log('Lesson Fetched', { lessonId: id });
-      return lesson;
+      return {
+        data,
+      };
     } catch (error) {
       this.logger.error('Lesson Fetch Failed', error, { lessonId: id });
       throw error;
@@ -416,6 +429,46 @@ export class ContentController {
     } catch (error) {
       this.logger.error('Question Check Failed', error, {
         questionId,
+        userId,
+      });
+      throw error;
+    }
+  }
+
+  @Post('interactions')
+  @UseGuards(AuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Add an entry to an interaction' })
+  @ApiBody({ type: InteractionDataDto })
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Interaction updated successfully',
+    type: InteractionDataDto,
+  })
+  async addInteractionEntry(
+    @User('id') userId: string,
+    @Body(new ValidationPipe()) interactionRequestDto: InteractionRequestDto,
+  ): Promise<{ success: boolean }> {
+    const { nodeId, interaction } = interactionRequestDto;
+    const interactionId = interaction.id;
+    this.logger.debug('Adding Interaction Entry', {
+      interactionId,
+      nodeId,
+      userId,
+    });
+    try {
+      await this.contentService.addUserInteraction(nodeId, userId, interaction);
+      this.logger.log('Interaction Entry Added', {
+        interactionId,
+        nodeId,
+        userId,
+      });
+      return {
+        success: true,
+      };
+    } catch (error) {
+      this.logger.error('Interaction Entry Add Failed', error, {
+        interactionId,
         userId,
       });
       throw error;

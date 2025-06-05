@@ -15,11 +15,18 @@ import {
 import { CreateModuleDto } from './dto/create-module.dto';
 import { ModuleEntity } from './entities/module.entity';
 import { CreateLessonDto } from './dto/create-lesson.dto';
-import { LessonEntity } from './entities/lesson.entity';
+import { LessonBody, LessonEntity } from './entities/lesson.entity';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { ExerciseEntity } from './entities/exercise.entity';
 import { EditContentNodeDto } from './dto/edit-content-node.dto';
+import { v4 as uuidv4 } from 'uuid';
 import { PermissionDto } from '../permission/dto';
+import {
+  InteractionBody,
+  InteractionEvent,
+  ItemInteractionLog,
+} from './entities/interaction.entity';
+import { InteractionDataDto } from './dto/interaction.dto';
 
 @Injectable()
 export class ContentService {
@@ -80,15 +87,12 @@ export class ContentService {
     }
 
     // TODO: FIXME: add proper userId check. Don't rely on type safety as the userId may be undefined
-    const userPermission =
-      await this.permissionService.getUserPermissionForContentNode(
-        userId,
-        moduleId,
-      );
-    if (
-      !userPermission ||
-      !this.hasEditPermission(userPermission.permissionLevel)
-    ) {
+    const hasPermission = await this.permissionService.checkUserPermission(
+      userId,
+      moduleId,
+      PermissionLevel.EDIT,
+    );
+    if (!hasPermission) {
       throw new ForbiddenException(
         'You do not have permission to add lessons to this module',
       );
@@ -125,15 +129,12 @@ export class ContentService {
     }
 
     // TODO: FIXME: add proper userId check. Don't rely on type safety as the userId may be undefined
-    const userPermission =
-      await this.permissionService.getUserPermissionForContentNode(
-        userId,
-        moduleId,
-      );
-    if (
-      !userPermission ||
-      !this.hasEditPermission(userPermission.permissionLevel)
-    ) {
+    const hasPermission = await this.permissionService.checkUserPermission(
+      userId,
+      moduleId,
+      PermissionLevel.EDIT,
+    );
+    if (!hasPermission) {
       throw new ForbiddenException(
         'You do not have permission to upsert lessons for this module',
       );
@@ -191,15 +192,12 @@ export class ContentService {
     }
 
     // TODO: FIXME: add proper userId check. Don't rely on type safety as the userId may be undefined
-    const userPermission =
-      await this.permissionService.getUserPermissionForContentNode(
-        userId,
-        moduleId,
-      );
-    if (
-      !userPermission ||
-      !this.hasEditPermission(userPermission.permissionLevel)
-    ) {
+    const hasPermission = await this.permissionService.checkUserPermission(
+      userId,
+      moduleId,
+      PermissionLevel.EDIT,
+    );
+    if (!hasPermission) {
       throw new ForbiddenException(
         'You do not have permission to add exercises to this module',
       );
@@ -271,12 +269,12 @@ export class ContentService {
     }
 
     // TODO: FIXME: add proper userId check. Don't rely on type safety as the userId may be undefined
-    const userPermission =
-      await this.permissionService.getUserPermissionForContentNode(userId, id);
-    if (
-      !userPermission ||
-      !this.hasEditPermission(userPermission.permissionLevel)
-    ) {
+    const hasPermission = await this.permissionService.checkUserPermission(
+      userId,
+      id,
+      PermissionLevel.EDIT,
+    );
+    if (!hasPermission) {
       throw new ForbiddenException(
         'You do not have permission to edit this content',
       );
@@ -458,7 +456,14 @@ export class ContentService {
     };
   }
 
-  async getLesson(id: string, userId: string): Promise<LessonEntity> {
+  async getLesson(
+    id: string,
+    userId: string,
+  ): Promise<{
+    lesson: LessonEntity;
+    permission: PermissionDto | null;
+    interactions: InteractionBody | null;
+  }> {
     const node = await this.contentRepository.findNodeById(id);
     if (!node || node.type !== ContentType.LESSON) {
       throw new NotFoundException(`Lesson with ID ${id} not found`);
@@ -474,7 +479,46 @@ export class ContentService {
       );
     }
 
-    return new LessonEntity({ ...node });
+    const interactionsEntry = await this.contentRepository.findUserInteraction(
+      id,
+      userId,
+    );
+
+    const interactions = interactionsEntry?.body as InteractionBody | null;
+
+    return {
+      lesson: new LessonEntity({ ...node }),
+      permission: userPermission,
+      interactions,
+    };
+  }
+
+  private itemExistsInLessonBody(lessonBody: any, itemId: string): boolean {
+    const body = lessonBody as Partial<LessonBody>;
+    if (body && body.chunks && Array.isArray(body.chunks)) {
+      for (const chunk of body.chunks) {
+        if (chunk.content && Array.isArray(chunk.content)) {
+          for (const contentItem of chunk.content) {
+            if (contentItem.id === itemId) {
+              return true;
+            }
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  private isInteractiveItemPresent(node: ContentNode, itemId: string): boolean {
+    if (!node.body || typeof node.body !== 'object') {
+      return false;
+    }
+    switch (node.type) {
+      case ContentType.LESSON:
+        return this.itemExistsInLessonBody(node.body, itemId);
+      default:
+        return false;
+    }
   }
 
   /**
@@ -487,12 +531,12 @@ export class ContentService {
     }
 
     // TODO: FIXME: add proper userId check. Don't rely on type safety as the userId may be undefined
-    const userPermission =
-      await this.permissionService.getUserPermissionForContentNode(userId, id);
-    if (
-      !userPermission ||
-      !this.hasManagePermission(userPermission.permissionLevel)
-    ) {
+    const hasPermission = await this.permissionService.checkUserPermission(
+      userId,
+      id,
+      PermissionLevel.MANAGE,
+    );
+    if (!hasPermission) {
       throw new ForbiddenException(
         'You do not have permission to publish this module',
       );
@@ -543,17 +587,67 @@ export class ContentService {
     return updatedModule;
   }
 
-  /**
-   * Helper method to check if a permission level allows editing
-   */
-  private hasEditPermission(permissionLevel: PermissionLevel): boolean {
-    return ['EDIT', 'MANAGE', 'OWNER'].includes(permissionLevel);
-  }
+  // Manage user interactions with content nodes
+  async addUserInteraction(
+    nodeId: string,
+    userId: string,
+    interactionDto: InteractionDataDto,
+  ): Promise<void> {
+    const hasPermission = await this.permissionService.checkUserPermission(
+      userId,
+      nodeId,
+      PermissionLevel.INTERACT,
+    );
 
-  /**
-   * Helper method to check if a permission level allows management
-   */
-  private hasManagePermission(permissionLevel: PermissionLevel): boolean {
-    return ['MANAGE', 'OWNER'].includes(permissionLevel);
+    if (!hasPermission) {
+      throw new ForbiddenException(
+        'You do not have permission to interact with this content',
+      );
+    }
+
+    const node = await this.contentRepository.findNodeById(nodeId);
+    if (!node) {
+      throw new NotFoundException(`Node with ID ${nodeId} not found`);
+    }
+
+    if (!this.isInteractiveItemPresent(node, interactionDto.id)) {
+      throw new NotFoundException(
+        `Interactive element with ID ${interactionDto.id} not found in content node ${nodeId}`,
+      );
+    }
+
+    const interactionDataEntry =
+      await this.contentRepository.findOrCreateUserInteraction(nodeId, userId);
+
+    const newEvent: InteractionEvent = {
+      eventId: uuidv4(),
+      timestamp: new Date(),
+      type: interactionDto.type,
+      payload: interactionDto.data,
+    };
+
+    let currentInteractionBody =
+      interactionDataEntry.body as unknown as InteractionBody | null;
+
+    if (
+      !currentInteractionBody ||
+      typeof currentInteractionBody !== 'object' ||
+      !currentInteractionBody.items ||
+      currentInteractionBody.version !== '1.0'
+    ) {
+      currentInteractionBody = { version: '1.0', items: {} };
+    }
+
+    const itemLog: ItemInteractionLog = currentInteractionBody.items[
+      interactionDto.id
+    ] || { events: [] };
+
+    itemLog.events.push(newEvent); // Add the new event
+    currentInteractionBody.items[interactionDto.id] = itemLog;
+
+    await this.contentRepository.updateUserInteraction(
+      interactionDataEntry.id,
+      currentInteractionBody,
+    );
   }
 }

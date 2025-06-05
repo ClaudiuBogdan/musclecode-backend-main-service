@@ -7,7 +7,10 @@ import {
   Prisma,
   ContentType,
   PermissionLevel,
+  InteractionData,
 } from '@prisma/client';
+import { InteractionBody } from './entities/interaction.entity';
+import { InputJsonValue } from '@prisma/client/runtime/library';
 
 export interface ContentNodeCreateInput {
   type: ContentType;
@@ -263,5 +266,65 @@ export class ContentRepository {
     return this.prisma.contentLink.findMany({
       where: whereClause,
     });
+  }
+
+  // Manage user interactions with content nodes
+  async createUserInteraction(
+    nodeId: string,
+    userId: string,
+    content: Record<string, any>,
+  ): Promise<void> {
+    await this.prisma.interactionData.create({
+      data: {
+        nodeId,
+        userId,
+        body: content,
+      },
+    });
+  }
+
+  async updateUserInteraction(
+    interactionId: string,
+    content: Record<string, any>,
+  ): Promise<void> {
+    await this.prisma.interactionData.update({
+      where: {
+        id: interactionId,
+      },
+      data: {
+        body: content,
+      },
+    });
+  }
+
+  async findOrCreateUserInteraction(
+    nodeId: string,
+    userId: string,
+  ): Promise<InteractionData> {
+    return this.prisma.interactionData.upsert({
+      where: { nodeId_userId: { nodeId, userId } },
+      update: {},
+      create: {
+        nodeId,
+        userId,
+        body: this.createDefaultInteractionBody() as unknown as InputJsonValue,
+      },
+    });
+  }
+
+  async findUserInteraction(
+    nodeId: string,
+    userId: string,
+  ): Promise<InteractionData | null> {
+    return this.prisma.interactionData.findUnique({
+      where: { nodeId_userId: { nodeId, userId } },
+    });
+  }
+
+  private createDefaultInteractionBody(): InteractionBody {
+    return {
+      version: '1.0',
+      items: {},
+    };
   }
 }

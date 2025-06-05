@@ -201,15 +201,15 @@ model ContentLink {
 }
 
 model InteractionData {
-  id          String          @id @default(uuid())
-  type        InteractionType // e.g., QUIZ, FLASHCARD
+  id          String      @id @default(uuid())
   userId      String
   body        Json // Detailed interactive element definition
   nodeId      String
-  contentNode ContentNode     @relation(fields: [nodeId], references: [id])
-  createdAt   DateTime        @default(now())
-  updatedAt   DateTime        @updatedAt
+  contentNode ContentNode @relation(fields: [nodeId], references: [id])
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
 
+  @@unique([nodeId, userId])
   @@index([nodeId]) // Optimizes lookups for interactions related to a node
   @@index([userId]) // Optimizes lookups for interactions by user
 }
@@ -329,9 +329,4 @@ enum LinkType {
   DEPENDENCY
   RELATES_TO
   EXTENDS
-}
-
-enum InteractionType {
-  QUIZ
-  FLASHCARD
 }
