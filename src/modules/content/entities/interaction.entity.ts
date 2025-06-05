@@ -28,3 +28,8 @@ export interface InteractionBody {
     [key: ItemId]: ItemInteractionLog;
   };
 }
+
+export const validLessonInteractionEvents = [
+  'quiz_answer',
+  'question_submit',
+] as const;

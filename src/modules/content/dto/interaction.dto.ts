@@ -1,9 +1,16 @@
 import { Type } from 'class-transformer';
-import { IsObject, IsString, IsUUID, ValidateNested } from 'class-validator';
+import {
+  IsObject,
+  IsOptional,
+  IsString,
+  IsUUID,
+  ValidateNested,
+} from 'class-validator';
 
 export class InteractionDataDto {
   @IsUUID()
-  id: string;
+  @IsOptional()
+  id?: string;
 
   @IsString()
   type: string;

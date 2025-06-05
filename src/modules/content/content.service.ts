@@ -2,6 +2,7 @@ import {
   Injectable,
   ForbiddenException,
   NotFoundException,
+  BadRequestException,
 } from '@nestjs/common';
 import { ContentRepository } from './content.repository';
 import { PermissionService } from '../permission/permission.service';
@@ -25,6 +26,7 @@ import {
   InteractionBody,
   InteractionEvent,
   ItemInteractionLog,
+  validLessonInteractionEvents,
 } from './entities/interaction.entity';
 import { InteractionDataDto } from './dto/interaction.dto';
 
@@ -509,16 +511,30 @@ export class ContentService {
     return false;
   }
 
-  private isInteractiveItemPresent(node: ContentNode, itemId: string): boolean {
+  private isInteractiveItemPresent(
+    node: ContentNode,
+    eventType: string,
+    itemId?: string,
+  ): boolean {
     if (!node.body || typeof node.body !== 'object') {
       return false;
     }
-    switch (node.type) {
-      case ContentType.LESSON:
-        return this.itemExistsInLessonBody(node.body, itemId);
-      default:
-        return false;
+
+    const isLessonEvent = this.isLessonInteractionEvent(eventType);
+
+    if (isLessonEvent && !itemId) {
+      return false;
     }
+
+    if (isLessonEvent && node.type === ContentType.LESSON) {
+      return this.itemExistsInLessonBody(node.body, itemId as string);
+    }
+
+    return false;
+  }
+
+  private isLessonInteractionEvent(eventType: string): boolean {
+    return validLessonInteractionEvents.includes(eventType as any);
   }
 
   /**
@@ -610,14 +626,37 @@ export class ContentService {
       throw new NotFoundException(`Node with ID ${nodeId} not found`);
     }
 
-    if (!this.isInteractiveItemPresent(node, interactionDto.id)) {
-      throw new NotFoundException(
-        `Interactive element with ID ${interactionDto.id} not found in content node ${nodeId}`,
+    const isValid = this.isInteractiveItemPresent(
+      node,
+      interactionDto.type,
+      interactionDto.id,
+    );
+
+    if (!isValid) {
+      throw new BadRequestException(
+        `Invalid interaction type: ${interactionDto.type}`,
       );
     }
 
+    const isLessonEvent = this.isLessonInteractionEvent(interactionDto.type);
+    if (isLessonEvent) {
+      return this.handleLessonInteraction(nodeId, userId, interactionDto);
+    }
+
+    throw new BadRequestException(
+      `Invalid interaction type: ${interactionDto.type}. Not implemented.`,
+    );
+  }
+
+  private async handleLessonInteraction(
+    nodeId: string,
+    userId: string,
+    interactionDto: InteractionDataDto,
+  ): Promise<InteractionBody | null> {
     const interactionDataEntry =
       await this.contentRepository.findOrCreateUserInteraction(nodeId, userId);
+
+    const itemId = interactionDto.id as string; // This is guaranteed to be present if the interaction is valid
 
     const newEvent: InteractionEvent = {
       eventId: uuidv4(),
@@ -639,11 +678,11 @@ export class ContentService {
     }
 
     const itemLog: ItemInteractionLog = currentInteractionBody.items[
-      interactionDto.id
+      itemId
     ] || { events: [] };
 
     itemLog.events.push(newEvent); // Add the new event
-    currentInteractionBody.items[interactionDto.id] = itemLog;
+    currentInteractionBody.items[itemId] = itemLog;
 
     const updatedInteraction =
       await this.contentRepository.updateUserInteraction(
