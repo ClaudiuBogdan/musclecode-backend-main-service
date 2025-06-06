@@ -33,10 +33,12 @@ import { CheckQuestionDto, QuestionResponseDto } from './dto/questions.dto';
 import { AgentsService } from '../chat/services/agents.service';
 import { PermissionDto } from '../permission/dto';
 import {
-  InteractionDataDto,
+  EventDto,
   InteractionRequestDto,
+  InteractionResponseDto,
 } from './dto/interaction.dto';
 import { InteractionBody } from './entities/interaction.entity';
+import { InteractionService } from './services/interaction.service';
 
 @ApiTags('Content')
 @Controller('api/v1/content')
@@ -46,6 +48,7 @@ export class ContentController {
   constructor(
     private readonly contentService: ContentService,
     private readonly agentsService: AgentsService,
+    private readonly interactionService: InteractionService,
   ) {}
 
   // Module endpoints
@@ -439,48 +442,42 @@ export class ContentController {
   @UseGuards(AuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Add an entry to an interaction' })
-  @ApiBody({ type: InteractionDataDto })
+  @ApiBody({ type: EventDto })
   @ApiResponse({
     status: HttpStatus.OK,
     description: 'Interaction updated successfully',
-    type: InteractionDataDto,
+    type: EventDto,
   })
-  async addInteractionEntry(
+  async handleInteraction(
     @User('id') userId: string,
     @Body(new ValidationPipe()) interactionRequestDto: InteractionRequestDto,
-  ): Promise<{
-    data: {
-      interaction: InteractionBody | null;
-    };
-    success: boolean;
-  }> {
-    const { nodeId, interaction } = interactionRequestDto;
-    const interactionId = interaction.id;
+  ): Promise<InteractionResponseDto> {
+    const { nodeId, event } = interactionRequestDto;
     this.logger.debug('Adding Interaction Entry', {
-      interactionId,
+      eventType: event.type,
       nodeId,
       userId,
     });
     try {
-      const result = await this.contentService.addUserInteraction(
+      const interaction = await this.interactionService.handleInteraction(
         nodeId,
         userId,
-        interaction,
+        event,
       );
       this.logger.log('Interaction Entry Added', {
-        interactionId,
+        eventType: event.type,
         nodeId,
         userId,
       });
       return {
         data: {
-          interaction: result,
+          interaction,
         },
-        success: true,
       };
     } catch (error) {
       this.logger.error('Interaction Entry Add Failed', error, {
-        interactionId,
+        eventType: event.type,
+        nodeId,
         userId,
       });
       throw error;

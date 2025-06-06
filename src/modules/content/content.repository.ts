@@ -326,7 +326,7 @@ export class ContentRepository {
   private createDefaultInteractionBody(): InteractionBody {
     return {
       version: '1.0',
-      items: {},
+      events: [],
     };
   }
 }

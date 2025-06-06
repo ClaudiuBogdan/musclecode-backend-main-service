@@ -1,21 +1,12 @@
-export type ItemId = string;
-
 /**
  * Represents a single interaction event from the user for a specific interactive element.
  */
 export interface InteractionEvent {
-  eventId: string; // Unique ID for this specific event (e.g., uuid)
-  timestamp: Date; // Timestamp of when the event occurred
+  id: string; // Unique ID for this specific event (e.g., uuid)
   type: string; // Type of interaction event (e.g., 'quiz_attempt', 'answer_selected', 'flashcard_flip', 'progress_reset')
+  timestamp: Date; // Timestamp of when the event occurred
   payload: Record<string, any>; // Data specific to this event (e.g., { answer: "A", isCorrect: true })
-}
-
-/**
- * Stores the history of all interaction events for a single interactive element.
- * Events should be stored in chronological order.
- */
-export interface ItemInteractionLog {
-  events: InteractionEvent[];
+  version: '1.0'; // Schema version for future migrations
 }
 
 /**
@@ -24,12 +15,5 @@ export interface ItemInteractionLog {
  */
 export interface InteractionBody {
   version: '1.0'; // Schema version for future migrations
-  items: {
-    [key: ItemId]: ItemInteractionLog;
-  };
+  events: InteractionEvent[];
 }
-
-export const validLessonInteractionEvents = [
-  'quiz_answer',
-  'question_submit',
-] as const;

@@ -2,7 +2,6 @@ import {
   Injectable,
   ForbiddenException,
   NotFoundException,
-  BadRequestException,
 } from '@nestjs/common';
 import { ContentRepository } from './content.repository';
 import { PermissionService } from '../permission/permission.service';
@@ -16,19 +15,13 @@ import {
 import { CreateModuleDto } from './dto/create-module.dto';
 import { ModuleEntity } from './entities/module.entity';
 import { CreateLessonDto } from './dto/create-lesson.dto';
-import { LessonBody, LessonEntity } from './entities/lesson.entity';
+import { LessonEntity } from './entities/lesson.entity';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { ExerciseEntity } from './entities/exercise.entity';
 import { EditContentNodeDto } from './dto/edit-content-node.dto';
-import { v4 as uuidv4 } from 'uuid';
+
 import { PermissionDto } from '../permission/dto';
-import {
-  InteractionBody,
-  InteractionEvent,
-  ItemInteractionLog,
-  validLessonInteractionEvents,
-} from './entities/interaction.entity';
-import { InteractionDataDto } from './dto/interaction.dto';
+import { InteractionBody } from './entities/interaction.entity';
 
 @Injectable()
 export class ContentService {
@@ -495,48 +488,6 @@ export class ContentService {
     };
   }
 
-  private itemExistsInLessonBody(lessonBody: any, itemId: string): boolean {
-    const body = lessonBody as Partial<LessonBody>;
-    if (body && body.chunks && Array.isArray(body.chunks)) {
-      for (const chunk of body.chunks) {
-        if (chunk.content && Array.isArray(chunk.content)) {
-          for (const contentItem of chunk.content) {
-            if (contentItem.id === itemId) {
-              return true;
-            }
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  private isInteractiveItemPresent(
-    node: ContentNode,
-    eventType: string,
-    itemId?: string,
-  ): boolean {
-    if (!node.body || typeof node.body !== 'object') {
-      return false;
-    }
-
-    const isLessonEvent = this.isLessonInteractionEvent(eventType);
-
-    if (isLessonEvent && !itemId) {
-      return false;
-    }
-
-    if (isLessonEvent && node.type === ContentType.LESSON) {
-      return this.itemExistsInLessonBody(node.body, itemId as string);
-    }
-
-    return false;
-  }
-
-  private isLessonInteractionEvent(eventType: string): boolean {
-    return validLessonInteractionEvents.includes(eventType as any);
-  }
-
   /**
    * Publish a module and all its children
    */
@@ -601,95 +552,5 @@ export class ContentService {
     }
 
     return updatedModule;
-  }
-
-  // Manage user interactions with content nodes
-  async addUserInteraction(
-    nodeId: string,
-    userId: string,
-    interactionDto: InteractionDataDto,
-  ): Promise<InteractionBody | null> {
-    const hasPermission = await this.permissionService.checkUserPermission(
-      userId,
-      nodeId,
-      PermissionLevel.INTERACT,
-    );
-
-    if (!hasPermission) {
-      throw new ForbiddenException(
-        'You do not have permission to interact with this content',
-      );
-    }
-
-    const node = await this.contentRepository.findNodeById(nodeId);
-    if (!node) {
-      throw new NotFoundException(`Node with ID ${nodeId} not found`);
-    }
-
-    const isValid = this.isInteractiveItemPresent(
-      node,
-      interactionDto.type,
-      interactionDto.id,
-    );
-
-    if (!isValid) {
-      throw new BadRequestException(
-        `Invalid interaction type: ${interactionDto.type}`,
-      );
-    }
-
-    const isLessonEvent = this.isLessonInteractionEvent(interactionDto.type);
-    if (isLessonEvent) {
-      return this.handleLessonInteraction(nodeId, userId, interactionDto);
-    }
-
-    throw new BadRequestException(
-      `Invalid interaction type: ${interactionDto.type}. Not implemented.`,
-    );
-  }
-
-  private async handleLessonInteraction(
-    nodeId: string,
-    userId: string,
-    interactionDto: InteractionDataDto,
-  ): Promise<InteractionBody | null> {
-    const interactionDataEntry =
-      await this.contentRepository.findOrCreateUserInteraction(nodeId, userId);
-
-    const itemId = interactionDto.id as string; // This is guaranteed to be present if the interaction is valid
-
-    const newEvent: InteractionEvent = {
-      eventId: uuidv4(),
-      timestamp: new Date(),
-      type: interactionDto.type,
-      payload: interactionDto.data,
-    };
-
-    let currentInteractionBody =
-      interactionDataEntry.body as unknown as InteractionBody | null;
-
-    if (
-      !currentInteractionBody ||
-      typeof currentInteractionBody !== 'object' ||
-      !currentInteractionBody.items ||
-      currentInteractionBody.version !== '1.0'
-    ) {
-      currentInteractionBody = { version: '1.0', items: {} };
-    }
-
-    const itemLog: ItemInteractionLog = currentInteractionBody.items[
-      itemId
-    ] || { events: [] };
-
-    itemLog.events.push(newEvent); // Add the new event
-    currentInteractionBody.items[itemId] = itemLog;
-
-    const updatedInteraction =
-      await this.contentRepository.updateUserInteraction(
-        interactionDataEntry.id,
-        currentInteractionBody,
-      );
-
-    return updatedInteraction.body as unknown as InteractionBody | null;
   }
 }
