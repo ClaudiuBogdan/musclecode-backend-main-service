@@ -43,7 +43,7 @@ export class InteractionService {
       );
     }
 
-    const handler = this.getHandler(node.type, eventDto.type as EventType);
+    const handler = this.getHandler(node.type, eventDto.type);
 
     if (!handler) {
       throw new BadRequestException(

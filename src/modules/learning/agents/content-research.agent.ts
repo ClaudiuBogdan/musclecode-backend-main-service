@@ -1,13 +1,13 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ChatOpenAI } from '@langchain/openai';
-import { DynamicTool } from '@langchain/core/tools';
-import { StringOutputParser } from '@langchain/core/output_parsers';
+import { tool } from 'langchain';
 import {
   ChatPromptTemplate,
   SystemMessagePromptTemplate,
   HumanMessagePromptTemplate,
 } from '@langchain/core/prompts';
+import { z } from 'zod';
 import axios from 'axios';
 
 interface ResearchResult {
@@ -25,9 +25,8 @@ export class ContentResearchAgent {
 
   constructor(private readonly configService: ConfigService) {
     this.llm = new ChatOpenAI({
-      openAIApiKey: this.configService.get<string>('OPENAI_API_KEY'),
-      modelName:
-        this.configService.get<string>('OPENAI_MODEL') || 'gpt-4o-mini',
+      apiKey: this.configService.get<string>('OPENAI_API_KEY'),
+      model: this.configService.get<string>('OPENAI_MODEL') || 'gpt-4o-mini',
       temperature: 0.2,
       configuration: {
         baseURL: this.configService.get<string>('OPENAI_API_URL'),
@@ -38,11 +37,9 @@ export class ContentResearchAgent {
   /**
    * Searches the web for relevant information on a topic
    */
-  private createWebSearchTool(): DynamicTool {
-    return new DynamicTool({
-      name: 'web_search',
-      description: 'Search the web for information on a specific topic',
-      func: async (query: string): Promise<string> => {
+  private createWebSearchTool() {
+    return tool(
+      async (input: { query: string }): Promise<string> => {
         try {
           const SERP_API_KEY = this.configService.get<string>('SERP_API_KEY');
           if (!SERP_API_KEY) {
@@ -51,7 +48,7 @@ export class ContentResearchAgent {
 
           const response = await axios.get('https://serpapi.com/search', {
             params: {
-              q: query,
+              q: input.query,
               api_key: SERP_API_KEY,
             },
           });
@@ -67,7 +64,7 @@ export class ContentResearchAgent {
 
           return JSON.stringify({
             results,
-            message: `Found ${results.length} results for query: ${query}`,
+            message: `Found ${results.length} results for query: ${input.query}`,
           });
         } catch (error) {
           this.logger.error(
@@ -80,7 +77,14 @@ export class ContentResearchAgent {
           });
         }
       },
-    });
+      {
+        name: 'web_search',
+        description: 'Search the web for information on a specific topic',
+        schema: z.object({
+          query: z.string().describe('The search query to execute'),
+        }),
+      },
+    );
   }
 
   /**
@@ -109,17 +113,19 @@ export class ContentResearchAgent {
         `),
       ]);
 
-      const stringOutputParser = new StringOutputParser();
-
       const formattedQueryPrompt = await searchQueryPrompt.formatMessages({
         topic,
         subtopics:
           subtopics.length > 0 ? subtopics.join(', ') : 'None specified',
       });
 
-      const searchQueriesJson = await this.llm
-        .pipe(stringOutputParser)
-        .invoke(formattedQueryPrompt);
+      const searchQueriesMsg = await (this.llm as any).invoke(
+        formattedQueryPrompt,
+      );
+      const searchQueriesJson =
+        typeof searchQueriesMsg.content === 'string'
+          ? searchQueriesMsg.content
+          : JSON.stringify(searchQueriesMsg.content);
       let searchQueries: string[] = [];
 
       try {
@@ -128,7 +134,7 @@ export class ContentResearchAgent {
         // If parsing fails, extract queries using regex
         const matches = searchQueriesJson.match(/"([^"]*)"/g);
         if (matches) {
-          searchQueries = matches.map((match) => match.replace(/"/g, ''));
+          searchQueries = matches.map((m: string) => m.replace(/"/g, ''));
         } else {
           // Fallback to a single query
           searchQueries = [topic];
@@ -138,7 +144,7 @@ export class ContentResearchAgent {
       // Execute searches
       const searchResults = await Promise.all(
         searchQueries.map(async (query) => {
-          const result = await webSearchTool.invoke(query);
+          const result = await webSearchTool.invoke({ query });
           return { query, result };
         }),
       );
@@ -163,16 +169,18 @@ export class ContentResearchAgent {
         `),
       ]);
 
-      const formattedCompilationPrompt = await compilationPrompt.formatMessages(
-        {
-          topic,
-          searchResults: JSON.stringify(searchResults),
-        },
-      );
+      const formattedCompilationPrompt = await compilationPrompt.formatMessages({
+        topic,
+        searchResults: JSON.stringify(searchResults),
+      });
 
-      const researchOutput = await this.llm
-        .pipe(stringOutputParser)
-        .invoke(formattedCompilationPrompt);
+      const researchMsg = await (this.llm as any).invoke(
+        formattedCompilationPrompt,
+      );
+      const researchOutput =
+        typeof researchMsg.content === 'string'
+          ? researchMsg.content
+          : JSON.stringify(researchMsg.content);
 
       // Extract content and sources
       let content = researchOutput;
@@ -184,7 +192,7 @@ export class ContentResearchAgent {
         try {
           sources = JSON.parse(sourcesMatch[0]);
           // Remove the sources JSON from the content
-          content = researchOutput.substring(0, sourcesMatch.index!).trim();
+          content = researchOutput.substring(0, sourcesMatch.index).trim();
         } catch (e) {
           this.logger.warn('Failed to parse sources from research output', e);
         }

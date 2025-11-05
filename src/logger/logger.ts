@@ -1,11 +1,8 @@
 import { config } from '../config/load-config';
 import * as winston from 'winston';
-import {
-  LoggerProvider,
-  SimpleLogRecordProcessor,
-} from '@opentelemetry/sdk-logs';
+import { LoggerProvider, SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { OTLPLogExporter } from '@opentelemetry/exporter-logs-otlp-http';
-import { Resource } from '@opentelemetry/resources';
+import { resourceFromAttributes } from '@opentelemetry/resources';
 import {
   ATTR_SERVICE_NAME,
   ATTR_SERVICE_VERSION,
@@ -40,7 +37,7 @@ if (!config.LOG_ENDPOINT) {
 }
 
 // Create a Resource to represent this service with Kubernetes metadata
-const resource = new Resource({
+const resource = resourceFromAttributes({
   [ATTR_SERVICE_NAME]: config.APP_NAME || 'my-service',
   [ATTR_SERVICE_VERSION]: config.APP_VERSION || '0.1.0',
   [SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: config.NODE_ENV,
@@ -68,12 +65,8 @@ const otlpLogExporter = new OTLPLogExporter({
 // Create the LoggerProvider for OpenTelemetry logs
 const loggerProvider = new LoggerProvider({
   resource,
+  processors: [new SimpleLogRecordProcessor(otlpLogExporter)],
 });
-
-// Add the processor with the exporter to the provider
-loggerProvider.addLogRecordProcessor(
-  new SimpleLogRecordProcessor(otlpLogExporter),
-);
 
 // Get a logger instance from the provider
 const otelLogger = loggerProvider.getLogger('winston-logger');

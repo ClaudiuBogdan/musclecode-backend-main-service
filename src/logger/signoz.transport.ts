@@ -1,7 +1,8 @@
+import type { TransportStreamOptions } from 'winston-transport';
 import * as Transport from 'winston-transport';
 import { Logger } from '@opentelemetry/api-logs';
 
-interface SignozTransportOptions extends Transport.TransportStreamOptions {
+interface SignozTransportOptions extends TransportStreamOptions {
   otelLogger: Logger;
 }
 

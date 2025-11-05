@@ -32,7 +32,7 @@ export class KeycloakService implements OnModuleInit {
       throw new Error('Failed to fetch Keycloak public key');
     }
 
-    const data = await response.json();
+    const data = (await response.json()) as { public_key: string };
     this.publicKey = `-----BEGIN PUBLIC KEY-----\n${data.public_key}\n-----END PUBLIC KEY-----`;
   }
 

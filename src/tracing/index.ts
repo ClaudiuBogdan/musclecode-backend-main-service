@@ -2,7 +2,7 @@ import { NodeSDK } from '@opentelemetry/sdk-node';
 import { W3CTraceContextPropagator } from '@opentelemetry/core';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
-import { Resource } from '@opentelemetry/resources';
+import { resourceFromAttributes } from '@opentelemetry/resources';
 import {
   ATTR_SERVICE_NAME,
   ATTR_SERVICE_VERSION,
@@ -21,7 +21,7 @@ const traceExporter = new OTLPTraceExporter({
 const propagator = new W3CTraceContextPropagator();
 
 export const otelSDK = new NodeSDK({
-  resource: new Resource({
+  resource: resourceFromAttributes({
     [ATTR_SERVICE_NAME]: config.APP_NAME,
     [ATTR_SERVICE_VERSION]: config.APP_VERSION,
     [SEMRESATTRS_DEPLOYMENT_ENVIRONMENT]: config.NODE_ENV,
@@ -57,9 +57,7 @@ export const otelSDK = new NodeSDK({
       },
     }),
     new NestInstrumentation(),
-    new PrismaInstrumentation({
-      middleware: false,
-    }),
+    new PrismaInstrumentation(),
   ],
   textMapPropagator: propagator,
 });

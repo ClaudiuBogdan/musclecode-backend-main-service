@@ -17,10 +17,10 @@ import {
   EditLessonSchemaType,
   LessonSchemaType,
 } from './schema';
-import { RunnableConfig } from '@langchain/core/runnables';
+// Avoid direct Runnable types to keep tsconfig unchanged
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
-import { tool } from '@langchain/core/tools';
+import { tool } from 'langchain';
 import { ContentStatus } from '@prisma/client';
 import { LessonEntity } from 'src/modules/content/entities';
 import CallbackHandler from 'langfuse-langchain';
@@ -78,7 +78,7 @@ export const createLessonsTool = (
   tool(
     async (
       input: CreateLessonsSchemaType,
-      config?: RunnableConfig,
+      config?: any,
     ): Promise<string> => {
       try {
         const userId = config?.metadata?.userId as string;
@@ -156,7 +156,7 @@ ${lessonsContext}
           });
 
           // ───────────── Stream generation ─────────────
-          const stream = await teacherAgent.stream(createCoursePrompt, {
+          const stream = await (teacherAgent as any).stream(createCoursePrompt, {
             ...config,
             tags: ['skip_client_stream'],
             callbacks: langfuseHandler ? [langfuseHandler] : undefined,
@@ -240,7 +240,7 @@ export const editLessonTool = (
   tool(
     async (
       input: EditLessonSchemaType,
-      config?: RunnableConfig,
+      config?: any,
     ): Promise<string> => {
       try {
         const userId = config?.metadata?.userId as string;
@@ -303,7 +303,7 @@ ${lessonContext}
         });
 
         // ───────────── Stream generation ─────────────
-        const stream = await teacherAgent.stream(editLessonPrompt, {
+        const stream = await (teacherAgent as any).stream(editLessonPrompt, {
           ...config,
           tags: ['skip_client_stream'],
           callbacks: langfuseHandler ? [langfuseHandler] : undefined,

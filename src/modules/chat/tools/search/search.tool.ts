@@ -1,7 +1,6 @@
-import { tool } from '@langchain/core/tools';
+import { tool } from 'langchain';
 import { z } from 'zod';
 import { dispatchCustomEvent } from '@langchain/core/callbacks/dispatch';
-import { RunnableConfig } from '@langchain/core/runnables';
 import { StructuredLogger } from 'src/logger/structured-logger.service';
 
 const logger = new StructuredLogger(`SearchTool`);
@@ -45,7 +44,7 @@ export const createSearchTool = (searchConfig: SearchToolConfig) =>
   tool(
     async (
       input: SearchToolSchemaType,
-      config: RunnableConfig,
+      config: any,
     ): Promise<string> => {
       const { query } = input;
       const includeDomains = undefined;

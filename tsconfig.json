@@ -18,5 +18,9 @@
     "forceConsistentCasingInFileNames": true,
     "noFallthroughCasesInSwitch": true
   },
-  "exclude": ["./src/modules/algorithm/seed/algorithms/**"]
+  "exclude": [
+    "./src/modules/algorithm/seed/algorithms/**",
+    "test",
+    "**/*spec.ts"
+  ]
 }

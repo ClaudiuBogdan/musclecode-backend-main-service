@@ -7,8 +7,7 @@ import {
   editModuleSchema,
   EditModuleSchemaType,
 } from './schema';
-import { tool } from '@langchain/core/tools';
-import { RunnableConfig } from '@langchain/core/runnables';
+import { tool } from 'langchain';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
 import {
   SystemMessagePromptTemplate,
@@ -29,7 +28,7 @@ export const createModuleTool = (
   tool(
     async (
       input: CreateModuleSchemaType,
-      config?: RunnableConfig,
+      config?: any,
     ): Promise<string> => {
       const userId = config?.metadata?.userId as string | undefined;
 
@@ -67,7 +66,7 @@ ${input.moduleContext}
         moduleSchema: JSON.stringify(zodToJsonSchema(moduleSchema)),
       });
 
-      const stream = await teacherAgent.stream(createModulePrompt, {
+      const stream = await (teacherAgent as any).stream(createModulePrompt, {
         ...config,
         tags: ['skip_client_stream'],
         callbacks: langfuseHandler ? [langfuseHandler] : undefined,
@@ -118,7 +117,7 @@ export const editModuleTool = (
   tool(
     async (
       input: EditModuleSchemaType,
-      config?: RunnableConfig,
+      config?: any,
     ): Promise<string> => {
       const userId = config?.metadata?.userId as string;
 
@@ -166,7 +165,7 @@ ${input.moduleContext}
         streaming: true,
       });
 
-      const stream = await teacherAgent.stream(editModulePrompt, {
+      const stream = await (teacherAgent as any).stream(editModulePrompt, {
         ...config,
         tags: ['skip_client_stream'],
         callbacks: langfuseHandler ? [langfuseHandler] : undefined,

@@ -2,9 +2,7 @@ import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v4 as uuidv4 } from 'uuid';
 import { ChatGoogleGenerativeAI } from '@langchain/google-genai';
-import { HumanMessage, AIMessageChunk } from '@langchain/core/messages';
-import { createReactAgent } from '@langchain/langgraph/prebuilt';
-import { Runnable } from '@langchain/core/runnables';
+import { HumanMessage, AIMessageChunk, ReactAgent, createAgent } from 'langchain';
 import { PromptTemplate } from '@langchain/core/prompts';
 import { z } from 'zod';
 import {
@@ -114,7 +112,7 @@ export class AgentsService implements OnModuleInit {
       },
       {
         version: 'v2',
-        configurable: {
+        context: {
           thread_id: `${userId}_${message.threadId}`,
         },
         metadata: {
@@ -199,7 +197,7 @@ export class AgentsService implements OnModuleInit {
       isBlockOpen = true;
       const toolUseId = runId ? idMap.get(runId) : undefined;
 
-      const data = evt.data as any;
+      const data = evt.data;
       let result: any = data.output ?? '';
       if (typeof result === 'object') {
         result = result.content ?? result.text ?? JSON.stringify(result);
@@ -460,7 +458,7 @@ export class AgentsService implements OnModuleInit {
       .join('\n');
   }
 
-  private createAgent(model?: ModelDto): Runnable {
+  private createAgent(model?: ModelDto): ReactAgent {
     const apiKey =
       model?.apiKey || this.configService.get<string>('GEMINI_API_KEY');
     const modelName =
@@ -481,8 +479,24 @@ export class AgentsService implements OnModuleInit {
       streaming: true,
     });
 
-    const agentExecutor = createReactAgent({
-      llm,
+    const agentExecutor = createAgent({
+      model: llm,
+      systemPrompt: `You are a helpful educational assistant that helps users create and manage learning modules and lessons.
+
+Your capabilities include:
+- Searching the web for educational content and information
+- Creating new learning modules with structured content
+- Editing and updating existing modules
+- Creating lessons within modules
+- Editing and updating existing lessons
+
+When users ask you to create or edit content:
+1. Gather necessary information through web searches if needed
+2. Structure the content appropriately for learning
+3. Ensure the content is clear, accurate, and educational
+4. Follow the user's specific requirements and preferences
+
+Always be helpful, accurate, and focused on creating high-quality educational content.`,
       tools: [
         createSearchTool({
           tavilyApiKey: this.configService.get<string>('TRAVILY_API_KEY'),
@@ -519,9 +533,9 @@ export class AgentsService implements OnModuleInit {
           this.langfuseHandler,
         ),
       ],
-      checkpointSaver: this.checkpointer,
+      checkpointer: this.checkpointer,
     });
 
-    return agentExecutor;
+    return agentExecutor as ReactAgent;
   }
 }
