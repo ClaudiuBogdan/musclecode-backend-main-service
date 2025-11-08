@@ -54,7 +54,7 @@ export class LessonInteractionService {
     const updatedInteraction =
       await this.contentRepository.updateUserInteraction(
         interactionDataEntry.id,
-        updatedInteractionBody,
+        updatedInteractionBody as unknown as Record<string, unknown>,
       );
 
     return updatedInteraction.body as unknown as InteractionBody;

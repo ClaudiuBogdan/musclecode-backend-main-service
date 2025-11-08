@@ -153,9 +153,9 @@ export class ContentRepository {
    */
   async findChildNodes(
     parentId: string,
-    type?: string,
+    type?: ContentType,
   ): Promise<ContentNode[]> {
-    const whereClause: any = {
+    const whereClause: { incomingLinks: { some: { fromId: string } }; type?: ContentType } = {
       incomingLinks: {
         some: {
           fromId: parentId,
@@ -227,7 +227,7 @@ export class ContentRepository {
     toId: string,
     linkType?: LinkType,
   ): Promise<void> {
-    const whereClause: any = {
+    const whereClause: { fromId: string; toId: string; linkType?: LinkType } = {
       fromId,
       toId,
     };
@@ -249,7 +249,7 @@ export class ContentRepository {
     toId?: string,
     linkType?: LinkType,
   ): Promise<ContentLink[]> {
-    const whereClause: any = {};
+    const whereClause: { fromId?: string; toId?: string; linkType?: LinkType } = {};
 
     if (fromId) {
       whereClause.fromId = fromId;
@@ -272,27 +272,27 @@ export class ContentRepository {
   async createUserInteraction(
     nodeId: string,
     userId: string,
-    content: Record<string, any>,
+    content: Record<string, unknown>,
   ): Promise<void> {
     await this.prisma.interactionData.create({
       data: {
         nodeId,
         userId,
-        body: content,
+        body: content as Prisma.InputJsonValue,
       },
     });
   }
 
   async updateUserInteraction(
     interactionId: string,
-    content: Record<string, any>,
+    content: Record<string, unknown>,
   ): Promise<InteractionData> {
     const updatedInteraction = await this.prisma.interactionData.update({
       where: {
         id: interactionId,
       },
       data: {
-        body: content,
+        body: content as Prisma.InputJsonValue,
       },
     });
 

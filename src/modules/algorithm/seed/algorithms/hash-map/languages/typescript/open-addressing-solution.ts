@@ -25,7 +25,7 @@ export class HashMap<K, V> {
 
   put(key: K, value: V): void {
     let index = this.hash(key);
-    let initialIndex = index;
+    const initialIndex = index;
 
     while (this.keys[index] !== undefined) {
       if (this.keys[index] === key) {
@@ -45,7 +45,7 @@ export class HashMap<K, V> {
 
   get(key: K): V | undefined {
     let index = this.hash(key);
-    let initialIndex = index;
+    const initialIndex = index;
 
     while (this.keys[index] !== undefined) {
       if (this.keys[index] === key) {
@@ -62,7 +62,7 @@ export class HashMap<K, V> {
 
   remove(key: K): void {
     let index = this.hash(key);
-    let initialIndex = index;
+    const initialIndex = index;
 
     while (this.keys[index] !== undefined) {
       if (this.keys[index] === key) {

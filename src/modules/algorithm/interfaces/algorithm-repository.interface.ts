@@ -12,10 +12,10 @@ export interface IAlgorithmRepository {
   // Algorithm Template operations
   findAllTemplates(): Promise<AlgorithmTemplate[]>;
   findTemplateById(id: string): Promise<AlgorithmTemplate | null>;
-  createTemplate(createAlgorithmDto: any): Promise<AlgorithmTemplate>;
+  createTemplate(createAlgorithmDto: unknown): Promise<AlgorithmTemplate>;
   updateTemplate(
     id: string,
-    updateAlgorithmDto: any,
+    updateAlgorithmDto: unknown,
   ): Promise<AlgorithmTemplate>;
   deleteTemplate(id: string): Promise<void>;
 

@@ -25,7 +25,7 @@ import {
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 
 interface AuthenticatedRequest extends Request {
-  user: { id: string; [key: string]: any };
+  user: { id: string; [key: string]: unknown };
 }
 
 @Controller('api/v1/permissions')

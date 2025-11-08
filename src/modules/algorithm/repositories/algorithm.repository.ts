@@ -592,7 +592,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
 
   // Mapping functions
   private mapTemplateFromDb(
-    template: Prisma.AlgorithmTemplateGetPayload<any>,
+    template: Prisma.AlgorithmTemplateGetPayload<Record<string, never>>,
   ): AlgorithmTemplate {
     return {
       id: template.id,
@@ -635,7 +635,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
   }
 
   private mapSubmissionsFromDb(
-    submissions: Prisma.SubmissionGetPayload<any>[],
+    submissions: Prisma.SubmissionGetPayload<Record<string, never>>[],
   ): AlgorithmSubmission[] {
     return submissions.map((submission) =>
       this.mapSubmissionFromDb(submission),
@@ -643,7 +643,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
   }
 
   private mapSubmissionFromDb(
-    submission: Prisma.SubmissionGetPayload<any>,
+    submission: Prisma.SubmissionGetPayload<Record<string, never>>,
   ): AlgorithmSubmission {
     const scheduleData = deserializeScheduleData(submission.scheduleData);
     return {
@@ -661,7 +661,7 @@ export class AlgorithmRepository implements IAlgorithmRepository {
   }
 
   private mapAlgorithmPreviewFromDb(
-    algorithm: Prisma.AlgorithmTemplateGetPayload<any>,
+    algorithm: Prisma.AlgorithmTemplateGetPayload<Record<string, never>>,
   ): AlgorithmPreview {
     return {
       id: algorithm.id,

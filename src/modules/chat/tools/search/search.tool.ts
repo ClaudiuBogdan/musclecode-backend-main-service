@@ -12,7 +12,6 @@ import {
   SearchToolConfig,
 } from './interfaces';
 import { getSearchProvider } from './provider';
-import CallbackHandler from 'langfuse-langchain';
 
 // Define the updated schema including the search engine selector
 const searchToolSchema = z.object({
@@ -44,7 +43,7 @@ export const createSearchTool = (searchConfig: SearchToolConfig) =>
   tool(
     async (
       input: SearchToolSchemaType,
-      config: any,
+      config: Record<string, unknown>,
     ): Promise<string> => {
       const { query } = input;
       const includeDomains = undefined;
@@ -89,14 +88,16 @@ export const createSearchTool = (searchConfig: SearchToolConfig) =>
           `Successfully completed search with engine "${engine}" for query "${query}". Found ${results.length} results.`,
         );
         return output;
-      } catch (error: any) {
+      } catch (error: unknown) {
         // Log the error with context
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorContext = error instanceof Error ? error.stack : undefined;
         logger.error(
-          `Error during search tool execution with engine "${engine}" for query "${query}": ${error.message}`,
-          error, // Include stack trace if available/needed
+          `Error during search tool execution with engine "${engine}" for query "${query}": ${errorMessage}`,
+          errorContext, // Include stack trace if available/needed
         );
 
-        return `Error executing search with engine "${engine}" for query "${query}": ${error.message}`;
+        return `Error executing search with engine "${engine}" for query "${query}": ${errorMessage}`;
       }
     },
     // --- Tool Metadata ---

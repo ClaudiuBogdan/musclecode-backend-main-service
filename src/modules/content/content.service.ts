@@ -11,6 +11,7 @@ import {
   ContentType,
   LinkType,
   PermissionLevel,
+  Prisma,
 } from '@prisma/client';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { ModuleEntity } from './entities/module.entity';
@@ -58,8 +59,8 @@ export class ContentService {
       {
         type: ContentType.MODULE,
         status: status || ContentStatus.DRAFT,
-        body,
-        metadata: metadata || {},
+        body: body as Prisma.InputJsonValue,
+        metadata: (metadata || {}) as Prisma.InputJsonValue,
       },
       userId,
     );
@@ -97,8 +98,8 @@ export class ContentService {
     const lesson = await this.contentRepository.createNode({
       type: ContentType.LESSON,
       status: status || ContentStatus.DRAFT,
-      body,
-      metadata: metadata || {},
+      body: body as Prisma.InputJsonValue,
+      metadata: (metadata || {}) as Prisma.InputJsonValue,
     });
 
     // Link the lesson to the module
@@ -155,8 +156,8 @@ export class ContentService {
         {
           type: ContentType.LESSON,
           status: lesson.status || ContentStatus.DRAFT,
-          body: lesson.body,
-          metadata: lesson.metadata || {},
+          body: lesson.body as Prisma.InputJsonValue,
+          metadata: (lesson.metadata || {}) as Prisma.InputJsonValue,
         },
         userId,
       );
@@ -224,8 +225,8 @@ export class ContentService {
       {
         type: ContentType.EXERCISE,
         status: status || ContentStatus.DRAFT,
-        body: contentBody,
-        metadata: metadata || {},
+        body: contentBody as Prisma.InputJsonValue,
+        metadata: (metadata || {}) as Prisma.InputJsonValue,
       },
       userId,
     );
@@ -276,7 +277,7 @@ export class ContentService {
     }
 
     // Create the update data
-    const updateData: any = {};
+    const updateData: Record<string, unknown> = {};
 
     if (dto.status !== undefined) {
       updateData.status = dto.status;
@@ -284,14 +285,14 @@ export class ContentService {
 
     if (dto.body !== undefined) {
       updateData.body = {
-        ...(node.body as Record<string, any>),
+        ...(node.body as Record<string, unknown>),
         ...dto.body,
       };
     }
 
     if (dto.metadata !== undefined) {
       updateData.metadata = {
-        ...(node.metadata as Record<string, any>),
+        ...(node.metadata as Record<string, unknown>),
         ...dto.metadata,
       };
     }

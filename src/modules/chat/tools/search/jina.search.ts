@@ -39,11 +39,15 @@ export class JinaSearchProvider implements SearchProvider {
       params: queryParams,
     });
     // response.data is an array of { title, url, content } :contentReference[oaicite:12]{index=12}
-    const entries: any[] = response.data.data as {
+    const entries: Array<{
       title: string;
       url: string;
       content: string;
-    }[];
+    }> = response.data.data as Array<{
+      title: string;
+      url: string;
+      content: string;
+    }>;
 
     // Map to standardized SearchResult
     const results: SearchResult[] = entries.map((item) => ({

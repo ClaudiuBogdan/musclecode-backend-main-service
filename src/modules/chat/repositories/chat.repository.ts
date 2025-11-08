@@ -50,7 +50,7 @@ export class ChatRepository {
 
   async createThreadContentNode(
     threadId: string,
-    userId: string,
+    _userId: string,
   ): Promise<ChatThread> {
     const thread = await this.prisma.contentNode.create({
       data: {

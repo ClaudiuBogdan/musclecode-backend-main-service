@@ -127,10 +127,10 @@ export class OnboardingRepository {
     try {
       // Try to get questions based on level
       const result = await this.prisma.$queryRaw`
-        SELECT * FROM "OnboardingQuizQuestion" 
+        SELECT * FROM "OnboardingQuizQuestion"
         WHERE "level" = ${level}
       `;
-      return result as any[];
+      return result as unknown[];
     } catch (error) {
       console.error('Error fetching quiz questions:', error);
       return [];
@@ -143,7 +143,7 @@ export class OnboardingRepository {
       const result = await this.prisma.$queryRaw`
         SELECT MAX("level") as "maxLevel" FROM "OnboardingQuizQuestion"
       `;
-      return (result as any[])[0]?.maxLevel || 0;
+      return (result as Array<{ maxLevel?: number }>)[0]?.maxLevel || 0;
     } catch (error) {
       console.error('Error getting max quiz level:', error);
       return 0;

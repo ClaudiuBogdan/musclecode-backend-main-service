@@ -4,7 +4,7 @@ import logger from './logger';
 import { asyncLocalStorage } from 'src/interceptors/request-context';
 
 interface LogEntry {
-  extraInfo?: string | Record<string, any>;
+  extraInfo?: string | Record<string, unknown>;
 }
 
 @Injectable()
@@ -24,7 +24,7 @@ export class StructuredLogger extends ConsoleLogger implements OnModuleDestroy {
     });
   }
 
-  private formatExtraInfo(extraInfo?: string | Record<string, any>): LogEntry {
+  private formatExtraInfo(extraInfo?: string | Record<string, unknown>): LogEntry {
     const logEntry: LogEntry = {};
 
     if (extraInfo) {
@@ -34,17 +34,17 @@ export class StructuredLogger extends ConsoleLogger implements OnModuleDestroy {
     return logEntry;
   }
 
-  debug(message: string, extraInfo?: string | Record<string, any>): void {
+  debug(message: string, extraInfo?: string | Record<string, unknown>): void {
     this.addDefaultMetadata();
     this.logger.debug(message, this.formatExtraInfo(extraInfo));
   }
 
-  log(message: string, extraInfo?: string | Record<string, any>): void {
+  log(message: string, extraInfo?: string | Record<string, unknown>): void {
     this.addDefaultMetadata();
     this.logger.info(message, this.formatExtraInfo(extraInfo));
   }
 
-  warn(message: string, extraInfo?: string | Record<string, any>): void {
+  warn(message: string, extraInfo?: string | Record<string, unknown>): void {
     this.addDefaultMetadata();
     this.logger.warn(message, this.formatExtraInfo(extraInfo));
   }
@@ -52,7 +52,7 @@ export class StructuredLogger extends ConsoleLogger implements OnModuleDestroy {
   error(
     message: string,
     traceDetails?: string,
-    extraInfo?: string | Record<string, any>,
+    extraInfo?: string | Record<string, unknown>,
   ): void {
     const logEntry = this.formatExtraInfo({
       stack: traceDetails,

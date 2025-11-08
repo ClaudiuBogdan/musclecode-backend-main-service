@@ -55,7 +55,7 @@ export class ContentResearchAgent {
 
           // Extract organic results from the search
           const results = response.data.organic_results
-            ? response.data.organic_results.slice(0, 5).map((r: any) => ({
+            ? response.data.organic_results.slice(0, 5).map((r: { title: string; link: string; snippet: string }) => ({
                 title: r.title,
                 url: r.link,
                 snippet: r.snippet,
@@ -119,7 +119,7 @@ export class ContentResearchAgent {
           subtopics.length > 0 ? subtopics.join(', ') : 'None specified',
       });
 
-      const searchQueriesMsg = await (this.llm as any).invoke(
+      const searchQueriesMsg = await (this.llm as { invoke: (prompt: unknown) => Promise<{ content: string | unknown }> }).invoke(
         formattedQueryPrompt,
       );
       const searchQueriesJson =
@@ -174,7 +174,7 @@ export class ContentResearchAgent {
         searchResults: JSON.stringify(searchResults),
       });
 
-      const researchMsg = await (this.llm as any).invoke(
+      const researchMsg = await (this.llm as { invoke: (prompt: unknown) => Promise<{ content: string | unknown }> }).invoke(
         formattedCompilationPrompt,
       );
       const researchOutput =
@@ -184,7 +184,7 @@ export class ContentResearchAgent {
 
       // Extract content and sources
       let content = researchOutput;
-      let sources: any[] = [];
+      let sources: Array<{ title?: string; url?: string }> = [];
 
       // Try to extract sources from the end of the content
       const sourcesMatch = researchOutput.match(/\[\s*{\s*"title".*}]\s*$/s);

@@ -97,7 +97,7 @@ export function IsValidEventPayload(validationOptions?: ValidationOptions) {
       propertyName: propertyName,
       options: validationOptions,
       validator: {
-        validate(value: any, args: ValidationArguments) {
+        validate(value: unknown, args: ValidationArguments) {
           const event = args.object as EventDto;
           return validateEventPayload(event.type, value);
         },
@@ -139,27 +139,27 @@ export class InteractionResponseDto {
 }
 
 // Validation helper functions
-function validateEventPayload(type: EventType, payload: any): boolean {
+function validateEventPayload(type: EventType, payload: unknown): boolean {
   const DtoClass = getPayloadDtoClass(type);
   if (!DtoClass) return false;
 
-  const validated = plainToInstance(DtoClass, payload);
+  const validated = plainToInstance(DtoClass as new (...args: unknown[]) => object, payload);
   const errors = validateSync(validated as object);
   return errors.length === 0;
 }
 
-function getPayloadValidationErrors(type: EventType, payload: any): string[] {
+function getPayloadValidationErrors(type: EventType, payload: unknown): string[] {
   const DtoClass = getPayloadDtoClass(type);
   if (!DtoClass) return [`Unknown event type: ${type}`];
 
-  const validated = plainToInstance(DtoClass, payload);
+  const validated = plainToInstance(DtoClass as new (...args: unknown[]) => object, payload);
   const errors = validateSync(validated as object);
   return errors
     .map((error) => Object.values(error.constraints || {}).join(', '))
     .filter(Boolean);
 }
 
-function getPayloadDtoClass(type: EventType): any {
+function getPayloadDtoClass(type: EventType): typeof QuizAnswerPayloadDto | typeof QuestionSubmitPayloadDto | undefined {
   const payloadClassMap = {
     [EventType.QUIZ_ANSWER]: QuizAnswerPayloadDto,
     [EventType.QUESTION_SUBMIT]: QuestionSubmitPayloadDto,

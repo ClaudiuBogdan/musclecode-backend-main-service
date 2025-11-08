@@ -12,7 +12,7 @@ import { asyncLocalStorage } from './request-context';
 // Architectural decision: Using a request-scoped interceptor instead of middleware ensures the request.user is available, as middleware runs before guards.
 @Injectable({ scope: Scope.REQUEST })
 export class UserIdInterceptor implements NestInterceptor {
-  intercept(context: ExecutionContext, next: CallHandler): Observable<any> {
+  intercept(context: ExecutionContext, next: CallHandler): Observable<unknown> {
     const { user } = context.switchToHttp().getRequest();
 
     if (!user?.id) return next.handle();

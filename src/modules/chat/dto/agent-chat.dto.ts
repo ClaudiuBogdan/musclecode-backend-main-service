@@ -308,7 +308,7 @@ export class TokenUsageDto {
 // Main Chat Message DTO
 export class ContentBlockUnion {
   static create(
-    block: any,
+    block: { type: string; [key: string]: unknown },
   ): TextBlockDto | ToolUseContentBlockDto | ToolResultContentBlockDto {
     if (!block || !block.type) {
       throw new Error('Invalid content block: type is required');

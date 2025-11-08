@@ -6,6 +6,13 @@ interface SignozTransportOptions extends TransportStreamOptions {
   otelLogger: Logger;
 }
 
+interface LogInfo {
+  level: string;
+  message: string;
+  attributes?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
 export class SignozTransport extends Transport {
   private otelLogger: Logger;
 
@@ -26,7 +33,7 @@ export class SignozTransport extends Transport {
     return severityMap[level.toLowerCase()] || 9;
   }
 
-  log(info: any, callback: () => void): void {
+  log(info: LogInfo, callback: () => void): void {
     setImmediate(() => this.emit('logged', info));
 
     // Use OpenTelemetry logger if available
@@ -37,13 +44,13 @@ export class SignozTransport extends Transport {
 
     const attributes = {
       message: info.message,
-      ...info.attributes,
+      ...(info.attributes || {}),
     };
 
     this.otelLogger.emit({
       severityNumber: this.getSeverityNumber(info.level),
       severityText: info.level.toUpperCase(),
-      body,
+      body: JSON.stringify(body),
       attributes,
       timestamp: Date.now(),
     });

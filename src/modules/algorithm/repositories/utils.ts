@@ -1,4 +1,4 @@
-import { InputJsonValue } from '@prisma/client/runtime/library';
+import { InputJsonValue, JsonValue } from '@prisma/client/runtime/library';
 import { SchedulingState } from 'src/modules/scheduler/types/scheduler.types';
 
 export const serializeScheduleData = (
@@ -11,10 +11,11 @@ export const serializeScheduleData = (
   };
 };
 
-export const deserializeScheduleData = (scheduleData: any): SchedulingState => {
+export const deserializeScheduleData = (scheduleData: JsonValue): SchedulingState => {
+  const data = scheduleData as Record<string, unknown>;
   return {
-    ...scheduleData,
-    due: new Date(scheduleData.due),
-    lastReview: new Date(scheduleData.lastReview),
+    ...(data as Omit<SchedulingState, 'due' | 'lastReview'>),
+    due: new Date((data.due as string) || new Date().toISOString()),
+    lastReview: new Date((data.lastReview as string) || new Date().toISOString()),
   };
 };

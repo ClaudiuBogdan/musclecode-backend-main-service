@@ -8,11 +8,17 @@ export class AuthService {
 
   async validateUser(token: string): Promise<UserContext> {
     try {
-      const userInfo = await this.keycloakService.getUserInfo(token);
+      const userInfoRaw = await this.keycloakService.getUserInfo(token);
 
-      if (!userInfo) {
+      if (!userInfoRaw) {
         throw new UnauthorizedException('User not found');
       }
+
+      const userInfo = userInfoRaw as {
+        sub: string;
+        email: string;
+        realm_access?: { roles: string[] };
+      };
 
       return {
         id: userInfo.sub,

@@ -62,7 +62,7 @@ export class OnboardingService {
 
     if (onboardingState.quizResults) {
       response.quizResults = {
-        answers: (onboardingState.quizResults.answers as any).answers || [],
+        answers: ((onboardingState.quizResults.answers as { answers?: unknown[] }).answers || []) as QuizAnswerDto[],
       };
     }
 

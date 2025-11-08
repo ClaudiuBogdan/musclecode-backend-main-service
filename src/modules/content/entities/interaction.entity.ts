@@ -5,7 +5,7 @@ export interface InteractionEvent {
   id: string; // Unique ID for this specific event (e.g., uuid)
   type: string; // Type of interaction event (e.g., 'quiz_attempt', 'answer_selected', 'flashcard_flip', 'progress_reset')
   timestamp: Date; // Timestamp of when the event occurred
-  payload: Record<string, any>; // Data specific to this event (e.g., { answer: "A", isCorrect: true })
+  payload: unknown; // Data specific to this event (e.g., { answer: "A", isCorrect: true })
   version: '1.0'; // Schema version for future migrations
 }
 

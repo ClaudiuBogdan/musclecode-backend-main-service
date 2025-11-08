@@ -4,8 +4,8 @@ export class LessonEntity {
   id: string;
   moduleId?: string;
   status: ContentStatus;
-  body: Record<string, any>;
-  metadata: Record<string, any>;
+  body: Record<string, unknown>;
+  metadata: Record<string, unknown>;
   userId: string;
   createdAt: Date;
   updatedAt: Date;
@@ -14,8 +14,8 @@ export class LessonEntity {
     this.id = node.id;
     this.moduleId = node.moduleId;
     this.status = node.status;
-    this.body = node.body as Record<string, any>;
-    this.metadata = node.metadata as Record<string, any>;
+    this.body = node.body as Record<string, unknown>;
+    this.metadata = node.metadata as Record<string, unknown>;
     this.createdAt = node.createdAt;
     this.updatedAt = node.updatedAt;
   }

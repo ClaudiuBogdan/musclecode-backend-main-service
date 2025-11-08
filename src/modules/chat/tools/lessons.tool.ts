@@ -29,7 +29,7 @@ import CallbackHandler from 'langfuse-langchain';
  * ------------------------------------------------------------------
  *  🎓  Teacher-Agent Instruction Set
  * ------------------------------------------------------------------
- *  KEEP THIS CENTRAL!  All lesson-generation behaviour lives here so
+ *  KEEP THIS CENTRAL! All lesson-generation behaviour lives here so
  *  we can tune pedagogy in a single place without hunting through
  *  template strings dotted around the codebase.
  * ------------------------------------------------------------------
@@ -78,7 +78,7 @@ export const createLessonsTool = (
   tool(
     async (
       input: CreateLessonsSchemaType,
-      config?: any,
+      config?: { metadata?: { userId?: string }; [key: string]: unknown },
     ): Promise<string> => {
       try {
         const userId = config?.metadata?.userId as string;
@@ -156,7 +156,7 @@ ${lessonsContext}
           });
 
           // ───────────── Stream generation ─────────────
-          const stream = await (teacherAgent as any).stream(createCoursePrompt, {
+          const stream = await (teacherAgent as unknown as { stream: (prompt: unknown, config: unknown) => AsyncIterable<{ content: string }> }).stream(createCoursePrompt, {
             ...config,
             tags: ['skip_client_stream'],
             callbacks: langfuseHandler ? [langfuseHandler] : undefined,
@@ -240,7 +240,7 @@ export const editLessonTool = (
   tool(
     async (
       input: EditLessonSchemaType,
-      config?: any,
+      config?: { metadata?: { userId?: string }; [key: string]: unknown },
     ): Promise<string> => {
       try {
         const userId = config?.metadata?.userId as string;
@@ -303,7 +303,7 @@ ${lessonContext}
         });
 
         // ───────────── Stream generation ─────────────
-        const stream = await (teacherAgent as any).stream(editLessonPrompt, {
+        const stream = await (teacherAgent as unknown as { stream: (prompt: unknown, config: unknown) => AsyncIterable<{ content: string }> }).stream(editLessonPrompt, {
           ...config,
           tags: ['skip_client_stream'],
           callbacks: langfuseHandler ? [langfuseHandler] : undefined,

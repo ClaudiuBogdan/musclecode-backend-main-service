@@ -54,7 +54,7 @@ export class RedBlackTree {
   private insertFixup(z: Node): void {
     while (z.parent !== null && z.parent.color === Color.RED) {
       if (z.parent === z.parent.parent?.left) {
-        let y = z.parent.parent.right;
+        const y = z.parent.parent.right;
         if (y !== null && y.color === Color.RED) {
           // Case 1: uncle is red
           z.parent.color = Color.BLACK;
@@ -76,7 +76,7 @@ export class RedBlackTree {
         }
       } else {
         // Mirror case: z.parent is the right child
-        let y = z.parent.parent?.left;
+        const y = z.parent.parent?.left;
         if (y !== null && y.color === Color.RED) {
           z.parent.color = Color.BLACK;
           y.color = Color.BLACK;
@@ -101,7 +101,7 @@ export class RedBlackTree {
   }
 
   private leftRotate(x: Node): void {
-    let y = x.right;
+    const y = x.right;
     if (y === null) return;
     x.right = y.left;
     if (y.left !== null) {
@@ -120,7 +120,7 @@ export class RedBlackTree {
   }
 
   private rightRotate(y: Node): void {
-    let x = y.left;
+    const x = y.left;
     if (x === null) return;
     y.left = x.right;
     if (x.right !== null) {

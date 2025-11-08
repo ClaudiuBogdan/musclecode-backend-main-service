@@ -14,7 +14,7 @@ const { combine, timestamp, printf } = winston.format;
 
 // Custom format function that converts logs into OpenTelemetry log format
 const otelLogFormat = printf(({ level, message, timestamp, ...metadata }) => {
-  const logEntry: Record<string, any> = {
+  const logEntry: Record<string, unknown> = {
     ts: timestamp, // Timestamp in ISO format
     severity: level.toUpperCase(), // Convert level to uppercase
     body: { message }, // Main log message placed in the body field

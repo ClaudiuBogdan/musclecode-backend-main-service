@@ -25,9 +25,9 @@ export class CreateExerciseDto {
 
   @IsOptional()
   @IsObject()
-  body?: Record<string, any>;
+  body?: Record<string, unknown>;
 
   @IsOptional()
   @IsObject()
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
 }

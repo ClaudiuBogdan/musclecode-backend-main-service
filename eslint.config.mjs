@@ -1,28 +1,29 @@
 import js from '@eslint/js';
-import tsParser from '@typescript-eslint/parser';
 import tsPlugin from '@typescript-eslint/eslint-plugin';
 
+// Flat config (ESLint v9)
 export default [
+  // Ignore build artifacts
+  { ignores: ['dist/**', 'node_modules/**', 'src/modules/algorithm/seed/**', '**/*.spec.ts'] },
+
+  // Base JS recommended rules
   js.configs.recommended,
+
+  // TypeScript recommended rules (non type-checked for broader compatibility)
+  ...tsPlugin.configs['flat/recommended'],
+
+  // Project-specific TS settings and overrides
   {
-    files: ['**/*.ts'],
-    ignores: ['dist/**', 'node_modules/**'],
-    languageOptions: {
-      parser: tsParser,
-      parserOptions: {
-        project: ['./tsconfig.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-    },
-    plugins: {
-      '@typescript-eslint': tsPlugin,
-    },
+    files: ['**/*.ts', '**/*.tsx', '**/*.mts', '**/*.cts'],
+    // No parserOptions.project to avoid type-aware lint requiring TS project inclusion
+    languageOptions: {},
     rules: {
-      ...tsPlugin.configs.recommended.rules,
-      ...tsPlugin.configs['recommended-type-checked'].rules,
-      '@typescript-eslint/no-explicit-any': 'off',
+      // Local adjustments
+      '@typescript-eslint/no-unused-vars': [
+        'error',
+        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
+      ],
+      '@typescript-eslint/no-explicit-any': 'error',
     },
   },
 ];
-
-

@@ -36,7 +36,7 @@ export class BraveSearchProvider implements SearchProvider {
       params: { q, count: maxResults }, // :contentReference[oaicite:9]{index=9}
     });
 
-    const items: any[] = response.data.web?.results || []; // :contentReference[oaicite:10]{index=10}
+    const items: Array<{ url: string; title: string; description?: string; snippet?: string }> = (response.data.web?.results || []) as Array<{ url: string; title: string; description?: string; snippet?: string }>; // :contentReference[oaicite:10]{index=10}
 
     // Map to your standardized shape
     const results: SearchResult[] = items.map((item) => ({

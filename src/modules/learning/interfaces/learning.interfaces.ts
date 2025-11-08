@@ -17,7 +17,7 @@ export interface ContentLink {
 export interface InteractionData {
   id: string;
   type: InteractionType;
-  body: any; // TODO: Define the body type
+  body: unknown; // TODO: Define the body type
 }
 
 // Content model interfaces.

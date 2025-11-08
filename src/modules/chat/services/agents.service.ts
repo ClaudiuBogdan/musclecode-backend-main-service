@@ -161,7 +161,7 @@ export class AgentsService implements OnModuleInit {
     }
 
     function* startToolUseBlock(
-      evt: any,
+      evt: { name: string; run_id: string; [key: string]: unknown },
       runId: string,
       ts: string,
     ): Generator<ServerSentEvent> {
@@ -188,7 +188,7 @@ export class AgentsService implements OnModuleInit {
     }
 
     function* startToolResultBlock(
-      evt: any,
+      evt: { data: { output?: unknown; name?: string; [key: string]: unknown }; [key: string]: unknown },
       runId: string,
       ts: string,
     ): Generator<ServerSentEvent> {
@@ -198,9 +198,10 @@ export class AgentsService implements OnModuleInit {
       const toolUseId = runId ? idMap.get(runId) : undefined;
 
       const data = evt.data;
-      let result: any = data.output ?? '';
-      if (typeof result === 'object') {
-        result = result.content ?? result.text ?? JSON.stringify(result);
+      let result: unknown = data.output ?? '';
+      if (typeof result === 'object' && result !== null) {
+        const obj = result as Record<string, unknown>;
+        result = obj.content ?? obj.text ?? JSON.stringify(result);
       }
 
       yield {
@@ -232,7 +233,7 @@ export class AgentsService implements OnModuleInit {
           if (skip) {
             break;
           }
-          const chunk = (evt.data as any).chunk as AIMessageChunk;
+          const chunk = (evt.data as { chunk: AIMessageChunk }).chunk;
           const text = typeof chunk.content === 'string' ? chunk.content : '';
           if (!text) break;
 
@@ -449,12 +450,12 @@ export class AgentsService implements OnModuleInit {
     }
   }
 
-  private extractText(content: any[] | string): string {
+  private extractText(content: unknown[] | string): string {
     if (typeof content === 'string') return content;
     if (!Array.isArray(content)) return String(content || '');
     return content
-      .filter((b) => b.type === 'text' || typeof b === 'string')
-      .map((b) => (typeof b === 'string' ? b : b.text))
+      .filter((b) => (typeof b === 'object' && b !== null && (b as { type?: string }).type === 'text') || typeof b === 'string')
+      .map((b) => (typeof b === 'string' ? b : (b as { text?: string }).text ?? ''))
       .join('\n');
   }
 

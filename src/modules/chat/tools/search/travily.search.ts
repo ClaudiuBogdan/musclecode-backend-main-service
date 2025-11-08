@@ -25,7 +25,7 @@ export class TavilySearchProvider implements SearchProvider {
     this.logger.log(`Executing Tavily search for query "${params.query}"`);
 
     // Build request body
-    const body: any = {
+    const body: Record<string, unknown> = {
       query: params.query,
       topic: 'general',
       search_depth: 'basic',
@@ -42,7 +42,7 @@ export class TavilySearchProvider implements SearchProvider {
       // Send POST /search
       const response = await this.client.post('/search', body);
       // Map results to SearchResult[]
-      const items: any[] = response.data.results || [];
+      const items: Array<{ url: string; title: string; content: string }> = (response.data.results || []) as Array<{ url: string; title: string; content: string }>;
       const results: SearchResult[] = items.map((item) => ({
         url: item.url,
         title: item.title,
@@ -52,9 +52,11 @@ export class TavilySearchProvider implements SearchProvider {
         `Found ${results.length} results from Tavily for query "${params.query}"`,
       );
       return results;
-    } catch (error: any) {
-      const msg = `Error during Tavily search for query "${params.query}": ${error.message}`;
-      this.logger.error(msg, error);
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      const errorContext = error instanceof Error ? error.stack : undefined;
+      const msg = `Error during Tavily search for query "${params.query}": ${errorMessage}`;
+      this.logger.error(msg, errorContext);
       throw new Error(msg);
     }
   }

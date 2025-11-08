@@ -26,7 +26,7 @@ export class PerplexitySearchProvider implements SearchProvider {
     this.logger.log(`Executing Perplexity search: "${query}"`);
 
     // Build the payload
-    const body: any = {
+    const body: Record<string, unknown> = {
       model: 'sonar', // lightweight, search‑optimized model :contentReference[oaicite:6]{index=6}
       messages: [
         {
@@ -55,7 +55,7 @@ export class PerplexitySearchProvider implements SearchProvider {
     const data = response.data;
 
     // Map any provided structured sources, else fall back to the main answer
-    const sources: any[] = data.sources || []; // some SDKs unwrap sources array :contentReference[oaicite:13]{index=13}
+    const sources: Array<{ url: string; title: string; snippet?: string; content?: string }> = (data.sources || []) as Array<{ url: string; title: string; snippet?: string; content?: string }>; // some SDKs unwrap sources array :contentReference[oaicite:13]{index=13}
     const resultsFromSources: SearchResult[] = sources.map((src) => ({
       url: src.url,
       title: src.title,

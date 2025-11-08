@@ -28,7 +28,7 @@ export const createModuleTool = (
   tool(
     async (
       input: CreateModuleSchemaType,
-      config?: any,
+      config?: { metadata?: { userId?: string }; [key: string]: unknown },
     ): Promise<string> => {
       const userId = config?.metadata?.userId as string | undefined;
 
@@ -66,7 +66,7 @@ ${input.moduleContext}
         moduleSchema: JSON.stringify(zodToJsonSchema(moduleSchema)),
       });
 
-      const stream = await (teacherAgent as any).stream(createModulePrompt, {
+      const stream = await (teacherAgent as unknown as { stream: (prompt: unknown, config: unknown) => AsyncIterable<{ content: string }> }).stream(createModulePrompt, {
         ...config,
         tags: ['skip_client_stream'],
         callbacks: langfuseHandler ? [langfuseHandler] : undefined,
@@ -117,7 +117,7 @@ export const editModuleTool = (
   tool(
     async (
       input: EditModuleSchemaType,
-      config?: any,
+      config?: { metadata?: { userId?: string }; [key: string]: unknown },
     ): Promise<string> => {
       const userId = config?.metadata?.userId as string;
 
@@ -165,7 +165,7 @@ ${input.moduleContext}
         streaming: true,
       });
 
-      const stream = await (teacherAgent as any).stream(editModulePrompt, {
+      const stream = await (teacherAgent as unknown as { stream: (prompt: unknown, config: unknown) => AsyncIterable<{ content: string }> }).stream(editModulePrompt, {
         ...config,
         tags: ['skip_client_stream'],
         callbacks: langfuseHandler ? [langfuseHandler] : undefined,

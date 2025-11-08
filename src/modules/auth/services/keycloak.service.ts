@@ -55,7 +55,7 @@ export class KeycloakService implements OnModuleInit {
     }
   }
 
-  async getUserInfo(token: string): Promise<any> {
+  async getUserInfo(token: string): Promise<unknown> {
     const realm = this.configService.get<string>('KEYCLOAK_REALM');
     const baseUrl = this.configService.get<string>('KEYCLOAK_AUTH_SERVER_URL');
 

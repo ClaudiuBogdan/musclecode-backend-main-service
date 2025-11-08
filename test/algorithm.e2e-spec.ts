@@ -108,7 +108,7 @@ describe('Algorithm E2E Tests', () => {
         .set('user-id', 'test-user')
         .expect(200);
 
-      expect(dailyResponse.body.some((alg: any) => alg.id === templateId)).toBe(
+      expect(dailyResponse.body.some((alg: { id: string }) => alg.id === templateId)).toBe(
         true,
       );
 
@@ -220,14 +220,14 @@ describe('Algorithm E2E Tests', () => {
       );
 
       // Make concurrent requests
-      const requests = templates.map((template: any) =>
+      const requests = templates.map((template: { id: string }) =>
         request(app.getHttpServer())
           .get(`/api/v1/algorithms/practice/${template.id}`)
           .set('user-id', 'test-user'),
       );
 
       const responses = await Promise.all(requests);
-      responses.forEach((response: any) => expect(response.status).toBe(200));
+      responses.forEach((response: { status: number }) => expect(response.status).toBe(200));
     });
 
     it('should handle large data sets', async () => {
