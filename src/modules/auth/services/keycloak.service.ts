@@ -17,6 +17,11 @@ export class KeycloakService implements OnModuleInit {
     await this.fetchPublicKey();
   }
 
+  private buildRealmUrl(baseUrl: string, realm: string): string {
+    const normalizedBaseUrl = baseUrl.endsWith('/') ? baseUrl : `${baseUrl}/`;
+    return new URL(`realms/${realm}`, normalizedBaseUrl).toString();
+  }
+
   private async fetchPublicKey(): Promise<void> {
     const realm = this.configService.get<string>('KEYCLOAK_REALM');
     const baseUrl = this.configService.get<string>('KEYCLOAK_AUTH_SERVER_URL');
@@ -25,13 +30,32 @@ export class KeycloakService implements OnModuleInit {
       throw new Error('Missing required Keycloak configuration');
     }
 
-    const response = await fetch(`${baseUrl}/realms/${realm}`);
+    const url = this.buildRealmUrl(baseUrl, realm);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 8_000);
+
+    const response = await fetch(url, {
+      headers: { Accept: 'application/json' },
+      signal: controller.signal,
+    }).finally(() => clearTimeout(timeout));
 
     if (!response.ok) {
-      throw new Error('Failed to fetch Keycloak public key');
+      const errorBody = await response.text().catch(() => '[unavailable]');
+      throw new Error(
+        `Failed to fetch Keycloak public key (status=${response.status} ${response.statusText}) from ${url}. Body: ${errorBody.slice(
+          0,
+          500,
+        )}`,
+      );
     }
 
     const data = (await response.json()) as { public_key: string };
+    if (!data?.public_key) {
+      throw new Error(
+        `Keycloak realm response did not include public_key at ${url}`,
+      );
+    }
     this.publicKey = `-----BEGIN PUBLIC KEY-----\n${data.public_key}\n-----END PUBLIC KEY-----`;
   }
 
