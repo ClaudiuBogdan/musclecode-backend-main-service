@@ -5,7 +5,7 @@ metadata:
   namespace: musclecode
 spec:
   hosts:
-  - "api.musclecode.devostack.com"
+  - "api.musclecode.io"
   gateways:
   - istio-system/istio-https-gateway
   http:
