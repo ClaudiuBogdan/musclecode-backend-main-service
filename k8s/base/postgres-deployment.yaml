@@ -19,8 +19,7 @@ spec:
       - pg_stat_statements
     parameters:
       max_connections: "100"
-      shared_buffers: "256MB"
+      shared_buffers: "512MB"
       
   storage:
-    size: 10Gi
-    storageClass: "microk8s-hostpath"
+    size: 50Gi
