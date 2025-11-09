@@ -5,7 +5,6 @@ import {
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
-import fetch from 'node-fetch';
 import type { DecodedToken } from '../interfaces/decoded-token.interface';
 
 @Injectable()

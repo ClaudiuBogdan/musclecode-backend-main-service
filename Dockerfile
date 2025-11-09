@@ -1,5 +1,5 @@
 # Build stage
-FROM node:20.16-alpine3.19 AS builder
+FROM node:24.11.0-alpine3.22 AS builder
 
 # Create non-root user
 RUN addgroup -S appgroup && \
@@ -25,7 +25,7 @@ RUN yarn build && \
     chown -R appuser:appgroup /app
 
 # Production stage
-FROM node:20.16-alpine3.19 AS production
+FROM node:24.11.0-alpine3.22 AS production
 
 # Add tini and create non-root user
 RUN apk add --no-cache tini && \
