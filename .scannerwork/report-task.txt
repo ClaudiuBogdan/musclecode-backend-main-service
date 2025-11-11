@@ -1,0 +1,6 @@
+projectKey=ClaudiuBogdan_musclecode-backend-main-service_5a123eef-069d-482f-963a-7852d2c1c107
+serverUrl=https://sonar.devostack.com
+serverVersion=25.9.0.112764
+dashboardUrl=https://sonar.devostack.com/dashboard?id=ClaudiuBogdan_musclecode-backend-main-service_5a123eef-069d-482f-963a-7852d2c1c107
+ceTaskId=084b859a-380c-493e-9202-82ab5dd5de94
+ceTaskUrl=https://sonar.devostack.com/api/ce/task?id=084b859a-380c-493e-9202-82ab5dd5de94
