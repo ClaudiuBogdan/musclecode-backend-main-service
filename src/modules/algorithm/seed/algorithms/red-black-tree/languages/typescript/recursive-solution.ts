@@ -48,11 +48,13 @@ export class RedBlackTree {
     while (z.parent !== null && z.parent.color === Color.RED) {
       if (z.parent === z.parent.parent?.left) {
         const y = z.parent.parent.right;
-        if (y !== null && y.color === Color.RED) {
+        if (y !== null && y !== undefined && y.color === Color.RED) {
           z.parent.color = Color.BLACK;
           y.color = Color.BLACK;
-          z.parent.parent.color = Color.RED;
-          z = z.parent.parent;
+          if (z.parent.parent) {
+            z.parent.parent.color = Color.RED;
+            z = z.parent.parent;
+          }
         } else {
           if (z === z.parent.right) {
             z = z.parent;
@@ -68,11 +70,15 @@ export class RedBlackTree {
         }
       } else {
         const y = z.parent.parent?.left;
-        if (y !== null && y.color === Color.RED) {
-          z.parent.color = Color.BLACK;
-          y.color = Color.BLACK;
-          z.parent.parent.color = Color.RED;
-          z = z.parent.parent;
+        if (y !== null && y !== undefined && y.color === Color.RED) {
+          if (z.parent) {
+            z.parent.color = Color.BLACK;
+            y.color = Color.BLACK;
+            if (z.parent.parent) {
+              z.parent.parent.color = Color.RED;
+              z = z.parent.parent;
+            }
+          }
         } else {
           if (z === z.parent.left) {
             z = z.parent;

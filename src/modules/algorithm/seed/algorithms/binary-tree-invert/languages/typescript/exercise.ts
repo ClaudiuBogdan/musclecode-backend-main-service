@@ -19,4 +19,5 @@ export class TreeNode {
  */
 export function invertTree(root: TreeNode | null): TreeNode | null {
   // TODO: Implement the binary tree inversion algorithm
+  throw new Error('Not implemented');
 } 

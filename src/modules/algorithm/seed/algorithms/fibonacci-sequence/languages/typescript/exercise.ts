@@ -6,4 +6,5 @@
  */
 export function fibonacciSequence(n: number): number[] {
   // TODO: Implement the Fibonacci sequence algorithm
+  throw new Error('Not implemented');
 }

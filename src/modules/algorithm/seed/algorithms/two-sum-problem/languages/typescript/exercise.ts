@@ -14,4 +14,5 @@ export function twoSum(
   target: number,
 ): [number, number] | undefined {
   // TODO: Implement the twoSum function
+  throw new Error('Not implemented');
 }

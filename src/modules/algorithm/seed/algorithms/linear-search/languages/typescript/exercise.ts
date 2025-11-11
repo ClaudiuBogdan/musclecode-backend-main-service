@@ -5,4 +5,5 @@
  */
 export function linearSearch(nums: number[], target: number): number {
   // TODO: Implement the linear search algorithm
+  throw new Error('Not implemented');
 }

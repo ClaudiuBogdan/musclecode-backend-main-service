@@ -68,29 +68,37 @@ export class RedBlackTree {
             this.leftRotate(z);
           }
           // Case 3: line formation
-          z.parent.color = Color.BLACK;
-          if (z.parent.parent) {
-            z.parent.parent.color = Color.RED;
-            this.rightRotate(z.parent.parent);
+          if (z.parent) {
+            z.parent.color = Color.BLACK;
+            if (z.parent.parent) {
+              z.parent.parent.color = Color.RED;
+              this.rightRotate(z.parent.parent);
+            }
           }
         }
       } else {
         // Mirror case: z.parent is the right child
         const y = z.parent.parent?.left;
-        if (y !== null && y.color === Color.RED) {
-          z.parent.color = Color.BLACK;
-          y.color = Color.BLACK;
-          z.parent.parent.color = Color.RED;
-          z = z.parent.parent;
+        if (y !== null && y !== undefined && y.color === Color.RED) {
+          if (z.parent) {
+            z.parent.color = Color.BLACK;
+            y.color = Color.BLACK;
+            if (z.parent.parent) {
+              z.parent.parent.color = Color.RED;
+              z = z.parent.parent;
+            }
+          }
         } else {
           if (z === z.parent.left) {
             z = z.parent;
             this.rightRotate(z);
           }
-          z.parent.color = Color.BLACK;
-          if (z.parent.parent) {
-            z.parent.parent.color = Color.RED;
-            this.leftRotate(z.parent.parent);
+          if (z.parent) {
+            z.parent.color = Color.BLACK;
+            if (z.parent.parent) {
+              z.parent.parent.color = Color.RED;
+              this.leftRotate(z.parent.parent);
+            }
           }
         }
       }

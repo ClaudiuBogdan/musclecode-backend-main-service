@@ -12,4 +12,5 @@ export type TreeNode = {
  */
 export function binaryTreeDFS(root: TreeNode | null): (number | string)[] {
   // TODO: Implement the DFS traversal algorithm
+  throw new Error('Not implemented');
 }

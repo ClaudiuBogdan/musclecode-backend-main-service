@@ -8,4 +8,5 @@
  */
 export function isPalindrome(s: string): boolean {
   // TODO: Implement the palindrome check algorithm
+  throw new Error('Not implemented');
 }

@@ -1,8 +1,12 @@
 import { primsAlgorithm } from './exercise';
 
+type Graph = {
+  [node: number]: [number, number][];
+};
+
 describe("Prim's Algorithm (Adjacency List)", () => {
   it('should return the correct MST weight and edges for a simple graph', () => {
-    const graph = {
+    const graph: Graph = {
       0: [
         [1, 4],
         [7, 8],

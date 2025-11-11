@@ -9,13 +9,16 @@ export class MaxHeap {
 
   extractMax(): number | undefined {
     // TODO: Extract the maximum value from the max heap
+    throw new Error('Not implemented');
   }
 
   peek(): number | undefined {
     // TODO: Return the maximum value without removing it
+    throw new Error('Not implemented');
   }
 
   size(): number {
     // TODO: Return the number of elements in the max heap
+    throw new Error('Not implemented');
   }
 }

@@ -7,7 +7,7 @@
  */
 export function maxSubarraySum(nums: number[], k: number): number {
   if (nums.length < k || k <= 0) {
-    return undefined;
+    return -Infinity;
   }
 
   let maxSum = 0;

@@ -9,6 +9,7 @@ export class RingBuffer<T> {
 
   dequeue(): T | undefined {
     // TODO: Implement the dequeue method
+    throw new Error('Not implemented');
   }
 
   isFull(): boolean {

@@ -16,13 +16,16 @@ export class StackImpl implements Stack {
 
   pop(): number | undefined {
     // TODO: Implement the pop method
+    throw new Error('Not implemented');
   }
 
   peek(): number | undefined {
     // TODO: Implement the peek method
+    throw new Error('Not implemented');
   }
 
   isEmpty(): boolean {
     // TODO: Implement the isEmpty method
+    throw new Error('Not implemented');
   }
 }

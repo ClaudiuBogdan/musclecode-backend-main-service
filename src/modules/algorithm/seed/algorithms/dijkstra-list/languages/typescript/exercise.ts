@@ -32,4 +32,5 @@ type DistanceMap = {
  */
 export function dijkstra(graph: Graph, source: string): DistanceMap {
   // TODO: Implement Dijkstra's algorithm
+  throw new Error('Not implemented');
 }

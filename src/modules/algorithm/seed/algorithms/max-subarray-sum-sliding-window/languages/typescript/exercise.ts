@@ -7,4 +7,5 @@
  */
 export function maxSubarraySum(nums: number[], k: number): number {
   // TODO: Implement the maxSubarraySum function
+  throw new Error('Not implemented');
 }

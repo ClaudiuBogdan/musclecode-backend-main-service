@@ -1,5 +1,7 @@
 import { kruskal } from './exercise';
 
+type Edge = [number, number, number];
+
 describe("Kruskal's Algorithm", () => {
   it('should return the minimum spanning tree for a given graph', () => {
     const vertices = 4;

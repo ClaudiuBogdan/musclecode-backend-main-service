@@ -41,6 +41,7 @@ class DoublyLinkedList<T> {
   // Method to find a node with given data
   find(data: T): Node<T> | null {
     // TODO: Implement the find method
+    throw new Error('Not implemented');
   }
 
   // Method to print the list in forward direction

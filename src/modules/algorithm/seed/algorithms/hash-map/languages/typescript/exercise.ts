@@ -9,6 +9,7 @@ export class HashMap<K, V> {
 
   get(key: K): V | undefined {
     // TODO: Implement the get method
+    throw new Error('Not implemented');
   }
 
   remove(key: K): void {
@@ -17,9 +18,11 @@ export class HashMap<K, V> {
 
   size(): number {
     // TODO: Implement the size method
+    throw new Error('Not implemented');
   }
 
   isEmpty(): boolean {
     // TODO: Implement the isEmpty method
+    throw new Error('Not implemented');
   }
 }

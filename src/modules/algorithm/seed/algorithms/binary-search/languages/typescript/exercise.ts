@@ -5,4 +5,5 @@
  */
 export function binarySearch(nums: number[], target: number): number {
   // TODO: Implement binary search algorithm
+  throw new Error('Not implemented');
 }

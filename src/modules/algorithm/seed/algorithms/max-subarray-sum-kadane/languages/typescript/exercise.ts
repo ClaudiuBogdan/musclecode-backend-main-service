@@ -6,4 +6,5 @@
  */
 export function maxSubarraySum(nums: number[]): number {
   // TODO: Implement Kadane's Algorithm
+  throw new Error('Not implemented');
 }

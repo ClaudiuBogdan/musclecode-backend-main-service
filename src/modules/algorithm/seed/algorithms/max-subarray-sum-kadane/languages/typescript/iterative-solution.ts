@@ -6,7 +6,7 @@
  */
 export function maxSubarraySum(nums: number[]): number {
   if (!nums || nums.length === 0) {
-    return undefined;
+    return -Infinity;
   }
 
   let maxSoFar = nums[0];

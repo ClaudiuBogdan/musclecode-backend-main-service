@@ -17,13 +17,16 @@ export class Queue {
 
   isEmpty(): boolean {
     // TODO: Implement the isEmpty method
+    throw new Error('Not implemented');
   }
 
   isFull(): boolean {
     // TODO: Implement the isFull method
+    throw new Error('Not implemented');
   }
 
   size(): number {
     // TODO: Implement the size method
+    throw new Error('Not implemented');
   }
 }

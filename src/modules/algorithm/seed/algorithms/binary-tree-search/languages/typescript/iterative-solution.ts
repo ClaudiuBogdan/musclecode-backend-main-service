@@ -25,7 +25,7 @@ export function insert(root: TreeNode | null, key: number): TreeNode {
   if (!root) {
     return newNode;
   }
-  let current = root;
+  let current: TreeNode | null = root;
   let parent: TreeNode | null = null;
   while (current) {
     parent = current;

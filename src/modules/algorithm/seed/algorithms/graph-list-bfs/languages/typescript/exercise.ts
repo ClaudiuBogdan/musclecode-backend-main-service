@@ -10,4 +10,5 @@ export function bfs<T>(
   start: string | number,
 ): (string | number)[] {
   // TODO: Implement the BFS algorithm
+  throw new Error('Not implemented');
 }

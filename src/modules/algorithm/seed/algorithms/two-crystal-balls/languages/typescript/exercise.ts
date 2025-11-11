@@ -7,4 +7,5 @@
  */
 export function twoCrystalBalls(breaks: boolean[]): number {
   // TODO: Implement the two crystal balls algorithm
+  throw new Error('Not implemented');
 }

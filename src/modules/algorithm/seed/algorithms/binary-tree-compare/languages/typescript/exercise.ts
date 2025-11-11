@@ -28,4 +28,5 @@ export class TreeNode {
  */
 export function isSameTree(p: TreeNode | null, q: TreeNode | null): boolean {
   // TODO: Implement the binary tree compare algorithm
+  throw new Error('Not implemented');
 }

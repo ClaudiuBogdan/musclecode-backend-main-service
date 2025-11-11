@@ -8,4 +8,5 @@
  */
 export function bfsMatrix(graph: number[][], startVertex: number): number[] {
   // TODO: Implement the BFS algorithm
+  throw new Error('Not implemented');
 }
