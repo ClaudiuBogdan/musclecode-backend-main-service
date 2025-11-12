@@ -44,7 +44,7 @@ jobs:
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
 
       - name: Get Secrets from Bitwarden
-        uses: bitwarden/sm-action@v1
+        uses: bitwarden/sm-action@v2
         with:
           access_token: ${{ secrets.BW_ACCESS_TOKEN }}
           secrets: |
