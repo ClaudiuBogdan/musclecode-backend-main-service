@@ -6,6 +6,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import * as jwt from 'jsonwebtoken';
 import type { DecodedToken } from '../interfaces/decoded-token.interface';
+import logger from '../../../logger/logger';
 
 @Injectable()
 export class KeycloakService implements OnModuleInit {
@@ -73,7 +74,7 @@ export class KeycloakService implements OnModuleInit {
         algorithms: ['RS256'],
       }) as DecodedToken;
     } catch (error) {
-      console.error('Token verification failed:', error);
+      logger.error('Token verification failed', { error });
       throw new UnauthorizedException('Invalid token');
     }
   }

@@ -16,7 +16,14 @@
     "noImplicitAny": true,
     "strictBindCallApply": true,
     "forceConsistentCasingInFileNames": true,
-    "noFallthroughCasesInSwitch": true
+    "noFallthroughCasesInSwitch": true,
+    "paths": {
+      "@modules/*": ["src/modules/*"],
+      "@config/*": ["src/config/*"],
+      "@infrastructure/*": ["src/infrastructure/*"],
+      "@logger/*": ["src/logger/*"],
+      "@common/*": ["src/common/*"]
+    }
   },
   "exclude": [
     "./src/modules/algorithm/seed/algorithms/**",

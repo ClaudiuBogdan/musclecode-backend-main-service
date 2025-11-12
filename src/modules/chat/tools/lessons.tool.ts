@@ -24,6 +24,7 @@ import { tool } from 'langchain';
 import { ContentStatus } from '@prisma/client';
 import { LessonEntity } from 'src/modules/content/entities';
 import CallbackHandler from 'langfuse-langchain';
+import logger from '../../../logger/logger';
 
 /**
  * ------------------------------------------------------------------
@@ -156,7 +157,14 @@ ${lessonsContext}
           });
 
           // ───────────── Stream generation ─────────────
-          const stream = await (teacherAgent as unknown as { stream: (prompt: unknown, config: unknown) => AsyncIterable<{ content: string }> }).stream(createCoursePrompt, {
+          const stream = await (
+            teacherAgent as unknown as {
+              stream: (
+                prompt: unknown,
+                config: unknown,
+              ) => AsyncIterable<{ content: string }>;
+            }
+          ).stream(createCoursePrompt, {
             ...config,
             tags: ['skip_client_stream'],
             callbacks: langfuseHandler ? [langfuseHandler] : undefined,
@@ -210,7 +218,7 @@ ${lessonsContext}
 
         return JSON.stringify({ moduleId: moduleNode.id, createdLessons });
       } catch (error) {
-        console.error('Error in createLessonsTool:', error);
+        logger.error('Error in createLessonsTool', { error });
         // Rethrow or return a user-friendly error message stringified
         return JSON.stringify({
           error: `Failed to create lessons: ${error.message}`,
@@ -303,7 +311,14 @@ ${lessonContext}
         });
 
         // ───────────── Stream generation ─────────────
-        const stream = await (teacherAgent as unknown as { stream: (prompt: unknown, config: unknown) => AsyncIterable<{ content: string }> }).stream(editLessonPrompt, {
+        const stream = await (
+          teacherAgent as unknown as {
+            stream: (
+              prompt: unknown,
+              config: unknown,
+            ) => AsyncIterable<{ content: string }>;
+          }
+        ).stream(editLessonPrompt, {
           ...config,
           tags: ['skip_client_stream'],
           callbacks: langfuseHandler ? [langfuseHandler] : undefined,
@@ -337,7 +352,7 @@ ${lessonContext}
 
         return JSON.stringify({ lessonId, updatedLesson });
       } catch (error) {
-        console.error('Error in editLessonTool:', error);
+        logger.error('Error in editLessonTool', { error });
         // Rethrow or return a user-friendly error message stringified
         return JSON.stringify({
           error: `Failed to edit lesson: ${error.message}`,

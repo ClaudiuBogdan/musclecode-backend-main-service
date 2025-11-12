@@ -20,7 +20,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
           cache: 'yarn'
 
       - name: Install Dependencies
@@ -28,6 +28,9 @@ jobs:
 
       - name: Run Linting
         run: yarn lint
+
+      - name: Run Type Checking
+        run: yarn typecheck
 
       - name: Run Tests with Coverage
         run: yarn test:cov

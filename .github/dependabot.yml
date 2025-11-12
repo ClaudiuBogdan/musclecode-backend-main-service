@@ -1,0 +1,46 @@
+version: 2
+updates:
+  # Enable version updates for npm
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+      timezone: "Europe/Bucharest"
+    open-pull-requests-limit: 10
+    groups:
+      # Group LangChain packages together
+      langchain:
+        patterns:
+          - "@langchain/*"
+          - "langchain"
+      # Group OpenTelemetry packages together
+      opentelemetry:
+        patterns:
+          - "@opentelemetry/*"
+      # Group NestJS packages together
+      nestjs:
+        patterns:
+          - "@nestjs/*"
+      # Group TypeScript ESLint packages together
+      typescript-eslint:
+        patterns:
+          - "@typescript-eslint/*"
+    # Automatically merge patch and minor updates for dev dependencies
+    reviewers:
+      - "musclecode-team"
+    labels:
+      - "dependencies"
+      - "automated"
+
+  # Enable version updates for GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "ci"
+      - "dependencies"

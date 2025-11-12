@@ -8,6 +8,7 @@ import { AuthService } from '../services/auth.service';
 import { KeycloakService } from '../services/keycloak.service';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator';
 import { Reflector } from '@nestjs/core';
+import logger from '../../../logger/logger';
 
 @Injectable()
 export class AuthGuard implements CanActivate {
@@ -49,7 +50,7 @@ export class AuthGuard implements CanActivate {
       request.user = user;
       return true;
     } catch (error: unknown) {
-      console.error('Authentication failed:', error);
+      logger.error('Authentication failed', { error });
       throw new UnauthorizedException('Invalid token');
     }
   }

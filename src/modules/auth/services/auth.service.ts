@@ -1,6 +1,7 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { UserContext } from '../interfaces/user-context.interface';
 import { KeycloakService } from './keycloak.service';
+import logger from '../../../logger/logger';
 
 @Injectable()
 export class AuthService {
@@ -26,7 +27,7 @@ export class AuthService {
         roles: userInfo.realm_access?.roles || [],
       };
     } catch (error: unknown) {
-      console.error('User validation failed:', error);
+      logger.error('User validation failed', { error });
       throw new UnauthorizedException('Invalid user credentials');
     }
   }

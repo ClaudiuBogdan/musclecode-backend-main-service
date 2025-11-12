@@ -8,6 +8,7 @@ import {
 import { SchedulerService } from '../../../modules/scheduler/services/scheduler.service';
 import { Rating } from 'src/modules/scheduler/types/scheduler.types';
 import { InputJsonValue } from '@prisma/client/runtime/library';
+import logger from '../../../logger/logger';
 
 @Injectable()
 export class OnboardingRepository {
@@ -99,11 +100,10 @@ export class OnboardingRepository {
     // Store selected collections separately if needed
     if (goals.selectedCollections && goals.selectedCollections.length > 0) {
       // We'll store this information in the user's metadata or session
-      // For now, we'll just log it
-      console.log(
-        `User ${userId} selected collections:`,
-        goals.selectedCollections,
-      );
+      logger.info('User selected collections', {
+        userId,
+        collections: goals.selectedCollections,
+      });
     }
 
     return savedGoals;
@@ -132,7 +132,7 @@ export class OnboardingRepository {
       `;
       return result as unknown[];
     } catch (error) {
-      console.error('Error fetching quiz questions:', error);
+      logger.error('Error fetching quiz questions', { error, level });
       return [];
     }
   }
@@ -145,7 +145,7 @@ export class OnboardingRepository {
       `;
       return (result as Array<{ maxLevel?: number }>)[0]?.maxLevel || 0;
     } catch (error) {
-      console.error('Error getting max quiz level:', error);
+      logger.error('Error getting max quiz level', { error });
       return 0;
     }
   }

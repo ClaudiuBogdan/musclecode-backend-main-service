@@ -12,9 +12,18 @@ async function bootstrap() {
     });
     logger.setContext('NestFactory');
 
-    // Allow all CORS requests for now
-    // FIXME: Remove this in production and configure proper CORS
-    app.enableCors(); // TODO: Remove this in production and configure proper CORS
+    // Configure CORS with proper restrictions
+    const allowedOrigins = process.env.ALLOWED_ORIGINS
+      ? process.env.ALLOWED_ORIGINS.split(',')
+      : ['http://localhost:3000', 'http://localhost:5173'];
+
+    app.enableCors({
+      origin: allowedOrigins,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+      credentials: true,
+      maxAge: 3600,
+    });
 
     // Enable graceful shutdown
     const signals = ['SIGTERM', 'SIGINT', 'SIGUSR2']; // SIGUSR2 is used by nodemon for restart
