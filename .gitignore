@@ -66,3 +66,6 @@ prisma/dev.db-journal
 # Kubernetes base vars
 k8s/base/vars.env
 src/modules/algorithm/seed/algorithm_data.txt
+
+# SonarQube
+.scannerwork
