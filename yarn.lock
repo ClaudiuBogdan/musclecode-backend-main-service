@@ -2400,10 +2400,10 @@
   dependencies:
     "@prisma/debug" "6.18.0"
 
-"@prisma/instrumentation@^6.18.0":
-  version "6.18.0"
-  resolved "https://registry.yarnpkg.com/@prisma/instrumentation/-/instrumentation-6.18.0.tgz#fedf5f81a7e5e2755325035d1c373a53b5233968"
-  integrity sha512-WxyTUjlKKmxV49+UzROi5NR6ZW8zLNyOYaYRL6ACy93wyGyjIjS+ot9TLOssCQYVziU9/IAyjw8QBs4M9Mz/yA==
+"@prisma/instrumentation@^6.19.0":
+  version "6.19.0"
+  resolved "https://registry.yarnpkg.com/@prisma/instrumentation/-/instrumentation-6.19.0.tgz#46d15adc8bc4a5a3167032eea6d0a7aa64fb7d93"
+  integrity sha512-QcuYy25pkXM8BJ37wVFBO7Zh34nyRV1GOb2n3lPkkbRYfl4hWl3PTcImP41P0KrzVXfa/45p6eVCos27x3exIg==
   dependencies:
     "@opentelemetry/instrumentation" ">=0.52.0 <1"
 
