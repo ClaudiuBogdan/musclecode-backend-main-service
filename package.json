@@ -55,7 +55,7 @@
     "@opentelemetry/sdk-node": "^0.207.0",
     "@opentelemetry/sdk-trace-base": "^2.2.0",
     "@opentelemetry/semantic-conventions": "^1.37.0",
-    "@prisma/client": "6.18.0",
+    "@prisma/client": "6.19.0",
     "@prisma/instrumentation": "^6.19.0",
     "@tavily/core": "^0.5.12",
     "@types/jsonwebtoken": "^9.0.10",
