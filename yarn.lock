@@ -1317,15 +1317,15 @@
   resolved "https://registry.yarnpkg.com/@keyv/serialize/-/serialize-1.1.1.tgz#0c01dd3a3483882af7cf3878d4e71d505c81fc4a"
   integrity sha512-dXn3FZhPv0US+7dtJsIi2R+c7qWYiReoEh5zUntWCf4oSpMNib8FDhSoed6m3QyZdx5hK7iLFkYk3rNxwt8vTA==
 
-"@langchain/classic@1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@langchain/classic/-/classic-1.0.2.tgz#19dd70b47b9ab23603c76dc9acceb52829756fd2"
-  integrity sha512-ElPSuZy8Flgrml13hKKCjUFIESbxeQTgOx63M57btNjVsqW75uE+tYJG0wD16f6rxY1spgZlqm8831clNy5JOg==
+"@langchain/classic@1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@langchain/classic/-/classic-1.0.4.tgz#2bb72482774b1ed2d9666045fecfb7743f1e438d"
+  integrity sha512-Jxu75fsOPcwgDTPnnn8+XT5oCl9NxXUHs0zSw//WdovfHvnDCYp+gqAVE5JxigCroNmK0lqDsHqZFoG/gczTKg==
   dependencies:
-    "@langchain/openai" "1.1.0"
+    "@langchain/openai" "1.1.2"
     "@langchain/textsplitters" "1.0.0"
     handlebars "^4.7.8"
-    js-yaml "^4.1.0"
+    js-yaml "^4.1.1"
     jsonpointer "^5.0.1"
     openapi-types "^12.1.3"
     p-retry "4"
@@ -1335,24 +1335,24 @@
   optionalDependencies:
     langsmith "^0.3.64"
 
-"@langchain/community@^1.0.2":
-  version "1.0.2"
-  resolved "https://registry.yarnpkg.com/@langchain/community/-/community-1.0.2.tgz#45195977d6de4d23a1294a6742bab650e8480287"
-  integrity sha512-SylMcKUk+Jc3DGKI3s8f4qtdqCv+mYBSdcRcuhLcT4EDx/oJUm9H9mMWQEnssRR/mbC5oQn3QJvJ8l/VbUbZmg==
+"@langchain/community@^1.0.4":
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/@langchain/community/-/community-1.0.4.tgz#6ff8a3698ea048bbb84c6fb00f9ac7058cfeefcc"
+  integrity sha512-T3wOexFYS6PjhnNA67u97adDWYQETxkqu+kmR3EBhKAkH4ma+s2iMI6HbbNicgHORBlT3lT3nwi5G6MiszraZA==
   dependencies:
-    "@langchain/classic" "1.0.2"
-    "@langchain/openai" "1.1.0"
+    "@langchain/classic" "1.0.4"
+    "@langchain/openai" "1.1.2"
     binary-extensions "^2.2.0"
     flat "^5.0.2"
-    js-yaml "^4.1.0"
+    js-yaml "^4.1.1"
     math-expression-evaluator "^2.0.0"
     uuid "^10.0.0"
     zod "^3.25.76 || ^4"
 
-"@langchain/core@^1.0.4":
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/@langchain/core/-/core-1.0.4.tgz#ae8a2faca60da4e1358f9d4ed6f296b45ec876c1"
-  integrity sha512-zrTM4sVls18KfR6h/R7ErJUY4eeZa3Mr9s+Y6upXc2MevlYo7jfZZabs4Kv/R9fTdRFEJPwSsY1HTw5pokPrLg==
+"@langchain/core@^1.0.6":
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/@langchain/core/-/core-1.0.6.tgz#4daeb1a8ae80774607ff2af9e0dea21e9792ba57"
+  integrity sha512-rDSjXATujCdJlL+OJFfyZhEca8kLmqGr4W2ebJvSHiUgXEDqu/IOWC+ZWgoKKHkGOGFdVTqQ7Qi0j2RnYS9Qlg==
   dependencies:
     "@cfworker/json-schema" "^4.0.2"
     ansi-styles "^5.0.0"
@@ -1366,10 +1366,10 @@
     uuid "^10.0.0"
     zod "^3.25.76 || ^4"
 
-"@langchain/google-genai@^1.0.0":
-  version "1.0.0"
-  resolved "https://registry.yarnpkg.com/@langchain/google-genai/-/google-genai-1.0.0.tgz#2785fa163788cb6214dffc1dc29fcd5bbb751493"
-  integrity sha512-ICUBZl/46nG6+Yhe5v7kp/2TQBGOzqEkpfKPLDeNyJ4x9OOL46xsW3ZZrHJjhGMQuR6/JMmQMTU9kLoYgsd1Tg==
+"@langchain/google-genai@^1.0.3":
+  version "1.0.3"
+  resolved "https://registry.yarnpkg.com/@langchain/google-genai/-/google-genai-1.0.3.tgz#ea0bc15fd46a01e9b68dabdc5aba042b9f1026ae"
+  integrity sha512-ZN3f6SPFZI3FMjJ1C0y5A/lWlZ/x+A9RoIKg1PNYdX6bEu7/BR7oz0dYYI2+YGl3TRp1u75e3SzzL0MxmfWfDA==
   dependencies:
     "@google/generative-ai" "^0.24.0"
     uuid "^11.1.0"
@@ -1406,13 +1406,13 @@
     "@langchain/langgraph-sdk" "~1.0.0"
     uuid "^10.0.0"
 
-"@langchain/openai@1.1.0", "@langchain/openai@^1.0.0":
-  version "1.1.0"
-  resolved "https://registry.yarnpkg.com/@langchain/openai/-/openai-1.1.0.tgz#3996f87af2342e4e99a1d5fc8ae733040f2d0bc2"
-  integrity sha512-GUUnt0VBKeCB+WwPxDamYt5EZfe4NXCzJC7x9OFAlt1C60/rSBbAGJokSL0VWz4oXxQwkqSvR8xA54FBvGgxQw==
+"@langchain/openai@1.1.2", "@langchain/openai@^1.0.0":
+  version "1.1.2"
+  resolved "https://registry.yarnpkg.com/@langchain/openai/-/openai-1.1.2.tgz#a1d143b02f53773d88717e05e7e7a4a6dc525166"
+  integrity sha512-o642toyaRfx7Cej10jK6eK561gkIGTCQrN42fqAU9OhmTBkUflmRNKhqbcHj/RU+NOJfFM//hgwNU2gHespEkw==
   dependencies:
     js-tiktoken "^1.0.12"
-    openai "^6.3.0"
+    openai "^6.9.0"
     zod "^3.25.76 || ^4"
 
 "@langchain/textsplitters@1.0.0":
@@ -5709,7 +5709,7 @@ js-tokens@^4.0.0:
   resolved "https://registry.yarnpkg.com/js-tokens/-/js-tokens-4.0.0.tgz#19203fb59991df98e3a287050d4647cdeaf32499"
   integrity sha512-RdJUflcE3cUzKiMqQgsCu06FPu9UdIJO0beYbPhHN4k6apgJtifcoCtT9bcxOpYBtpD2kCM6Sbzg4CausW/PKQ==
 
-js-yaml@4.1.0, js-yaml@^4.1.0:
+js-yaml@4.1.0:
   version "4.1.0"
   resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.1.0.tgz#c1fb65f8f5017901cdd2c951864ba18458a10602"
   integrity sha512-wpxZs9NoxZaJESJGIZTyDEaYpl0FKSA+FB9aJiyemKhMwkxQg63h4T1KJgUGHpTqPDNRcmmYLugrRjJlBtWvRA==
@@ -5723,6 +5723,13 @@ js-yaml@^3.13.1:
   dependencies:
     argparse "^1.0.7"
     esprima "^4.0.0"
+
+js-yaml@^4.1.0, js-yaml@^4.1.1:
+  version "4.1.1"
+  resolved "https://registry.yarnpkg.com/js-yaml/-/js-yaml-4.1.1.tgz#854c292467705b699476e1a2decc0c8a3458806b"
+  integrity sha512-qQKT4zQxXl8lLwBtHMWwaTcGfFOZviOJet3Oy/xmGk2gZH677CJM9EvtfdSkgWcATZhj/55JZ0rmy3myCT5lsA==
+  dependencies:
+    argparse "^2.0.1"
 
 jsesc@^3.0.2:
   version "3.1.0"
@@ -5847,10 +5854,10 @@ kuler@^2.0.0:
   resolved "https://registry.yarnpkg.com/kuler/-/kuler-2.0.0.tgz#e2c570a3800388fb44407e851531c1d670b061b3"
   integrity sha512-Xq9nH7KlWZmXAtodXDDRE7vs6DU1gTU8zYDHDiWLSip45Egwq3plLHzPn27NgvzL2r1LMPC1vdqh98sQxtqj4A==
 
-langchain@^1.0.4:
-  version "1.0.4"
-  resolved "https://registry.yarnpkg.com/langchain/-/langchain-1.0.4.tgz#c4fa22d927f41d56c356ecfccea5c08ae7b682ef"
-  integrity sha512-g7z2kKvnXOecybbVGHfI2ZmdmP309mxC1FYlq6WC/7RsKgX5MwY9gBjwK16mpKOaozOD9QCo1Ia7o2UcUBRb9Q==
+langchain@^1.0.6:
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/langchain/-/langchain-1.0.6.tgz#dd4403adbc98d5cb8296bb8c7693f079764ad0be"
+  integrity sha512-JbxsTtWHiymV08H8jHISUj6dwbfB6/AaqsmJj0WKELkUCCCk64JfKEMmw56RSVjUkkvtwh+1Df+/+UpU7yRtlg==
   dependencies:
     "@langchain/langgraph" "^1.0.0"
     "@langchain/langgraph-checkpoint" "^1.0.0"
@@ -6457,10 +6464,15 @@ onetime@^7.0.0:
   dependencies:
     mimic-function "^5.0.0"
 
-openai@^6.3.0, openai@^6.8.1:
+openai@^6.8.1:
   version "6.8.1"
   resolved "https://registry.yarnpkg.com/openai/-/openai-6.8.1.tgz#72610890aa6f67b3473c7be2e2d6ff25ebb9846a"
   integrity sha512-ACifslrVgf+maMz9vqwMP4+v9qvx5Yzssydizks8n+YUJ6YwUoxj51sKRQ8HYMfR6wgKLSIlaI108ZwCk+8yig==
+
+openai@^6.9.0:
+  version "6.9.1"
+  resolved "https://registry.yarnpkg.com/openai/-/openai-6.9.1.tgz#a591118d79d14ac01870d29efe869743e9b64167"
+  integrity sha512-vQ5Rlt0ZgB3/BNmTa7bIijYFhz3YBceAA3Z4JuoMSBftBF9YqFHIEhZakSs+O/Ad7EaoEimZvHxD5ylRjN11Lg==
 
 openapi-types@^12.1.3:
   version "12.1.3"
