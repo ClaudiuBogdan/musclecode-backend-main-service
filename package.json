@@ -34,10 +34,10 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@langchain/community": "^1.0.2",
-    "@langchain/core": "^1.0.4",
-    "@langchain/google-genai": "^1.0.0",
-    "@langchain/langgraph": "^1.0.2",
+    "@langchain/community": "^1.0.7",
+    "@langchain/core": "^1.1.4",
+    "@langchain/google-genai": "^2.0.4",
+    "@langchain/langgraph": "^1.0.4",
     "@langchain/langgraph-checkpoint-postgres": "^1.0.0",
     "@langchain/openai": "^1.0.0",
     "@nestjs/cache-manager": "^3.0.1",
@@ -69,7 +69,7 @@
     "date-fns": "^4.1.0",
     "gray-matter": "^4.0.3",
     "jsonwebtoken": "^9.0.2",
-    "langchain": "^1.0.4",
+    "langchain": "^1.1.5",
     "langfuse-langchain": "^3.38.6",
     "node-fetch": "3.3.2",
     "openai": "^6.8.1",
